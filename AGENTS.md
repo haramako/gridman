@@ -3,6 +3,10 @@
 ゲーム開発時のデータ（敵・アイテム・スキルなど）をExcelの代替として管理するWebアプリ。
 JSONL形式でローカルファイルに保存し、gitで差分管理できることが特徴。
 
+## Note
+
+- human_memo.md は、人間向けのメモです。AI Agentは内容を読む必要はありません。
+
 ## Directory Structure
 
 ```
