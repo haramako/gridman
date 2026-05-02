@@ -150,5 +150,13 @@ npx shadcn@latest add <component>
 - ブランチ名は、`agents/some-feature-description` のように `agents/` を先頭につける
 - コミットメッセージの先頭に `[AI]` を付ける
 - 例: `[AI] StyleParserのEOFハンドリング修正`
-- Phase 1 の作業は `main` ブランチで直接行う
+- Phase 1 の作業は `main` ブランチで直接行う（後述の Multica 制御下のときはその限りではない）
 - 大きな機能追加（Phase 2 以降）はブランチを切ること
+
+## Multica Rules
+
+Multica(AI Agent管理ツール)の制御下では、以下の処理を行うこと。
+
+- コミットするようなタスクをおこなった場合は、そのコミットを gh コマンドでPull Requestを作成する
+  - Pull Request のタイトル、説明は日本語を使用すること
+  - Pull Request は Ready for Review の状態にすること

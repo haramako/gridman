@@ -1,0 +1,9 @@
+{
+  "name": "item",
+  "displayName": "アイテム",
+  "columns": [
+    { "key": "name", "displayName": "名前", "type": "string", "validation": { "required": true }, "isDisplayName": true },
+    { "key": "itemType", "displayName": "種別", "type": "enum", "enumValues": ["consumable", "weapon", "armor", "accessory"] },
+    { "key": "value", "displayName": "価値", "type": "integer", "validation": { "min": 0 } }
+  ]
+}

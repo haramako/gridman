@@ -1,0 +1,3 @@
+{"_id":"x1y2z3","name":"回復ポーション","itemType":"consumable","value":50,"_order":1000}
+{"_id":"a4b5c6","name":"竜の牙","itemType":"accessory","value":1500,"_order":2000}
+{"_id":"m7n8o9","name":"鉄の剣","itemType":"weapon","value":200,"_order":3000}

@@ -1,0 +1,4 @@
+{"_id":"a1b2c3","name":"スライム","hp":10,"attack":3,"element":"water","dropItemId":"x1y2z3","_order":1000}
+{"_id":"d4e5f6","name":"ゴブリン","hp":20,"attack":8,"element":"water","dropItemId":null,"_order":2000}
+{"_id":"g7h8i9","name":"ドラゴン","hp":500,"attack":80,"element":"wind","dropItemId":"a4b5c6","_order":3000}
+{"_id":"j1k2l3","name":"オーク","hp":40,"attack":15,"element":"none","dropItemId":null,"_order":4000}
