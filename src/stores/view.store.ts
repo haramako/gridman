@@ -1,18 +1,17 @@
 import { create } from 'zustand'
-import type { ViewDefinition } from '@/types/view'
 
 interface ViewState {
-  activeView: ViewDefinition | null
+  activeViewId: string | null
   filter: string
 
-  setActiveView: (view: ViewDefinition) => void
+  setActiveViewId: (id: string | null) => void
   setFilter: (filter: string) => void
 }
 
 export const useViewStore = create<ViewState>((set) => ({
-  activeView: null,
+  activeViewId: null,
   filter: '',
 
-  setActiveView: (view) => set({ activeView: view }),
+  setActiveViewId: (id) => set({ activeViewId: id }),
   setFilter: (filter) => set({ filter }),
 }))

@@ -4,17 +4,24 @@ import { useViewStore } from '@/stores/view.store'
 import SpreadsheetGrid from './SpreadsheetGrid'
 import type { TableSchema } from '@/types/schema'
 import type { Row } from '@/types/row'
+import type { FilterViewQuery, ViewDefinition } from '@/types/view'
 
 interface Props {
   tableName: string
   schema: TableSchema
   rows: Map<string, Row>
+  activeView?: ViewDefinition
+  onEditView?: () => void
 }
 
-export default function SpreadsheetView({ tableName, schema, rows }: Props) {
+export default function SpreadsheetView({ tableName, schema, rows, activeView, onEditView }: Props) {
   const { addRow, deleteRow } = useProjectStore()
-  const { filter, setFilter } = useViewStore()
+  const { filter, setFilter, setActiveViewId } = useViewStore()
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
+
+  const viewQuery = activeView?.query.type === 'filter'
+    ? (activeView.query as FilterViewQuery)
+    : undefined
 
   return (
     <div className="flex flex-col h-full">
@@ -26,6 +33,25 @@ export default function SpreadsheetView({ tableName, schema, rows }: Props) {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
+        {activeView && (
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
+            <span>🔍 {activeView.name}</span>
+            <button
+              className="ml-1 hover:text-blue-900"
+              title="ビューを編集"
+              onClick={onEditView}
+            >
+              ✏️
+            </button>
+            <button
+              className="ml-0.5 hover:text-blue-900"
+              title="ビューを閉じる"
+              onClick={() => setActiveViewId(null)}
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="flex-1" />
         <button
           className="px-3 py-1 rounded border text-sm hover:bg-accent"
@@ -57,6 +83,7 @@ export default function SpreadsheetView({ tableName, schema, rows }: Props) {
         schema={schema}
         rows={rows}
         filter={filter}
+        sortDefs={viewQuery?.sort}
         selectedRowId={selectedRowId}
         onSelectRow={setSelectedRowId}
       />
