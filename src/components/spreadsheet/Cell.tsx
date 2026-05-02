@@ -198,7 +198,7 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
   return (
     <td
       className={cn(
-        'border-b border-r px-2 py-0.5 whitespace-nowrap cursor-default select-none min-w-[120px] max-w-[300px] truncate',
+        'border-b border-r px-2 py-0.5 whitespace-nowrap cursor-default select-none overflow-hidden truncate',
         isDirty && !isInvalid && 'bg-yellow-50',
         isInvalid && 'ring-1 ring-inset ring-red-400 bg-red-50',
         isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400'

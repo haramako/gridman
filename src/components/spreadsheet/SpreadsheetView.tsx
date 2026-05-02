@@ -52,6 +52,7 @@ export default function SpreadsheetView({ tableName, schema, rows }: Props) {
 
       {/* Grid */}
       <SpreadsheetGrid
+        key={tableName}
         tableName={tableName}
         schema={schema}
         rows={rows}
