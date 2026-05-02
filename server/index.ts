@@ -114,8 +114,15 @@ app.get('/api/schemas/:name', async (c) => {
   }
 })
 
-app.use('/assets/*', serveStatic({ root: './dist' }))
-app.get('*', serveStatic({ path: './dist/index.html' }))
+app.use('*', serveStatic({ root: './dist' }))
+app.get('*', async (c) => {
+  try {
+    const html = await readFile(join(process.cwd(), 'dist', 'index.html'), 'utf-8')
+    return c.html(html)
+  } catch {
+    return c.text('SPA not built. Run `npm run build` first.', 503)
+  }
+})
 
 const PORT = Number(process.env.PORT ?? 8080)
 serve({ fetch: app.fetch, port: PORT }, (info) => {
