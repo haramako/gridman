@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "server": "tsx watch server/index.ts",
     "lint": "biome check src server",
-    "sample:reset": "node scripts/reset-sample.js"
+    "sample:reset": "node scripts/reset-sample.js",
+    "dummy:gen": "node scripts/gen-dummy.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.2",
