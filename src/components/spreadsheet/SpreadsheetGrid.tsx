@@ -1,8 +1,10 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { useProjectStore } from '@/stores/project.store'
+import { applySort } from '@/domain/filter'
 import DataRow from './DataRow'
 import type { TableSchema } from '@/types/schema'
 import type { Row } from '@/types/row'
+import type { SortDef } from '@/types/view'
 
 const TYPE_ICON: Record<string, string> = {
   string: '🔤',
@@ -40,6 +42,7 @@ interface Props {
   schema: TableSchema
   rows: Map<string, Row>
   filter: string
+  sortDefs?: SortDef[]
   selectedRowId: string | null
   onSelectRow: (id: string | null) => void
 }
@@ -49,6 +52,7 @@ export default function SpreadsheetGrid({
   schema,
   rows,
   filter,
+  sortDefs,
   selectedRowId,
   onSelectRow,
 }: Props) {
@@ -118,10 +122,11 @@ export default function SpreadsheetGrid({
 
   const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0)
 
-  const sortedRows = useMemo(
-    () => [...rows.values()].sort((a, b) => (a._order as number) - (b._order as number)),
-    [rows]
-  )
+  const sortedRows = useMemo(() => {
+    const arr = [...rows.values()]
+    if (sortDefs && sortDefs.length > 0) return applySort(arr, sortDefs)
+    return arr.sort((a, b) => (a._order as number) - (b._order as number))
+  }, [rows, sortDefs])
 
   const filteredRows = useMemo(() => {
     if (!filter.trim()) return sortedRows
