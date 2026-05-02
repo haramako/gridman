@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from 'react'
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { useProjectStore } from '@/stores/project.store'
 import DataRow from './DataRow'
 import type { TableSchema } from '@/types/schema'
@@ -30,8 +30,10 @@ const DEFAULT_COL_WIDTH: Record<string, number> = {
   string: 150,
 }
 
+const ROW_HEIGHT = 28
 const ROW_NUM_WIDTH = 40
 const MIN_COL_WIDTH = 40
+const OVERSCAN = 5
 
 interface Props {
   tableName: string
@@ -99,11 +101,25 @@ export default function SpreadsheetGrid({
     [colWidths]
   )
 
+  // Virtual scroll
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(600)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setContainerHeight(entry.contentRect.height)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0)
 
   const sortedRows = useMemo(
-    () =>
-      [...rows.values()].sort((a, b) => (a._order as number) - (b._order as number)),
+    () => [...rows.values()].sort((a, b) => (a._order as number) - (b._order as number)),
     [rows]
   )
 
@@ -115,8 +131,21 @@ export default function SpreadsheetGrid({
     )
   }, [sortedRows, filter])
 
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN)
+  const endIndex = Math.min(
+    filteredRows.length - 1,
+    Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN
+  )
+  const visibleRows = filteredRows.slice(startIndex, endIndex + 1)
+  const topPad = startIndex * ROW_HEIGHT
+  const bottomPad = Math.max(0, (filteredRows.length - 1 - endIndex) * ROW_HEIGHT)
+
   return (
-    <div className="flex-1 overflow-auto">
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-auto"
+      onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+    >
       <table
         className="border-collapse text-sm"
         style={{ tableLayout: 'fixed', width: totalWidth }}
@@ -148,24 +177,30 @@ export default function SpreadsheetGrid({
           </tr>
         </thead>
         <tbody>
-          {filteredRows.map((row, i) => (
-            <DataRow
-              key={row._id as string}
-              row={row}
-              rowIndex={i + 1}
-              tableName={tableName}
-              schema={schema}
-              schemas={schemas}
-              tables={tables}
-              isSelected={selectedRowId === (row._id as string)}
-              onSelect={() =>
-                onSelectRow(
-                  selectedRowId === (row._id as string) ? null : (row._id as string)
-                )
-              }
-            />
-          ))}
-          {filteredRows.length === 0 && (
+          {topPad > 0 && (
+            <tr style={{ height: topPad }}>
+              <td colSpan={schema.columns.length + 1} />
+            </tr>
+          )}
+          {visibleRows.length > 0 ? (
+            visibleRows.map((row, i) => (
+              <DataRow
+                key={row._id as string}
+                row={row}
+                rowIndex={startIndex + i + 1}
+                tableName={tableName}
+                schema={schema}
+                schemas={schemas}
+                tables={tables}
+                isSelected={selectedRowId === (row._id as string)}
+                onSelect={() =>
+                  onSelectRow(
+                    selectedRowId === (row._id as string) ? null : (row._id as string)
+                  )
+                }
+              />
+            ))
+          ) : (
             <tr>
               <td
                 colSpan={schema.columns.length + 1}
@@ -173,6 +208,11 @@ export default function SpreadsheetGrid({
               >
                 {filter ? 'フィルター結果なし' : '行がありません'}
               </td>
+            </tr>
+          )}
+          {bottomPad > 0 && (
+            <tr style={{ height: bottomPad }}>
+              <td colSpan={schema.columns.length + 1} />
             </tr>
           )}
         </tbody>
