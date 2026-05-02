@@ -62,6 +62,20 @@ export default function SpreadsheetGrid({
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
   )
 
+  const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
+    col: null,
+    dir: 'asc',
+  })
+
+  const handleHeaderClick = useCallback((colKey: string) => {
+    setSort((prev) => {
+      if (prev.col === colKey) {
+        return { col: colKey, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+      }
+      return { col: colKey, dir: 'asc' }
+    })
+  }, [])
+
   const dragState = useRef<{
     colIndex: number
     startX: number
@@ -136,14 +150,32 @@ export default function SpreadsheetGrid({
     )
   }, [sortedRows, filter])
 
+  const displayRows = useMemo(() => {
+    if (!sort.col) return filteredRows
+    return [...filteredRows].sort((a, b) => {
+      const av = a[sort.col!]
+      const bv = b[sort.col!]
+      if (av == null && bv == null) return 0
+      if (av == null) return 1
+      if (bv == null) return -1
+      let cmp: number
+      if (typeof av === 'number' && typeof bv === 'number') {
+        cmp = av - bv
+      } else {
+        cmp = String(av).localeCompare(String(bv), undefined, { numeric: true })
+      }
+      return sort.dir === 'asc' ? cmp : -cmp
+    })
+  }, [filteredRows, sort])
+
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN)
   const endIndex = Math.min(
-    filteredRows.length - 1,
+    displayRows.length - 1,
     Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN
   )
-  const visibleRows = filteredRows.slice(startIndex, endIndex + 1)
+  const visibleRows = displayRows.slice(startIndex, endIndex + 1)
   const topPad = startIndex * ROW_HEIGHT
-  const bottomPad = Math.max(0, (filteredRows.length - 1 - endIndex) * ROW_HEIGHT)
+  const bottomPad = Math.max(0, (displayRows.length - 1 - endIndex) * ROW_HEIGHT)
 
   return (
     <div
@@ -169,13 +201,20 @@ export default function SpreadsheetGrid({
             {schema.columns.map((col, i) => (
               <th
                 key={col.key}
-                className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative"
+                className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative cursor-pointer hover:bg-accent/50"
+                onClick={() => handleHeaderClick(col.key)}
               >
                 <span className="mr-1 opacity-60">{TYPE_ICON[col.type] ?? ''}</span>
                 <span className="truncate">{col.displayName}</span>
+                {sort.col === col.key && (
+                  <span className="ml-1 opacity-80">{sort.dir === 'asc' ? '↑' : '↓'}</span>
+                )}
                 <div
                   className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400 hover:opacity-60"
-                  onMouseDown={(e) => handleResizeMouseDown(e, i)}
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    handleResizeMouseDown(e, i)
+                  }}
                 />
               </th>
             ))}
