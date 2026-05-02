@@ -73,7 +73,7 @@ export class EditCellCommand implements Command {
 
   constructor(
     private readonly setter: (value: unknown) => void,
-    private readonly getter: () => unknown,
+    getter: () => unknown,
     private readonly newValue: unknown,
     description?: string
   ) {

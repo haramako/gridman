@@ -3,7 +3,7 @@ import { LocalServerAdapter } from '@/fs/local-server'
 import { coerceToType, validateCell } from '@/domain/validator'
 import type { Row } from '@/types/row'
 import type { TableSchema } from '@/types/schema'
-import type { ProjectConfig } from '@/types/view'
+import type { ProjectConfig, ViewDefinition } from '@/types/view'
 
 const adapter = new LocalServerAdapter()
 
@@ -18,6 +18,10 @@ interface ProjectState {
   loadProject: (path: string) => Promise<void>
   saveAll: () => Promise<void>
   saveTable: (name: string) => Promise<void>
+  saveProjectConfig: () => Promise<void>
+  addView: (view: ViewDefinition) => Promise<void>
+  updateView: (view: ViewDefinition) => Promise<void>
+  deleteView: (id: string) => Promise<void>
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void
   addRow: (tableName: string) => void
   deleteRow: (tableName: string, rowId: string) => void
@@ -69,6 +73,39 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       isDirty: false,
       dirtyRowIds: new Map(),
     })
+  },
+
+  saveProjectConfig: async () => {
+    const { projectPath, project } = get()
+    if (!projectPath || !project) return
+    await adapter.writeProjectConfig(projectPath, project)
+  },
+
+  addView: async (view) => {
+    const { project, saveProjectConfig } = get()
+    if (!project) return
+    const newProject = { ...project, views: [...project.views, view] }
+    set({ project: newProject })
+    await saveProjectConfig()
+  },
+
+  updateView: async (view) => {
+    const { project, saveProjectConfig } = get()
+    if (!project) return
+    const newProject = {
+      ...project,
+      views: project.views.map((v) => (v.id === view.id ? view : v)),
+    }
+    set({ project: newProject })
+    await saveProjectConfig()
+  },
+
+  deleteView: async (id) => {
+    const { project, saveProjectConfig } = get()
+    if (!project) return
+    const newProject = { ...project, views: project.views.filter((v) => v.id !== id) }
+    set({ project: newProject })
+    await saveProjectConfig()
   },
 
   saveAll: async () => {

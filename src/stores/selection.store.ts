@@ -29,7 +29,7 @@ interface SelectionState {
   clearEditInitialValue: () => void
 }
 
-export const useSelectionStore = create<SelectionState>((set, get) => ({
+export const useSelectionStore = create<SelectionState>((set, _get) => ({
   cursor: null,
   anchorCell: null,
   editingCell: null,
