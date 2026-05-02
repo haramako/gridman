@@ -5,6 +5,7 @@ import type { Row } from '@/types/row'
 interface Props {
   row: Row
   rowIndex: number
+  gridRowIndex: number
   tableName: string
   schema: TableSchema
   schemas: Map<string, TableSchema>
@@ -16,6 +17,7 @@ interface Props {
 export default function DataRow({
   row,
   rowIndex,
+  gridRowIndex,
   tableName,
   schema,
   schemas,
@@ -31,11 +33,13 @@ export default function DataRow({
       >
         {rowIndex}
       </td>
-      {schema.columns.map((col) => (
+      {schema.columns.map((col, colIndex) => (
         <Cell
           key={col.key}
           row={row}
           col={col}
+          colIndex={colIndex}
+          gridRowIndex={gridRowIndex}
           tableName={tableName}
           schemas={schemas}
           tables={tables}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useProjectStore } from '@/stores/project.store'
 import { useSelectionStore } from '@/stores/selection.store'
+import { useGridContext } from './SpreadsheetGrid'
 import { validateCell, coerceToType } from '@/domain/validator'
 import { cn } from '@/lib/utils'
 import type { ColumnDef } from '@/types/schema'
@@ -10,6 +11,8 @@ import type { Row } from '@/types/row'
 interface Props {
   row: Row
   col: ColumnDef
+  colIndex: number
+  gridRowIndex: number
   tableName: string
   schemas: Map<string, TableSchema>
   tables: Map<string, Map<string, Row>>
@@ -41,9 +44,11 @@ function getDisplayValue(
   return rawValue != null ? String(rawValue) : ''
 }
 
-export default function Cell({ row, col, tableName, schemas, tables }: Props) {
-  const { cursor, editingCell, setCursor, setEditing } = useSelectionStore()
+export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables }: Props) {
+  const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue } =
+    useSelectionStore()
   const { updateCell, dirtyRowIds } = useProjectStore()
+  const { navigate, selectionBounds, focusContainer } = useGridContext()
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
 
   const rowId = row._id as string
@@ -51,6 +56,14 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
   const isEditing = editingCell?.rowId === rowId && editingCell?.colKey === col.key
   const isDirty = dirtyRowIds.get(tableName)?.has(rowId) ?? false
   const isInvalid = row._invalid?.[col.key] !== undefined
+
+  // Check if this cell is inside a multi-cell selection range
+  const isInRange =
+    selectionBounds !== null &&
+    gridRowIndex >= selectionBounds.minRow &&
+    gridRowIndex <= selectionBounds.maxRow &&
+    colIndex >= selectionBounds.minCol &&
+    colIndex <= selectionBounds.maxCol
 
   const displayValue = isInvalid
     ? String(row._invalid![col.key] ?? '')
@@ -64,8 +77,23 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
 
   useEffect(() => {
     if (isEditing) {
-      setEditValue(currentEditValue)
-      setTimeout(() => inputRef.current?.focus(), 0)
+      if (editInitialValue !== null) {
+        setEditValue(editInitialValue)
+        clearEditInitialValue()
+      } else {
+        setEditValue(currentEditValue)
+      }
+      setTimeout(() => {
+        const input = inputRef.current
+        if (input instanceof HTMLInputElement) {
+          input.focus()
+          // For type-to-edit the cursor ends up at end automatically;
+          // for normal edit we also put cursor at end
+          input.setSelectionRange(input.value.length, input.value.length)
+        } else {
+          input?.focus()
+        }
+      }, 0)
     }
   }, [isEditing])
 
@@ -78,7 +106,10 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
     setEditing(null)
   }
 
-  const cancelEdit = () => setEditing(null)
+  const cancelEdit = () => {
+    setEditing(null)
+    focusContainer()
+  }
 
   const startEdit = () => {
     if (col.type === 'json' || col.type === 'text') return
@@ -94,11 +125,13 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
           'border-b border-r px-2 py-0.5 cursor-pointer select-none',
           isDirty && !isInvalid && 'bg-yellow-50',
           isInvalid && 'ring-1 ring-inset ring-red-400',
+          isInRange && 'bg-blue-100',
           isSelected && 'ring-2 ring-inset ring-blue-400'
         )}
         onClick={() => {
           setCursor({ rowId, colKey: col.key, tableName })
           updateCell(tableName, rowId, col.key, !row[col.key])
+          focusContainer()
         }}
       >
         <span className="text-base leading-none">{row[col.key] ? '✓' : ''}</span>
@@ -112,9 +145,13 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
       <td
         className={cn(
           'border-b border-r px-2 py-0.5 text-muted-foreground whitespace-nowrap',
+          isInRange && 'bg-blue-100',
           isSelected && 'ring-2 ring-inset ring-blue-400'
         )}
-        onClick={() => setCursor({ rowId, colKey: col.key, tableName })}
+        onClick={() => {
+          setCursor({ rowId, colKey: col.key, tableName })
+          focusContainer()
+        }}
       >
         {displayValue}
       </td>
@@ -130,10 +167,16 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            onBlur={() => commitEdit(editValue)}
+            onBlur={() => { commitEdit(editValue); focusContainer() }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') commitEdit(editValue)
+              if (e.key === 'Enter') { commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
               if (e.key === 'Escape') cancelEdit()
+              if (e.key === 'Tab') {
+                e.preventDefault()
+                commitEdit(editValue)
+                if (e.shiftKey) navigate(rowId, col.key, 0, -1)
+                else navigate(rowId, col.key, 0, 1)
+              }
             }}
           >
             <option value="">-</option>
@@ -160,10 +203,16 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            onBlur={() => commitEdit(editValue)}
+            onBlur={() => { commitEdit(editValue); focusContainer() }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') commitEdit(editValue)
+              if (e.key === 'Enter') { commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
               if (e.key === 'Escape') cancelEdit()
+              if (e.key === 'Tab') {
+                e.preventDefault()
+                commitEdit(editValue)
+                if (e.shiftKey) navigate(rowId, col.key, 0, -1)
+                else navigate(rowId, col.key, 0, 1)
+              }
             }}
           >
             <option value="">-</option>
@@ -184,11 +233,16 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
           className="w-full px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          onBlur={() => commitEdit(editValue)}
+          onBlur={() => { commitEdit(editValue); focusContainer() }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') commitEdit(editValue)
-            if (e.key === 'Escape') cancelEdit()
-            if (e.key === 'Tab') { e.preventDefault(); commitEdit(editValue) }
+            if (e.key === 'Enter') { e.preventDefault(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
+            if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+            if (e.key === 'Tab') {
+              e.preventDefault()
+              commitEdit(editValue)
+              if (e.shiftKey) navigate(rowId, col.key, 0, -1)
+              else navigate(rowId, col.key, 0, 1)
+            }
           }}
         />
       </td>
@@ -201,15 +255,15 @@ export default function Cell({ row, col, tableName, schemas, tables }: Props) {
         'border-b border-r px-2 py-0.5 whitespace-nowrap cursor-default select-none overflow-hidden truncate',
         isDirty && !isInvalid && 'bg-yellow-50',
         isInvalid && 'ring-1 ring-inset ring-red-400 bg-red-50',
+        isInRange && !isInvalid && 'bg-blue-100',
         isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400'
       )}
       title={errorMessage ?? undefined}
-      onClick={() => setCursor({ rowId, colKey: col.key, tableName })}
-      onDoubleClick={startEdit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === 'F2') startEdit()
+      onClick={() => {
+        setCursor({ rowId, colKey: col.key, tableName })
+        focusContainer()
       }}
-      tabIndex={isSelected ? 0 : -1}
+      onDoubleClick={startEdit}
     >
       {isInvalid && <span className="mr-1 text-red-500">⚠</span>}
       {displayValue}

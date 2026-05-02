@@ -1,8 +1,10 @@
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { createContext, useContext, useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { useProjectStore } from '@/stores/project.store'
+import { useSelectionStore } from '@/stores/selection.store'
 import DataRow from './DataRow'
-import type { TableSchema } from '@/types/schema'
+import type { TableSchema, ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
+import type { SelectionBounds } from '@/stores/selection.store'
 
 const TYPE_ICON: Record<string, string> = {
   string: '🔤',
@@ -35,6 +37,32 @@ const ROW_NUM_WIDTH = 40
 const MIN_COL_WIDTH = 40
 const OVERSCAN = 5
 
+// ---------------------------------------------------------------------------
+// Grid context: shared with Cell components for navigation and selection range
+// ---------------------------------------------------------------------------
+
+type GridContextValue = {
+  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void
+  selectionBounds: SelectionBounds | null
+  focusContainer: () => void
+  filteredRows: Row[]
+  columns: ColumnDef[]
+}
+
+const GridContext = createContext<GridContextValue>({
+  navigate: () => {},
+  selectionBounds: null,
+  focusContainer: () => {},
+  filteredRows: [],
+  columns: [],
+})
+
+export const useGridContext = () => useContext(GridContext)
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 interface Props {
   tableName: string
   schema: TableSchema
@@ -52,7 +80,15 @@ export default function SpreadsheetGrid({
   selectedRowId,
   onSelectRow,
 }: Props) {
-  const { schemas, tables } = useProjectStore()
+  const { schemas, tables, updateCell } = useProjectStore()
+  const {
+    cursor,
+    anchorCell,
+    setCursor,
+    extendCursor,
+    setEditing,
+    startEditWithInput,
+  } = useSelectionStore()
 
   const [colWidths, setColWidths] = useState<number[]>(() =>
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
@@ -140,83 +176,296 @@ export default function SpreadsheetGrid({
   const topPad = startIndex * ROW_HEIGHT
   const bottomPad = Math.max(0, (filteredRows.length - 1 - endIndex) * ROW_HEIGHT)
 
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  const focusContainer = useCallback(() => {
+    containerRef.current?.focus()
+  }, [])
+
+  const navigate = useCallback(
+    (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
+      if (filteredRows.length === 0) return
+      const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId)
+      const colIdx = schema.columns.findIndex((c) => c.key === fromColKey)
+
+      const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr))
+      const newColIdx = Math.max(0, Math.min(schema.columns.length - 1, colIdx + dc))
+
+      const newRow = filteredRows[newRowIdx]
+      const newCol = schema.columns[newColIdx]
+
+      setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName })
+      setEditing(null)
+      containerRef.current?.focus()
+    },
+    [filteredRows, schema.columns, tableName, setCursor, setEditing]
+  )
+
+  // Scroll to keep cursor row visible after navigation
+  useEffect(() => {
+    if (!cursor) return
+    const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
+    if (rowIdx === -1) return
+    const el = containerRef.current
+    if (!el) return
+    const rowTop = rowIdx * ROW_HEIGHT
+    const rowBottom = rowTop + ROW_HEIGHT
+    // Account for sticky thead height (~34px)
+    const theadHeight = 34
+    const visibleTop = el.scrollTop
+    const visibleBottom = el.scrollTop + el.clientHeight - theadHeight
+    if (rowTop < visibleTop) {
+      el.scrollTop = rowTop
+    } else if (rowBottom > visibleBottom) {
+      el.scrollTop = rowBottom - (el.clientHeight - theadHeight)
+    }
+  }, [cursor, filteredRows])
+
+  // ---------------------------------------------------------------------------
+  // Grid-level keyboard handler (non-edit mode)
+  // ---------------------------------------------------------------------------
+
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const state = useSelectionStore.getState()
+      const { cursor: cur, editingCell } = state
+
+      // Let edit-mode key events be handled by the input/select in Cell
+      if (editingCell) return
+      if (!cur) return
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault()
+          if (e.shiftKey) {
+            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+            const newRowIdx = Math.max(0, rowIdx - 1)
+            extendCursor({ rowId: filteredRows[newRowIdx]._id as string, colKey: cur.colKey, tableName })
+          } else {
+            navigate(cur.rowId, cur.colKey, -1, 0)
+          }
+          break
+
+        case 'ArrowDown':
+          e.preventDefault()
+          if (e.shiftKey) {
+            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+            const newRowIdx = Math.min(filteredRows.length - 1, rowIdx + 1)
+            extendCursor({ rowId: filteredRows[newRowIdx]._id as string, colKey: cur.colKey, tableName })
+          } else {
+            navigate(cur.rowId, cur.colKey, 1, 0)
+          }
+          break
+
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (e.shiftKey) {
+            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+            const newColIdx = Math.max(0, colIdx - 1)
+            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+          } else {
+            navigate(cur.rowId, cur.colKey, 0, -1)
+          }
+          break
+
+        case 'ArrowRight':
+          e.preventDefault()
+          if (e.shiftKey) {
+            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+            const newColIdx = Math.min(schema.columns.length - 1, colIdx + 1)
+            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+          } else {
+            navigate(cur.rowId, cur.colKey, 0, 1)
+          }
+          break
+
+        case 'Home':
+          e.preventDefault()
+          if (schema.columns.length > 0) {
+            setCursor({ rowId: cur.rowId, colKey: schema.columns[0].key, tableName })
+          }
+          break
+
+        case 'End':
+          e.preventDefault()
+          if (schema.columns.length > 0) {
+            setCursor({
+              rowId: cur.rowId,
+              colKey: schema.columns[schema.columns.length - 1].key,
+              tableName,
+            })
+          }
+          break
+
+        case 'Delete':
+        case 'Backspace': {
+          e.preventDefault()
+          const colDef = schema.columns.find((c) => c.key === cur.colKey)
+          if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
+            updateCell(tableName, cur.rowId, cur.colKey, emptyVal)
+          }
+          break
+        }
+
+        case 'Enter':
+        case 'F2': {
+          e.preventDefault()
+          const colDef = schema.columns.find((c) => c.key === cur.colKey)
+          if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+            setEditing(cur)
+          }
+          break
+        }
+
+        case 'Tab': {
+          e.preventDefault()
+          if (e.shiftKey) navigate(cur.rowId, cur.colKey, 0, -1)
+          else navigate(cur.rowId, cur.colKey, 0, 1)
+          break
+        }
+
+        default:
+          // Printable characters (IME-off / single char): type-to-edit
+          if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const colDef = schema.columns.find((c) => c.key === cur.colKey)
+            if (
+              colDef &&
+              colDef.type !== 'json' &&
+              colDef.type !== 'text' &&
+              colDef.type !== 'boolean' &&
+              colDef.type !== 'ref' &&
+              colDef.type !== 'ref[]' &&
+              colDef.type !== 'enum'
+            ) {
+              startEditWithInput(cur, e.key)
+            }
+          }
+      }
+    },
+    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell]
+  )
+
+  // ---------------------------------------------------------------------------
+  // Selection bounds for range highlighting
+  // ---------------------------------------------------------------------------
+
+  const selectionBounds = useMemo<SelectionBounds | null>(() => {
+    if (!cursor || !anchorCell) return null
+    if (cursor.rowId === anchorCell.rowId && cursor.colKey === anchorCell.colKey) return null
+
+    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
+    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cursor.colKey)
+    const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+
+    if (cursorRowIdx === -1 || anchorRowIdx === -1) return null
+
+    return {
+      minRow: Math.min(cursorRowIdx, anchorRowIdx),
+      maxRow: Math.max(cursorRowIdx, anchorRowIdx),
+      minCol: Math.min(cursorColIdx, anchorColIdx),
+      maxCol: Math.max(cursorColIdx, anchorColIdx),
+    }
+  }, [cursor, anchorCell, filteredRows, schema.columns])
+
+  // ---------------------------------------------------------------------------
+  // Context value
+  // ---------------------------------------------------------------------------
+
+  const gridContextValue = useMemo<GridContextValue>(
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns }),
+    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns]
+  )
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 overflow-auto"
-      onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-    >
-      <table
-        className="border-collapse text-sm"
-        style={{ tableLayout: 'fixed', width: totalWidth }}
+    <GridContext.Provider value={gridContextValue}>
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        className="flex-1 overflow-auto outline-none"
+        onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+        onKeyDown={handleContainerKeyDown}
       >
-        <colgroup>
-          <col style={{ width: ROW_NUM_WIDTH }} />
-          {schema.columns.map((col, i) => (
-            <col key={col.key} style={{ width: colWidths[i] }} />
-          ))}
-        </colgroup>
-        <thead className="sticky top-0 z-10">
-          <tr>
-            <th className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground text-center select-none overflow-hidden">
-              #
-            </th>
+        <table
+          className="border-collapse text-sm"
+          style={{ tableLayout: 'fixed', width: totalWidth }}
+        >
+          <colgroup>
+            <col style={{ width: ROW_NUM_WIDTH }} />
             {schema.columns.map((col, i) => (
-              <th
-                key={col.key}
-                className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative"
-              >
-                <span className="mr-1 opacity-60">{TYPE_ICON[col.type] ?? ''}</span>
-                <span className="truncate">{col.displayName}</span>
-                <div
-                  className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400 hover:opacity-60"
-                  onMouseDown={(e) => handleResizeMouseDown(e, i)}
-                />
-              </th>
+              <col key={col.key} style={{ width: colWidths[i] }} />
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {topPad > 0 && (
-            <tr style={{ height: topPad }}>
-              <td colSpan={schema.columns.length + 1} />
-            </tr>
-          )}
-          {visibleRows.length > 0 ? (
-            visibleRows.map((row, i) => (
-              <DataRow
-                key={row._id as string}
-                row={row}
-                rowIndex={startIndex + i + 1}
-                tableName={tableName}
-                schema={schema}
-                schemas={schemas}
-                tables={tables}
-                isSelected={selectedRowId === (row._id as string)}
-                onSelect={() =>
-                  onSelectRow(
-                    selectedRowId === (row._id as string) ? null : (row._id as string)
-                  )
-                }
-              />
-            ))
-          ) : (
+          </colgroup>
+          <thead className="sticky top-0 z-10">
             <tr>
-              <td
-                colSpan={schema.columns.length + 1}
-                className="px-4 py-8 text-center text-muted-foreground text-sm"
-              >
-                {filter ? 'フィルター結果なし' : '行がありません'}
-              </td>
+              <th className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground text-center select-none overflow-hidden">
+                #
+              </th>
+              {schema.columns.map((col, i) => (
+                <th
+                  key={col.key}
+                  className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative"
+                >
+                  <span className="mr-1 opacity-60">{TYPE_ICON[col.type] ?? ''}</span>
+                  <span className="truncate">{col.displayName}</span>
+                  <div
+                    className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400 hover:opacity-60"
+                    onMouseDown={(e) => handleResizeMouseDown(e, i)}
+                  />
+                </th>
+              ))}
             </tr>
-          )}
-          {bottomPad > 0 && (
-            <tr style={{ height: bottomPad }}>
-              <td colSpan={schema.columns.length + 1} />
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {topPad > 0 && (
+              <tr style={{ height: topPad }}>
+                <td colSpan={schema.columns.length + 1} />
+              </tr>
+            )}
+            {visibleRows.length > 0 ? (
+              visibleRows.map((row, i) => (
+                <DataRow
+                  key={row._id as string}
+                  row={row}
+                  rowIndex={startIndex + i + 1}
+                  gridRowIndex={startIndex + i}
+                  tableName={tableName}
+                  schema={schema}
+                  schemas={schemas}
+                  tables={tables}
+                  isSelected={selectedRowId === (row._id as string)}
+                  onSelect={() =>
+                    onSelectRow(
+                      selectedRowId === (row._id as string) ? null : (row._id as string)
+                    )
+                  }
+                />
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={schema.columns.length + 1}
+                  className="px-4 py-8 text-center text-muted-foreground text-sm"
+                >
+                  {filter ? 'フィルター結果なし' : '行がありません'}
+                </td>
+              </tr>
+            )}
+            {bottomPad > 0 && (
+              <tr style={{ height: bottomPad }}>
+                <td colSpan={schema.columns.length + 1} />
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </GridContext.Provider>
   )
 }
