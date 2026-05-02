@@ -58,17 +58,17 @@ export default function SpreadsheetGrid({
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
   )
 
-  const [sortCol, setSortCol] = useState<string | null>(null)
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
+    col: null,
+    dir: 'asc',
+  })
 
   const handleHeaderClick = useCallback((colKey: string) => {
-    setSortCol((prev) => {
-      if (prev === colKey) {
-        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-        return colKey
+    setSort((prev) => {
+      if (prev.col === colKey) {
+        return { col: colKey, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
       }
-      setSortDir('asc')
-      return colKey
+      return { col: colKey, dir: 'asc' }
     })
   }, [])
 
@@ -146,10 +146,10 @@ export default function SpreadsheetGrid({
   }, [sortedRows, filter])
 
   const displayRows = useMemo(() => {
-    if (!sortCol) return filteredRows
+    if (!sort.col) return filteredRows
     return [...filteredRows].sort((a, b) => {
-      const av = a[sortCol]
-      const bv = b[sortCol]
+      const av = a[sort.col!]
+      const bv = b[sort.col!]
       if (av == null && bv == null) return 0
       if (av == null) return 1
       if (bv == null) return -1
@@ -159,9 +159,9 @@ export default function SpreadsheetGrid({
       } else {
         cmp = String(av).localeCompare(String(bv), undefined, { numeric: true })
       }
-      return sortDir === 'asc' ? cmp : -cmp
+      return sort.dir === 'asc' ? cmp : -cmp
     })
-  }, [filteredRows, sortCol, sortDir])
+  }, [filteredRows, sort])
 
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN)
   const endIndex = Math.min(
@@ -201,8 +201,8 @@ export default function SpreadsheetGrid({
               >
                 <span className="mr-1 opacity-60">{TYPE_ICON[col.type] ?? ''}</span>
                 <span className="truncate">{col.displayName}</span>
-                {sortCol === col.key && (
-                  <span className="ml-1 opacity-80">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                {sort.col === col.key && (
+                  <span className="ml-1 opacity-80">{sort.dir === 'asc' ? '↑' : '↓'}</span>
                 )}
                 <div
                   className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400 hover:opacity-60"
