@@ -9,7 +9,7 @@ export default function EditorPage() {
   const projectPath = params.get('project') ?? ''
   const tableName = params.get('table') ?? ''
 
-  const { project, schemas, tables, isDirty, loadProject, saveAll } = useProjectStore()
+  const { project, schemas, tables, isDirty, dirtyRowIds, loadProject, saveAll } = useProjectStore()
 
   useEffect(() => {
     if (!projectPath) { navigate('/'); return }
@@ -24,6 +24,13 @@ export default function EditorPage() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [saveAll])
+
+  // Update document title with * when there are unsaved changes
+  useEffect(() => {
+    const name = project?.name ?? 'Spreadsheet'
+    document.title = isDirty ? `* ${name}` : name
+    return () => { document.title = 'Spreadsheet' }
+  }, [isDirty, project?.name])
 
   if (!project) {
     return (
@@ -71,19 +78,22 @@ export default function EditorPage() {
           <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
             テーブル
           </div>
-          {project.tables.map((name) => (
-            <button
-              key={name}
-              className={`text-left px-4 py-1.5 text-sm hover:bg-accent ${
-                name === currentTable ? 'bg-accent font-medium' : ''
-              }`}
-              onClick={() =>
-                setParams({ project: projectPath, table: name })
-              }
-            >
-              {schemas.get(name)?.displayName ?? name}
-            </button>
-          ))}
+          {project.tables.map((name) => {
+            const isTableDirty = (dirtyRowIds.get(name)?.size ?? 0) > 0
+            return (
+              <button
+                key={name}
+                className={`text-left px-4 py-1.5 text-sm hover:bg-accent ${
+                  name === currentTable ? 'bg-accent font-medium' : ''
+                }`}
+                onClick={() =>
+                  setParams({ project: projectPath, table: name })
+                }
+              >
+                {isTableDirty ? '* ' : ''}{schemas.get(name)?.displayName ?? name}
+              </button>
+            )
+          })}
         </aside>
 
         {/* Main */}
