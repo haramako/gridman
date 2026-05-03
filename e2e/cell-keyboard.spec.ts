@@ -20,10 +20,13 @@ test('Enter確定後に次のセルが編集モードにならない', async ({ 
 
   // Enter で編集モードに入る
   await page.keyboard.press('Enter')
-  await expect(firstCell.locator('input')).toBeVisible()
+  const firstInput = firstCell.locator('input')
+  await expect(firstInput).toBeVisible()
+  // input が実際にフォーカスを持つまで待つ（setTimeout(0) による非同期フォーカスのため）
+  await firstInput.focus()
 
   // Enter で編集を確定 → 次の行へカーソル移動
-  await page.keyboard.press('Enter')
+  await firstInput.press('Enter')
 
   // 元のセルは編集モードを抜けている
   await expect(firstCell.locator('input')).not.toBeVisible()

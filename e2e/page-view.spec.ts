@@ -39,6 +39,6 @@ test.describe('ページビュー', () => {
     await createdPageButton.click();
 
     // ページビューが表示されることを確認（カード形式のレイアウト）
-    await expect(page.locator('text=テストページ')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'テストページ' })).toBeVisible({ timeout: 10000 });
   });
 });
