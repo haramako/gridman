@@ -236,8 +236,11 @@ export default function SpreadsheetGrid({
 
       const newRow = filteredRows[newRowIdx]
       const newCol = schema.columns[newColIdx]
+      const navSources = newRow._sources as Record<string, unknown> | undefined
+      const rowTableName =
+        (newRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
 
-      setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName })
+      setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName: rowTableName })
       setEditing(null)
       containerRef.current?.focus()
     },
@@ -423,7 +426,7 @@ export default function SpreadsheetGrid({
         case 'Home':
           e.preventDefault()
           if (schema.columns.length > 0) {
-            setCursor({ rowId: cur.rowId, colKey: schema.columns[0].key, tableName })
+            setCursor({ rowId: cur.rowId, colKey: schema.columns[0].key, tableName: cur.tableName })
           }
           break
 
@@ -433,7 +436,7 @@ export default function SpreadsheetGrid({
             setCursor({
               rowId: cur.rowId,
               colKey: schema.columns[schema.columns.length - 1].key,
-              tableName,
+              tableName: cur.tableName,
             })
           }
           break

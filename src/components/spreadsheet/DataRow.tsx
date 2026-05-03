@@ -30,7 +30,15 @@ export default function DataRow({
   onSelect,
   readOnly,
 }: Props) {
-  const effectiveTableName = (row._source as string) ?? tableName
+  const effectiveTableName = (() => {
+    if (row._source) return row._source as string
+    if (row._sources) {
+      // Lookup view: _sources maps tableName → rowId; first entry is the base table
+      const bases = Object.keys(row._sources as Record<string, unknown>)
+      if (bases.length > 0) return bases[0]
+    }
+    return tableName
+  })()
   return (
     <tr className={isSelected ? 'bg-blue-50' : 'hover:bg-muted/30'}>
       <td
