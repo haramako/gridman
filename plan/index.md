@@ -34,6 +34,9 @@
 | ページビューレイアウト | JSONテンプレート定義（GUI編集は Phase 3以降）|
 | 複数ユーザー同時編集 | 対応しない。git のコミット・マージで解決 |
 | 保存方式 | 差分保存（変更行のみ PATCH）|
+| キーボードナビゲーション | 矢印/Home/End/Tab/Delete + Shift+矢印で矩形選択 |
+| タイプ編集 | 非エディット状態で印字可能文字を押すとエディット開始（IMEオフのみ）|
+| Undo/Redo 設計 | コマンドパターン（`CommandHistory` + `EditCellCommand`）|
 
 詳細は各ドキュメントを参照:
 
@@ -55,7 +58,7 @@
 | スキーマ編集 UI | Phase 4 |
 | File System Access API 対応（サーバーなし・Chrome/Edge）| Phase 4 |
 | DB バックエンドアダプター | Phase 4以降 |
-| Undo / Redo | Phase 3 |
+| Undo / Redo（UI接続・Ctrl+Z/Y）| Phase 3（基盤は実装済み）|
 | json 型カラムの専用エディター（サイドパネル）| Phase 3 |
 | テーブル横断検索 | Phase 2 |
 | ビュー定義の GUI 編集 | Phase 2 |
