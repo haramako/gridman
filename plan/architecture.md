@@ -72,14 +72,80 @@ interface ViewStore {
 
 // 選択・カーソル状態
 interface SelectionStore {
-  cursor: Position | null
-  selection: Selection
-  editingCell: Position | null
+  cursor: CellPosition | null       // 現在のカーソル位置（フォーカスセル）
+  anchorCell: CellPosition | null   // 矩形選択の起点（Shift+矢印で拡張）
+  editingCell: CellPosition | null  // 編集中セル（null = 非エディット状態）
+  editInitialValue: string | null   // タイプ編集で最初に入力された文字
 
-  setCursor(pos: Position, shiftKey?: boolean): void
-  setEditing(pos: Position | null): void
+  setCursor(pos: CellPosition | null): void          // カーソル移動（anchorも同時リセット）
+  extendCursor(pos: CellPosition): void              // 矩形範囲拡張（anchorは保持）
+  setEditing(pos: CellPosition | null): void         // エディット開始・終了
+  startEditWithInput(pos: CellPosition, ch: string): void  // タイプ編集開始
+  clearEditInitialValue(): void
+}
+
+// セル位置
+type CellPosition = { rowId: string; colKey: string; tableName: string }
+
+// 矩形選択範囲（行・列インデックスで表現）
+type SelectionBounds = { minRow: number; maxRow: number; minCol: number; maxCol: number }
+```
+
+---
+
+## GridContext（セル間の共有情報）
+
+`SpreadsheetGrid` は React Context (`GridContext`) を通じて、配下の `Cell` コンポーネントに以下を提供する。
+
+```typescript
+type GridContextValue = {
+  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void
+  selectionBounds: SelectionBounds | null  // 矩形選択の範囲（単一選択時は null）
+  focusContainer: () => void               // グリッドコンテナへフォーカスを戻す
+  filteredRows: Row[]
+  columns: ColumnDef[]
 }
 ```
+
+グリッドコンテナ（`<div tabIndex={0}>`）が非エディット時のキーイベントを一元処理し、エディット時は各セルの `<input>` / `<select>` が直接処理する。
+
+---
+
+## コマンドパターン（Undo/Redo 基盤）
+
+`src/domain/commands.ts` に Undo/Redo およびコピー&ペーストの基盤を定義。
+
+```typescript
+interface Command {
+  execute(): void
+  undo(): void
+  description: string
+}
+
+class CommandHistory {
+  execute(cmd: Command): void  // 実行して undoStack に積む
+  undo(): void                 // undoStack から pop → redo へ
+  redo(): void                 // redoStack から pop → undo へ
+  clear(): void
+  get canUndo(): boolean
+  get canRedo(): boolean
+}
+
+// 単一セル編集
+class EditCellCommand implements Command {
+  constructor(setter, getter, newValue, description?)
+}
+
+// 複数操作を1つの Undo 単位にまとめる
+class CompositeCommand implements Command {
+  constructor(commands: Command[], description?)
+}
+
+// シングルトン（将来 Zustand ストアに移行予定）
+export const commandHistory: CommandHistory
+```
+
+**現状:** 基盤のみ実装済み。`updateCell` を `EditCellCommand` でラップし Ctrl+Z / Ctrl+Y を接続すると Undo/Redo が完成する（Phase 3 予定）。
 
 ---
 
