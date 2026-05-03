@@ -11,3 +11,7 @@ yarn-debug.log*
 
 # Claude設定
 /.claude
+
+# Playwright
+/test-results
+/playwright-report
