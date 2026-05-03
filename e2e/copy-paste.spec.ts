@@ -38,8 +38,8 @@ test('Ctrl+V でクリップボードの値がセルにペーストされる', a
   await page.keyboard.press('Control+v')
 
   // 1行目の値と同じ値が2行目にペーストされていること
-  const secondText = await secondCell.textContent()
-  expect(secondText?.trim()).toBe(firstText?.trim())
+  // handlePaste は非同期のため expect(...).toHaveText() で自動リトライを使う
+  await expect(secondCell).toHaveText(firstText?.trim() ?? '')
 })
 
 test('範囲選択した複数セルをコピー＆ペーストできる', async ({ page }) => {
