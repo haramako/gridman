@@ -343,7 +343,7 @@ export default function SpreadsheetGrid({
         const col = schema.columns[colIdx]
         if (col.type === 'json' || col.type === 'text') continue
 
-        updateCell(tableName, row._id as string, col.key, cells[ci])
+        updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci])
       }
     }
   }, [displayRows, schema.columns, tableName, updateCell])
@@ -445,7 +445,7 @@ export default function SpreadsheetGrid({
           const colDef = schema.columns.find((c) => c.key === cur.colKey)
           if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
             const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
-            updateCell(tableName, cur.rowId, cur.colKey, emptyVal)
+            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
           }
           break
         }
