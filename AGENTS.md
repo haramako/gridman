@@ -181,6 +181,7 @@ npx shadcn@latest add <component>
 - 例: `[AI] StyleParserのEOFハンドリング修正`
 - Phase 1 の作業は `main` ブランチで直接行う
 - 大きな機能追加（Phase 2 以降）はブランチを切ること
+- **コミット前に必ず `npm run test:e2e` を実行し、全テストがパスすることを確認すること**
 
 ## Pull Request
 
