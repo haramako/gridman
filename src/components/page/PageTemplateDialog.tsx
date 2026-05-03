@@ -88,7 +88,7 @@ export default function PageTemplateDialog({
     onClose();
   };
 
-  const renderItemEditor = (item: PageLayoutItem, index: number) => {
+  const renderItemEditor = (item: PageLayoutItem, index: number): JSX.Element => {
     if (item.type === 'section') {
       return (
         <div key={index} className="border rounded p-3 space-y-2 bg-muted/30">
@@ -100,6 +100,7 @@ export default function PageTemplateDialog({
               placeholder="セクション名"
             />
             <button
+              type="button"
               className="ml-2 text-xs text-muted-foreground hover:text-destructive"
               onClick={() => removeItem(index)}
             >
@@ -110,6 +111,7 @@ export default function PageTemplateDialog({
             {(item.children ?? []).map((child, ci) => renderItemEditor(child, ci))}
           </div>
           <button
+            type="button"
             className="text-xs text-muted-foreground hover:text-foreground"
             onClick={() => {
               const newChildren = [
@@ -161,6 +163,7 @@ export default function PageTemplateDialog({
           placeholder="ラベル"
         />
         <button
+          type="button"
           className="text-xs text-muted-foreground hover:text-destructive"
           onClick={() => removeItem(index)}
         >
@@ -178,7 +181,11 @@ export default function PageTemplateDialog({
           <span className="font-semibold text-sm">
             {editTemplate ? 'ページテンプレートを編集' : 'ページテンプレートを作成'}
           </span>
-          <button className="text-muted-foreground hover:text-foreground" onClick={onClose}>
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={onClose}
+          >
             ✕
           </button>
         </div>
@@ -186,20 +193,25 @@ export default function PageTemplateDialog({
         <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">
           {/* Name */}
           <div className="flex items-center gap-2">
-            <label className="w-24 text-muted-foreground shrink-0">テンプレート名</label>
+            <label htmlFor="template-name" className="w-24 text-muted-foreground shrink-0">
+              テンプレート名
+            </label>
             <input
+              id="template-name"
               className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例: 敵詳細カード"
-              autoFocus
             />
           </div>
 
           {/* Table */}
           <div className="flex items-center gap-2">
-            <label className="w-24 text-muted-foreground shrink-0">テーブル</label>
+            <label htmlFor="template-table" className="w-24 text-muted-foreground shrink-0">
+              テーブル
+            </label>
             <select
+              id="template-table"
               className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
               value={selectedTable}
               onChange={(e) => {
@@ -221,6 +233,7 @@ export default function PageTemplateDialog({
             <div className="space-y-2">{layout.map((item, i) => renderItemEditor(item, i))}</div>
             <div className="mt-2 flex gap-2">
               <button
+                type="button"
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={addField}
                 disabled={cols.length === 0}
@@ -228,6 +241,7 @@ export default function PageTemplateDialog({
                 + フィールドを追加
               </button>
               <button
+                type="button"
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={addSection}
               >
@@ -242,10 +256,13 @@ export default function PageTemplateDialog({
           <div>
             {editTemplate && onDelete && (
               <button
+                type="button"
                 className="text-sm text-destructive hover:underline"
                 onClick={() => {
-                  onDelete(editTemplate.id!);
-                  onClose();
+                  if (editTemplate?.id) {
+                    onDelete(editTemplate.id);
+                    onClose();
+                  }
                 }}
               >
                 削除
@@ -254,12 +271,14 @@ export default function PageTemplateDialog({
           </div>
           <div className="flex gap-2">
             <button
+              type="button"
               className="px-3 py-1.5 rounded border text-sm hover:bg-accent"
               onClick={onClose}
             >
               キャンセル
             </button>
             <button
+              type="button"
               className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-40"
               disabled={!name.trim() || layout.length === 0}
               onClick={handleSave}

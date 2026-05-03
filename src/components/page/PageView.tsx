@@ -38,7 +38,7 @@ function getDisplayValue(
   if (col.type === 'boolean') return rawValue ? 'true' : 'false';
   if (col.type === 'text' || col.type === 'string') {
     const s = String(rawValue ?? '');
-    return s.length > 40 ? s.slice(0, 40) + '…' : s;
+    return s.length > 40 ? `${s.slice(0, 40)}…` : s;
   }
 
   return rawValue != null ? String(rawValue) : '';
@@ -65,7 +65,17 @@ function getRefDisplayValue(
   return '';
 }
 
-export default function PageView({ template, row, tableName, schema, schemas, tables, currentIndex, totalRows, onNavigate }: Props) {
+export default function PageView({
+  template,
+  row,
+  tableName,
+  schema,
+  schemas,
+  tables,
+  currentIndex,
+  totalRows,
+  onNavigate,
+}: Props) {
   const { updateCell } = useProjectStore();
   const rowId = row._id as string;
 
@@ -73,7 +83,7 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
     const value = row[col.key];
     const isInvalid = row._invalid?.[col.key] !== undefined;
     const displayValue = isInvalid
-      ? String(row._invalid![col.key] ?? '')
+      ? String(row._invalid?.[col.key] ?? '')
       : col.type === 'ref[]'
         ? getRefDisplayValue(row, col, schemas, tables)
         : getDisplayValue(row, col, schemas, tables);
@@ -103,7 +113,9 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
             >
               <option value="">-</option>
               {col.enumValues.map((v) => (
-                <option key={v} value={v}>{v}</option>
+                <option key={v} value={v}>
+                  {v}
+                </option>
               ))}
             </select>
           );
@@ -130,7 +142,9 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
                 <thead>
                   <tr className="bg-muted/50">
                     {columns.map((colKey) => (
-                      <th key={colKey} className="px-2 py-1 text-left font-medium">{colKey}</th>
+                      <th key={colKey} className="px-2 py-1 text-left font-medium">
+                        {colKey}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -138,7 +152,9 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
                   {rows.map((r) => (
                     <tr key={Math.random()} className="border-t">
                       {columns.map((colKey) => (
-                        <td key={colKey} className="px-2 py-1">{String(r[colKey] ?? '')}</td>
+                        <td key={colKey} className="px-2 py-1">
+                          {String(r[colKey] ?? '')}
+                        </td>
                       ))}
                     </tr>
                   ))}
@@ -155,8 +171,8 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
           return (
             <div className="flex flex-wrap gap-1">
               {ids.map((id) => {
-                const refTable = tables.get(col.refTable!);
-                const refSchema = schemas.get(col.refTable!);
+                const refTable = col.refTable ? tables.get(col.refTable) : undefined;
+                const refSchema = col.refTable ? schemas.get(col.refTable) : undefined;
                 const displayCol = refSchema?.columns.find((c) => c.isDisplayName);
                 const refRow = refTable?.get(id);
                 const label = refRow && displayCol ? String(refRow[displayCol.key] ?? id) : id;
@@ -195,11 +211,12 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
   const renderItem = (item: PageLayoutItem, depth = 0): JSX.Element | null => {
     if (item.type === 'section') {
       return (
-        <div key={JSON.stringify(item)} className={cn('space-y-2', depth === 0 && 'mt-4 first:mt-0')}>
+        <div
+          key={JSON.stringify(item)}
+          className={cn('space-y-2', depth === 0 && 'mt-4 first:mt-0')}
+        >
           {item.label && (
-            <h4 className="text-sm font-semibold text-foreground border-b pb-1">
-              {item.label}
-            </h4>
+            <h4 className="text-sm font-semibold text-foreground border-b pb-1">{item.label}</h4>
           )}
           <div className="space-y-3 pl-3">
             {item.children.map((child) => renderItem(child, depth + 1))}
@@ -215,9 +232,7 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
 
     return (
       <div key={item.key} className="space-y-1">
-        <label className="text-xs text-muted-foreground">
-          {item.label ?? col.displayName}
-        </label>
+        <span className="text-xs text-muted-foreground">{item.label ?? col.displayName}</span>
         <div className={cn(isInvalid && 'ring-1 ring-inset ring-red-400 rounded')}>
           {renderField(item as Extract<PageLayoutItem, { type: 'field' }>, col)}
         </div>
@@ -231,9 +246,12 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
       {totalRows !== undefined && totalRows > 1 && (
         <div className="mb-4 pb-3 border-b flex items-center justify-between">
           <button
+            type="button"
             className="px-2 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
             disabled={currentIndex === 0}
-            onClick={() => onNavigate?.(currentIndex! - 1)}
+            onClick={() => {
+              if (onNavigate && currentIndex !== undefined) onNavigate(currentIndex - 1);
+            }}
           >
             ← 前へ
           </button>
@@ -241,9 +259,12 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
             {currentIndex !== undefined ? currentIndex + 1 : '-'} / {totalRows}
           </span>
           <button
+            type="button"
             className="px-2 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
             disabled={currentIndex === totalRows - 1}
-            onClick={() => onNavigate?.(currentIndex! + 1)}
+            onClick={() => {
+              if (onNavigate && currentIndex !== undefined) onNavigate(currentIndex + 1);
+            }}
           >
             次へ →
           </button>
