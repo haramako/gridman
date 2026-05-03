@@ -118,6 +118,23 @@ npm run server
 両方を起動した状態で `http://localhost:5173` にアクセスする。
 サンプルデータのパス: `C:\Work\react-spreadsheet\var\sample`
 
+### E2E テスト（動作確認）
+
+UI の動作を headless ブラウザで自動検証する。
+
+```bash
+# headless で実行（CI / AI Agent 向け）
+npm run test:e2e
+
+# ブラウザを表示して実行（デバッグ向け）
+npm run test:e2e:ui
+```
+
+- テストファイル: `e2e/` フォルダ
+- サーバー（port 5173, 8080）は Playwright が自動起動する（`reuseExistingServer: true` なので起動済みでも可）
+- サンプルデータ: `var/sample/` を使用
+- 実装後に動作を確認したい場合は `e2e/` にテストを追加してから `npm run test:e2e` を実行すること
+
 ### 型チェック
 
 ```bash

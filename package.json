@@ -10,7 +10,9 @@
     "server": "tsx watch server/index.ts",
     "lint": "biome check src server",
     "sample:reset": "node scripts/reset-sample.js",
-    "dummy:gen": "node scripts/gen-dummy.js"
+    "dummy:gen": "node scripts/gen-dummy.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --headed"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.2",
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
