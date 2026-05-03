@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { LocalServerAdapter } from '@/fs/local-server'
 import { coerceToType, validateCell } from '@/domain/validator'
+import { commandHistory } from '@/domain/commands'
+import type { Command } from '@/domain/commands'
 import type { Row } from '@/types/row'
 import type { TableSchema } from '@/types/schema'
 import type { ProjectConfig, ViewDefinition } from '@/types/view'
@@ -25,6 +27,8 @@ interface ProjectState {
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void
   addRow: (tableName: string) => void
   deleteRow: (tableName: string, rowId: string) => void
+  undo: () => void
+  redo: () => void
 }
 
 function makeId(): string {
@@ -64,6 +68,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         tables.set(name, tableMap)
       })
     )
+
+    commandHistory.clear()
 
     set({
       projectPath: path,
@@ -134,76 +140,149 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   updateCell: (tableName, rowId, col, inputValue) => {
-    set((state) => {
-      const table = state.tables.get(tableName)
-      const row = table?.get(rowId)
-      const schema = state.schemas.get(tableName)
-      const colDef = schema?.columns.find((c) => c.key === col)
-      if (!table || !row || !colDef) return state
+    const state = get()
+    const table = state.tables.get(tableName)
+    const row = table?.get(rowId)
+    const schema = state.schemas.get(tableName)
+    const colDef = schema?.columns.find((c) => c.key === col)
+    if (!table || !row || !colDef) return
 
-      const coerced = coerceToType(inputValue, colDef.type)
-      const error = validateCell(coerced, colDef)
+    const coerced = coerceToType(inputValue, colDef.type)
+    const error = validateCell(coerced, colDef)
 
-      let newRow: Row
-      if (error !== null) {
-        const invalid = { ...(row._invalid ?? {}), [col]: inputValue }
-        newRow = { ...row, _invalid: invalid }
-      } else {
-        const invalid = { ...(row._invalid ?? {}) }
-        delete invalid[col]
-        newRow = { ...row, [col]: coerced }
-        if (Object.keys(invalid).length > 0) newRow._invalid = invalid
-        else delete newRow._invalid
-      }
+    let newRow: Row
+    if (error !== null) {
+      const invalid = { ...(row._invalid ?? {}), [col]: inputValue }
+      newRow = { ...row, _invalid: invalid }
+    } else {
+      const invalid = { ...(row._invalid ?? {}) }
+      delete invalid[col]
+      newRow = { ...row, [col]: coerced }
+      if (Object.keys(invalid).length > 0) newRow._invalid = invalid
+      else delete newRow._invalid
+    }
 
-      const newTable = new Map(table)
-      newTable.set(rowId, newRow)
-      const newTables = new Map(state.tables)
-      newTables.set(tableName, newTable)
+    const prevRow = row
 
-      const newDirtyRowIds = new Map(state.dirtyRowIds)
-      const dirty = new Set(newDirtyRowIds.get(tableName) ?? [])
-      dirty.add(rowId)
-      newDirtyRowIds.set(tableName, dirty)
+    const applyRow = (r: Row) => {
+      set((s) => {
+        const t = s.tables.get(tableName)
+        if (!t) return s
+        const newTable = new Map(t)
+        newTable.set(rowId, r)
+        const newTables = new Map(s.tables)
+        newTables.set(tableName, newTable)
+        const newDirtyRowIds = new Map(s.dirtyRowIds)
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? [])
+        dirty.add(rowId)
+        newDirtyRowIds.set(tableName, dirty)
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true }
+      })
+    }
 
-      return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true }
-    })
+    const cmd: Command = {
+      description: 'セル編集',
+      execute() { applyRow(newRow) },
+      undo() { applyRow(prevRow) },
+    }
+
+    commandHistory.execute(cmd)
   },
 
   addRow: (tableName) => {
-    set((state) => {
-      const table = state.tables.get(tableName)
-      if (!table) return state
+    const { tables } = get()
+    const table = tables.get(tableName)
+    if (!table) return
 
-      const id = makeId()
-      const order = maxOrder(table) + 1000
-      const newRow: Row = { _id: id, _order: order }
-      const newTable = new Map(table)
-      newTable.set(id, newRow)
-      const newTables = new Map(state.tables)
-      newTables.set(tableName, newTable)
+    const id = makeId()
+    const order = maxOrder(table) + 1000
+    const newRow: Row = { _id: id, _order: order }
 
-      const newDirtyRowIds = new Map(state.dirtyRowIds)
-      const dirty = new Set(newDirtyRowIds.get(tableName) ?? [])
-      dirty.add(id)
-      newDirtyRowIds.set(tableName, dirty)
+    const doAdd = () => {
+      set((s) => {
+        const t = s.tables.get(tableName)
+        if (!t) return s
+        const newTable = new Map(t)
+        newTable.set(id, newRow)
+        const newTables = new Map(s.tables)
+        newTables.set(tableName, newTable)
+        const newDirtyRowIds = new Map(s.dirtyRowIds)
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? [])
+        dirty.add(id)
+        newDirtyRowIds.set(tableName, dirty)
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true }
+      })
+    }
 
-      return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true }
-    })
+    const doDelete = () => {
+      set((s) => {
+        const t = s.tables.get(tableName)
+        if (!t) return s
+        const newTable = new Map(t)
+        newTable.delete(id)
+        const newTables = new Map(s.tables)
+        newTables.set(tableName, newTable)
+        return { tables: newTables, isDirty: true }
+      })
+    }
+
+    const cmd: Command = {
+      description: '行追加',
+      execute() { doAdd() },
+      undo() { doDelete() },
+    }
+
+    commandHistory.execute(cmd)
   },
 
   deleteRow: (tableName, rowId) => {
-    set((state) => {
-      const table = state.tables.get(tableName)
-      if (!table) return state
+    const { tables } = get()
+    const table = tables.get(tableName)
+    const row = table?.get(rowId)
+    if (!table || !row) return
 
-      const newTable = new Map(table)
-      newTable.delete(rowId)
-      const newTables = new Map(state.tables)
-      newTables.set(tableName, newTable)
+    const doDelete = () => {
+      set((s) => {
+        const t = s.tables.get(tableName)
+        if (!t) return s
+        const newTable = new Map(t)
+        newTable.delete(rowId)
+        const newTables = new Map(s.tables)
+        newTables.set(tableName, newTable)
+        return { tables: newTables, isDirty: true }
+      })
+    }
 
-      // 削除された行は dirty から外す（サーバー側で DELETE API が必要だが Phase 1 は全行上書き保存で対応）
-      return { tables: newTables, isDirty: true }
-    })
+    const doAdd = () => {
+      set((s) => {
+        const t = s.tables.get(tableName)
+        if (!t) return s
+        const newTable = new Map(t)
+        newTable.set(rowId, row)
+        const newTables = new Map(s.tables)
+        newTables.set(tableName, newTable)
+        const newDirtyRowIds = new Map(s.dirtyRowIds)
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? [])
+        dirty.add(rowId)
+        newDirtyRowIds.set(tableName, dirty)
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true }
+      })
+    }
+
+    const cmd: Command = {
+      description: '行削除',
+      execute() { doDelete() },
+      undo() { doAdd() },
+    }
+
+    commandHistory.execute(cmd)
+  },
+
+  undo: () => {
+    commandHistory.undo()
+  },
+
+  redo: () => {
+    commandHistory.redo()
   },
 }))
