@@ -1,0 +1,31 @@
+{
+  "name": "skill",
+  "displayName": "スキル",
+  "columns": [
+    {
+      "key": "name",
+      "displayName": "名前",
+      "type": "string",
+      "validation": { "required": true },
+      "isDisplayName": true
+    },
+    {
+      "key": "element",
+      "displayName": "属性",
+      "type": "enum",
+      "enumRef": "elementType"
+    },
+    {
+      "key": "power",
+      "displayName": "威力",
+      "type": "integer",
+      "validation": { "min": 0 }
+    },
+    {
+      "key": "mpCost",
+      "displayName": "MP消費",
+      "type": "integer",
+      "validation": { "min": 0 }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+{"_id":"sk001","_order":1,"name":"ファイア","element":"fire","power":80,"mpCost":10}
+{"_id":"sk002","_order":2,"name":"アイス","element":"water","power":80,"mpCost":10}
+{"_id":"sk003","_order":3,"name":"サンダー","element":"wind","power":80,"mpCost":10}

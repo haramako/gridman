@@ -140,7 +140,10 @@ export default function SpreadsheetGrid({
         const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta)
         setColWidths((prev) => {
           const next = [...prev]
-          next[dragState.current!.colIndex] = newWidth
+          const colIndex = dragState.current?.colIndex
+          if (colIndex !== undefined) {
+            next[colIndex] = newWidth
+          }
           return next
         })
       }

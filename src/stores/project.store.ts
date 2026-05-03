@@ -2,6 +2,7 @@ import { commandHistory } from '@/domain/commands';
 import type { Command } from '@/domain/commands';
 import { coerceToType, validateCell } from '@/domain/validator';
 import { LocalServerAdapter } from '@/fs/local-server';
+import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
 import type { ProjectConfig, ViewDefinition } from '@/types/view';
@@ -50,6 +51,9 @@ interface ProjectState {
   addView: (view: ViewDefinition) => Promise<void>;
   updateView: (view: ViewDefinition) => Promise<void>;
   deleteView: (id: string) => Promise<void>;
+  addPageTemplate: (template: PageTemplate & { id?: string }) => Promise<void>;
+  deletePageTemplate: (name: string) => Promise<void>;
+  readPageTemplate: (projectPath: string, name: string) => Promise<PageTemplate>;
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
   addRow: (tableName: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
@@ -179,6 +183,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const newProject = { ...project, views: project.views.filter((v) => v.id !== id) };
     set({ project: newProject });
     await saveProjectConfig();
+  },
+
+  addPageTemplate: async (template) => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    await adapter.writePageTemplate(projectPath, template.name, template);
+  },
+
+  deletePageTemplate: async (name) => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    await adapter.deletePageTemplate(projectPath, name);
+  },
+
+  readPageTemplate: async (projectPath, name) => {
+    return adapter.readPageTemplate(projectPath, name);
   },
 
   saveAll: async () => {

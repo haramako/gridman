@@ -1,14 +1,17 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
 import LookupViewDialog from '@/components/lookup/LookupViewDialog';
-import UnionViewDialog from '@/components/union/UnionViewDialog';
+import PageTemplateDialog from '@/components/page/PageTemplateDialog';
+import PageView from '@/components/page/PageView';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
+import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
 import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
+import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
 import type { FilterViewQuery, LookupViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
@@ -45,8 +48,9 @@ export default function EditorPage() {
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup'>('filter');
+  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
+  const [editingPageTemplate, setEditingPageTemplate] = useState<(PageTemplate & { id?: string }) | undefined>();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
   const draftHandledRef = useRef(false);
@@ -178,6 +182,29 @@ export default function EditorPage() {
     return rawRows;
   }, [rawRows, activeView, unionResult, lookupResult]);
 
+  const isPageView = activeView?.query.type === 'page';
+  const pageTemplateName = isPageView ? (activeView.query as any).pageLayout : undefined;
+  const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
+
+  useEffect(() => {
+    if (pageTemplateName && projectPath) {
+      useProjectStore.getState().readPageTemplate(projectPath, pageTemplateName).then(setPageTemplate).catch(() => setPageTemplate(null));
+    } else {
+      setPageTemplate(null);
+    }
+  }, [pageTemplateName, projectPath]);
+
+  const [pageRowIndex, setPageRowIndex] = useState(0);
+  const pageRow = useMemo(() => {
+    if (!isPageView || !pageTemplate || displayRows.size === 0) return null;
+    const rows = [...displayRows.values()];
+    return rows[Math.min(pageRowIndex, rows.length - 1)] ?? null;
+  }, [isPageView, pageTemplate, displayRows, pageRowIndex]);
+
+  const handlePageNavigate = (index: number) => {
+    setPageRowIndex(index);
+  };
+
   const openCreateDialog = (type: 'filter' | 'union' | 'lookup') => {
     setEditingView(undefined);
     setDialogType(type);
@@ -205,6 +232,31 @@ export default function EditorPage() {
   const handleDeleteView = async (id: string) => {
     await deleteView(id);
     setActiveViewId(null);
+  };
+
+  const openCreatePageTemplate = () => {
+    setEditingPageTemplate(undefined);
+    setDialogType('page');
+    setDialogOpen(true);
+  };
+
+  const handleSavePageTemplate = async (template: PageTemplate & { id?: string }) => {
+    const { addPageTemplate } = useProjectStore.getState();
+    await addPageTemplate(template);
+    setDialogOpen(false);
+
+    // Create a View entry so it appears in the left sidebar
+    const viewId = `page-${template.name}`;
+    const existingView = project?.views.find((v) => v.id === viewId);
+    if (!existingView) {
+      const newView: ViewDefinition = {
+        id: viewId,
+        name: template.name,
+        query: { type: 'page', pageLayout: template.name } as any,
+      };
+      await addView(newView);
+      setActiveViewId(viewId);
+    }
   };
 
   if (!project) {
@@ -335,6 +387,12 @@ export default function EditorPage() {
           >
             + ルックアップ
           </button>
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={openCreatePageTemplate}
+          >
+            + ページ
+          </button>
           {project.views.map((view) => {
             const icon = view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍'
             return (
@@ -352,7 +410,19 @@ export default function EditorPage() {
 
         {/* Main */}
         <main className="flex-1 overflow-hidden flex flex-col">
-          {schema ? (
+          {isPageView && pageTemplate && pageRow ? (
+            <PageView
+              template={pageTemplate}
+              row={pageRow}
+              tableName={currentTable}
+              schema={schema!}
+              schemas={schemas}
+              tables={tables}
+              currentIndex={pageRowIndex}
+              totalRows={displayRows.size}
+              onNavigate={handlePageNavigate}
+            />
+          ) : schema ? (
             <SpreadsheetView
               tableName={currentTable}
               schema={schema}
@@ -401,6 +471,20 @@ export default function EditorPage() {
           editView={editingView}
           onSave={handleSaveView}
           onDelete={editingView ? handleDeleteView : undefined}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
+      {dialogOpen && dialogType === 'page' && (
+        <PageTemplateDialog
+          schema={schema ?? schemas.get(project.tables[0])!}
+          tables={project.tables}
+          schemas={schemas}
+          editTemplate={editingPageTemplate}
+          onSave={handleSavePageTemplate}
+          onDelete={editingPageTemplate?.id ? () => {
+            useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
+            setDialogOpen(false);
+          } : undefined}
           onClose={() => setDialogOpen(false)}
         />
       )}
