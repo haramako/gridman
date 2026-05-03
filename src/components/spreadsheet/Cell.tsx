@@ -113,7 +113,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   const startEdit = () => {
-    if (col.type === 'json' || col.type === 'text') return
+    if (col.type === 'json' || col.type === 'text' || col.readonly) return
     setCursor({ rowId, colKey: col.key, tableName })
     setEditing({ rowId, colKey: col.key, tableName })
   }
@@ -142,8 +142,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     )
   }
 
-  // readonly types
-  if (col.type === 'json' || col.type === 'text') {
+  // readonly types (json, text, or explicitly readonly columns e.g. lookup expansions)
+  if (col.type === 'json' || col.type === 'text' || col.readonly) {
     return (
       <td
         className={cn(

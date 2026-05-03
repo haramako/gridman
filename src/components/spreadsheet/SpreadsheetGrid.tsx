@@ -443,7 +443,7 @@ export default function SpreadsheetGrid({
           if (readOnly) break
           e.preventDefault()
           const colDef = schema.columns.find((c) => c.key === cur.colKey)
-          if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
             const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
             updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
           }
@@ -455,7 +455,7 @@ export default function SpreadsheetGrid({
           if (readOnly) break
           e.preventDefault()
           const colDef = schema.columns.find((c) => c.key === cur.colKey)
-          if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
             setEditing(cur)
           }
           break
@@ -475,6 +475,7 @@ export default function SpreadsheetGrid({
             const colDef = schema.columns.find((c) => c.key === cur.colKey)
             if (
               colDef &&
+              !colDef.readonly &&
               colDef.type !== 'json' &&
               colDef.type !== 'text' &&
               colDef.type !== 'boolean' &&

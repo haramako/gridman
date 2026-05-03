@@ -25,6 +25,7 @@ export type ColumnDef = {
   isDisplayName?: boolean
   enumValues?: string[]
   refTable?: string
+  readonly?: boolean
 }
 
 export type TableSchema = {
