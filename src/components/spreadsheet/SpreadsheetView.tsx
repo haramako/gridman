@@ -4,7 +4,7 @@ import { useViewStore } from '@/stores/view.store'
 import SpreadsheetGrid from './SpreadsheetGrid'
 import type { TableSchema } from '@/types/schema'
 import type { Row } from '@/types/row'
-import type { FilterViewQuery, ViewDefinition } from '@/types/view'
+import type { FilterViewQuery, LookupViewQuery, ViewDefinition } from '@/types/view'
 
 interface Props {
   tableName: string
@@ -25,14 +25,20 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
     : undefined
 
   const isUnionView = activeView?.query.type === 'union'
+  const isLookupView = activeView?.query.type === 'lookup'
 
-  const viewIcon = isUnionView ? '⊕' : '🔍'
+  const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍'
 
   const handleDeleteRow = () => {
     if (!selectedRowId) return
-    const sourceTable = isUnionView
-      ? ((rows.get(selectedRowId)?._source as string) ?? tableName)
-      : tableName
+    let sourceTable = tableName
+    if (isUnionView) {
+      sourceTable = (rows.get(selectedRowId)?._source as string) ?? tableName
+    } else if (isLookupView) {
+      const sources = rows.get(selectedRowId)?._sources as Record<string, unknown> | undefined
+      const fromTable = (activeView!.query as LookupViewQuery).from
+      sourceTable = sources ? (sources[fromTable] as string ? fromTable : tableName) : tableName
+    }
     deleteRow(sourceTable, selectedRowId)
     setSelectedRowId(null)
   }
@@ -69,7 +75,7 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
           </div>
         )}
         <div className="flex-1" />
-        {!isUnionView && (
+        {!isUnionView && !isLookupView && (
           <button
             type="button"
             className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"

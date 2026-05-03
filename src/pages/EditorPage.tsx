@@ -1,14 +1,16 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
+import LookupViewDialog from '@/components/lookup/LookupViewDialog';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import { applyFilter } from '@/domain/filter';
+import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
+import type { FilterViewQuery, LookupViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -43,7 +45,7 @@ export default function EditorPage() {
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'filter' | 'union'>('filter');
+  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
@@ -141,6 +143,9 @@ export default function EditorPage() {
     if (activeView?.query.type === 'union') {
       return '__union__';
     }
+    if (activeView?.query.type === 'lookup') {
+      return '__lookup__';
+    }
     return tableName || project?.tables[0] || '';
   }, [activeView, tableName, project?.tables]);
 
@@ -149,12 +154,20 @@ export default function EditorPage() {
     return applyUnion(activeView.query as UnionViewQuery, tables, schemas);
   }, [activeView, tables, schemas]);
 
-  const schema = unionResult?.schema ?? schemas.get(currentTable);
+  const lookupResult = useMemo(() => {
+    if (activeView?.query.type !== 'lookup') return null;
+    return applyLookup(activeView.query as LookupViewQuery, tables, schemas);
+  }, [activeView, tables, schemas]);
+
+  const schema = lookupResult?.schema ?? unionResult?.schema ?? schemas.get(currentTable);
   const rawRows = tables.get(currentTable);
 
   const displayRows = useMemo((): Map<string, Row> => {
     if (activeView?.query.type === 'union' && unionResult) {
       return new Map(unionResult.rows.map((r) => [r._id as string, r]));
+    }
+    if (activeView?.query.type === 'lookup' && lookupResult) {
+      return new Map(lookupResult.rows.map((r) => [r._id as string, r]));
     }
     if (!rawRows) return new Map();
     if (activeView?.query.type === 'filter') {
@@ -163,9 +176,9 @@ export default function EditorPage() {
       return new Map(filtered.map((r) => [r._id as string, r]));
     }
     return rawRows;
-  }, [rawRows, activeView, unionResult]);
+  }, [rawRows, activeView, unionResult, lookupResult]);
 
-  const openCreateDialog = (type: 'filter' | 'union') => {
+  const openCreateDialog = (type: 'filter' | 'union' | 'lookup') => {
     setEditingView(undefined);
     setDialogType(type);
     setDialogOpen(true);
@@ -174,7 +187,8 @@ export default function EditorPage() {
   const openEditDialog = () => {
     if (activeView) {
       setEditingView(activeView);
-      setDialogType(activeView.query.type === 'union' ? 'union' : 'filter');
+      const t = activeView.query.type;
+      setDialogType(t === 'union' ? 'union' : t === 'lookup' ? 'lookup' : 'filter');
       setDialogOpen(true);
     }
   };
@@ -315,8 +329,14 @@ export default function EditorPage() {
           >
             + ユニオン
           </button>
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={() => openCreateDialog('lookup')}
+          >
+            + ルックアップ
+          </button>
           {project.views.map((view) => {
-            const icon = view.query.type === 'union' ? '⊕' : '🔍'
+            const icon = view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍'
             return (
               <button
                 key={view.id}
@@ -365,6 +385,16 @@ export default function EditorPage() {
       )}
       {dialogOpen && dialogType === 'union' && (
         <UnionViewDialog
+          schemas={schemas}
+          tables={project.tables}
+          editView={editingView}
+          onSave={handleSaveView}
+          onDelete={editingView ? handleDeleteView : undefined}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
+      {dialogOpen && dialogType === 'lookup' && (
+        <LookupViewDialog
           schemas={schemas}
           tables={project.tables}
           editView={editingView}
