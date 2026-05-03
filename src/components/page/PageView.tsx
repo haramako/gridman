@@ -12,6 +12,9 @@ interface Props {
   schema: TableSchema;
   schemas: Map<string, TableSchema>;
   tables: Map<string, Map<string, Row>>;
+  currentIndex?: number;
+  totalRows?: number;
+  onNavigate?: (index: number) => void;
 }
 
 function getDisplayValue(
@@ -62,7 +65,7 @@ function getRefDisplayValue(
   return '';
 }
 
-export default function PageView({ template, row, tableName, schema, schemas, tables }: Props) {
+export default function PageView({ template, row, tableName, schema, schemas, tables, currentIndex, totalRows, onNavigate }: Props) {
   const { updateCell } = useProjectStore();
   const rowId = row._id as string;
 
@@ -100,9 +103,7 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
             >
               <option value="">-</option>
               {col.enumValues.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
+                <option key={v} value={v}>{v}</option>
               ))}
             </select>
           );
@@ -129,9 +130,7 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
                 <thead>
                   <tr className="bg-muted/50">
                     {columns.map((colKey) => (
-                      <th key={colKey} className="px-2 py-1 text-left font-medium">
-                        {colKey}
-                      </th>
+                      <th key={colKey} className="px-2 py-1 text-left font-medium">{colKey}</th>
                     ))}
                   </tr>
                 </thead>
@@ -139,9 +138,7 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
                   {rows.map((r) => (
                     <tr key={Math.random()} className="border-t">
                       {columns.map((colKey) => (
-                        <td key={colKey} className="px-2 py-1">
-                          {String(r[colKey] ?? '')}
-                        </td>
+                        <td key={colKey} className="px-2 py-1">{String(r[colKey] ?? '')}</td>
                       ))}
                     </tr>
                   ))}
@@ -198,12 +195,11 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
   const renderItem = (item: PageLayoutItem, depth = 0): JSX.Element | null => {
     if (item.type === 'section') {
       return (
-        <div
-          key={JSON.stringify(item)}
-          className={cn('space-y-2', depth === 0 && 'mt-4 first:mt-0')}
-        >
+        <div key={JSON.stringify(item)} className={cn('space-y-2', depth === 0 && 'mt-4 first:mt-0')}>
           {item.label && (
-            <h4 className="text-sm font-semibold text-foreground border-b pb-1">{item.label}</h4>
+            <h4 className="text-sm font-semibold text-foreground border-b pb-1">
+              {item.label}
+            </h4>
           )}
           <div className="space-y-3 pl-3">
             {item.children.map((child) => renderItem(child, depth + 1))}
@@ -219,7 +215,9 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
 
     return (
       <div key={item.key} className="space-y-1">
-        <label className="text-xs text-muted-foreground">{item.label ?? col.displayName}</label>
+        <label className="text-xs text-muted-foreground">
+          {item.label ?? col.displayName}
+        </label>
         <div className={cn(isInvalid && 'ring-1 ring-inset ring-red-400 rounded')}>
           {renderField(item as Extract<PageLayoutItem, { type: 'field' }>, col)}
         </div>
@@ -229,6 +227,29 @@ export default function PageView({ template, row, tableName, schema, schemas, ta
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      {/* Navigation header */}
+      {totalRows !== undefined && totalRows > 1 && (
+        <div className="mb-4 pb-3 border-b flex items-center justify-between">
+          <button
+            className="px-2 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
+            disabled={currentIndex === 0}
+            onClick={() => onNavigate?.(currentIndex! - 1)}
+          >
+            ← 前へ
+          </button>
+          <span className="text-sm text-muted-foreground">
+            {currentIndex !== undefined ? currentIndex + 1 : '-'} / {totalRows}
+          </span>
+          <button
+            className="px-2 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
+            disabled={currentIndex === totalRows - 1}
+            onClick={() => onNavigate?.(currentIndex! + 1)}
+          >
+            次へ →
+          </button>
+        </div>
+      )}
+
       <div className="mb-4 pb-3 border-b">
         <h3 className="text-lg font-semibold">{template.name}</h3>
         <p className="text-sm text-muted-foreground">

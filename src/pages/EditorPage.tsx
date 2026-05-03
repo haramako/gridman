@@ -160,11 +160,19 @@ export default function EditorPage() {
     return rawRows;
   }, [rawRows, activeView]);
 
-  // For page view, get the first row or allow navigation
-  const pageRow = useMemo((): Row | undefined => {
-    if (!isPageView || !displayRows) return undefined;
-    return [...displayRows.values()][0];
+  // For page view, track which row is being displayed
+  const [pageRowIndex, setPageRowIndex] = useState(0);
+  const pageRows = useMemo(() => {
+    if (!isPageView || !displayRows) return [];
+    return [...displayRows.values()];
   }, [isPageView, displayRows]);
+  const pageRow = pageRows[pageRowIndex] ?? pageRows[0];
+  const totalPageRows = pageRows.length;
+
+  // Reset pageRowIndex when view changes
+  useEffect(() => {
+    setPageRowIndex(0);
+  }, [activeViewId]);
 
   // Page template for the current view
   const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
@@ -395,6 +403,9 @@ export default function EditorPage() {
               schema={schema}
               schemas={schemas}
               tables={tables}
+              currentIndex={pageRowIndex}
+              totalRows={totalPageRows}
+              onNavigate={setPageRowIndex}
             />
           )}
           {schema && isPageView && !pageTemplate && (
