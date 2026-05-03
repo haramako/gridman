@@ -218,12 +218,12 @@ export default function EditorPage() {
     await adapter.writePageTemplate(projectPath, template.name, template);
 
     // Create or update a View for this page template
-    const pageViewQuery: import('@/types/view').PageViewQuery = {
+    const pageViewQuery: PageViewQuery = {
       type: 'page',
       from: template.table,
       pageLayout: template.name,
     };
-    const view: import('@/types/view').ViewDefinition = {
+    const view: ViewDefinition = {
       id: template.id ?? Math.random().toString(36).slice(2, 8),
       name: template.name,
       query: pageViewQuery,
@@ -231,8 +231,10 @@ export default function EditorPage() {
 
     if (template.id) {
       await updateView(view);
+      setActiveViewId(view.id);
     } else {
       await addView(view);
+      setActiveViewId(view.id);
     }
 
     setPageTemplateDialogOpen(false);
