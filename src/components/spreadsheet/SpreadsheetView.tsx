@@ -24,6 +24,19 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
     ? (activeView.query as FilterViewQuery)
     : undefined
 
+  const isUnionView = activeView?.query.type === 'union'
+
+  const viewIcon = isUnionView ? '⊕' : '🔍'
+
+  const handleDeleteRow = () => {
+    if (!selectedRowId) return
+    const sourceTable = isUnionView
+      ? ((rows.get(selectedRowId)?._source as string) ?? tableName)
+      : tableName
+    deleteRow(sourceTable, selectedRowId)
+    setSelectedRowId(null)
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
@@ -36,7 +49,7 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
         />
         {activeView && (
           <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
-            <span>🔍 {activeView.name}</span>
+            <span>{viewIcon} {activeView.name}</span>
             <button
               type="button"
               className="ml-1 hover:text-blue-900"
@@ -56,24 +69,21 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
           </div>
         )}
         <div className="flex-1" />
-        <button
-          type="button"
-          className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
-          disabled={readOnly}
-          onClick={() => addRow(tableName)}
-        >
-          + 行追加
-        </button>
+        {!isUnionView && (
+          <button
+            type="button"
+            className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
+            disabled={readOnly}
+            onClick={() => addRow(tableName)}
+          >
+            + 行追加
+          </button>
+        )}
         <button
           type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
           disabled={!selectedRowId || readOnly}
-          onClick={() => {
-            if (selectedRowId) {
-              deleteRow(tableName, selectedRowId)
-              setSelectedRowId(null)
-            }
-          }}
+          onClick={handleDeleteRow}
         >
           − 行削除
         </button>

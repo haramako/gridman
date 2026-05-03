@@ -27,6 +27,7 @@ export default function DataRow({
   onSelect,
   readOnly,
 }: Props) {
+  const effectiveTableName = (row._source as string) ?? tableName
   return (
     <tr className={isSelected ? 'bg-blue-50' : 'hover:bg-muted/30'}>
       <td
@@ -42,7 +43,7 @@ export default function DataRow({
           col={col}
           colIndex={colIndex}
           gridRowIndex={gridRowIndex}
-          tableName={tableName}
+          tableName={effectiveTableName}
           schemas={schemas}
           tables={tables}
           readOnly={readOnly}
