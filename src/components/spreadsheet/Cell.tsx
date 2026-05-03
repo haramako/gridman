@@ -46,7 +46,7 @@ function getDisplayValue(
 }
 
 export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, readOnly }: Props) {
-  const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue } =
+  const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue, setJsonPanelCell } =
     useSelectionStore()
   const { updateCell, dirtyRowIds } = useProjectStore()
   const { navigate, selectionBounds, focusContainer } = useGridContext()
@@ -144,17 +144,22 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
 
   // readonly types
   if (col.type === 'json' || col.type === 'text') {
+    const handleClick = () => {
+      setCursor({ rowId, colKey: col.key, tableName })
+      focusContainer()
+      if (col.type === 'json') {
+        setJsonPanelCell({ rowId, colKey: col.key, tableName })
+      }
+    }
     return (
       <td
         className={cn(
           'border-b border-r px-2 py-0.5 text-muted-foreground whitespace-nowrap',
           isInRange && 'bg-blue-100',
-          isSelected && 'ring-2 ring-inset ring-blue-400'
+          isSelected && 'ring-2 ring-inset ring-blue-400',
+          col.type === 'json' && 'cursor-pointer hover:bg-accent'
         )}
-        onClick={() => {
-          setCursor({ rowId, colKey: col.key, tableName })
-          focusContainer()
-        }}
+        onClick={handleClick}
       >
         {displayValue}
       </td>
