@@ -49,6 +49,7 @@ type GridContextValue = {
   focusContainer: () => void
   filteredRows: Row[]
   columns: ColumnDef[]
+  readOnly: boolean
 }
 
 const GridContext = createContext<GridContextValue>({
@@ -57,6 +58,7 @@ const GridContext = createContext<GridContextValue>({
   focusContainer: () => {},
   filteredRows: [],
   columns: [],
+  readOnly: false,
 })
 
 export const useGridContext = () => useContext(GridContext)
@@ -73,6 +75,7 @@ interface Props {
   sortDefs?: SortDef[]
   selectedRowId: string | null
   onSelectRow: (id: string | null) => void
+  readOnly?: boolean
 }
 
 export default function SpreadsheetGrid({
@@ -83,6 +86,7 @@ export default function SpreadsheetGrid({
   sortDefs,
   selectedRowId,
   onSelectRow,
+  readOnly,
 }: Props) {
   const { schemas, tables, updateCell } = useProjectStore()
   const {
@@ -436,6 +440,7 @@ export default function SpreadsheetGrid({
 
         case 'Delete':
         case 'Backspace': {
+          if (readOnly) break
           e.preventDefault()
           const colDef = schema.columns.find((c) => c.key === cur.colKey)
           if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
@@ -447,6 +452,7 @@ export default function SpreadsheetGrid({
 
         case 'Enter':
         case 'F2': {
+          if (readOnly) break
           e.preventDefault()
           const colDef = schema.columns.find((c) => c.key === cur.colKey)
           if (colDef && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
@@ -463,6 +469,7 @@ export default function SpreadsheetGrid({
         }
 
         default:
+          if (readOnly) break
           // Printable characters (IME-off / single char): type-to-edit
           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             const colDef = schema.columns.find((c) => c.key === cur.colKey)
@@ -511,8 +518,8 @@ export default function SpreadsheetGrid({
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns }),
-    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns]
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false }),
+    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly]
   )
 
   // ---------------------------------------------------------------------------
@@ -588,6 +595,7 @@ export default function SpreadsheetGrid({
                       selectedRowId === (row._id as string) ? null : (row._id as string)
                     )
                   }
+                  readOnly={readOnly}
                 />
               ))
             ) : (

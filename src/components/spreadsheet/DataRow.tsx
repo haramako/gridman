@@ -12,6 +12,7 @@ interface Props {
   tables: Map<string, Map<string, Row>>
   isSelected: boolean
   onSelect: () => void
+  readOnly?: boolean
 }
 
 export default function DataRow({
@@ -24,6 +25,7 @@ export default function DataRow({
   tables,
   isSelected,
   onSelect,
+  readOnly,
 }: Props) {
   return (
     <tr className={isSelected ? 'bg-blue-50' : 'hover:bg-muted/30'}>
@@ -43,6 +45,7 @@ export default function DataRow({
           tableName={tableName}
           schemas={schemas}
           tables={tables}
+          readOnly={readOnly}
         />
       ))}
     </tr>

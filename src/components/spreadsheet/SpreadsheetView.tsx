@@ -12,9 +12,10 @@ interface Props {
   rows: Map<string, Row>
   activeView?: ViewDefinition
   onEditView?: () => void
+  readOnly?: boolean
 }
 
-export default function SpreadsheetView({ tableName, schema, rows, activeView, onEditView }: Props) {
+export default function SpreadsheetView({ tableName, schema, rows, activeView, onEditView, readOnly }: Props) {
   const { addRow, deleteRow } = useProjectStore()
   const { filter, setFilter, setActiveViewId } = useViewStore()
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
@@ -37,6 +38,7 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
           <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
             <span>🔍 {activeView.name}</span>
             <button
+              type="button"
               className="ml-1 hover:text-blue-900"
               title="ビューを編集"
               onClick={onEditView}
@@ -44,6 +46,7 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
               ✏️
             </button>
             <button
+              type="button"
               className="ml-0.5 hover:text-blue-900"
               title="ビューを閉じる"
               onClick={() => setActiveViewId(null)}
@@ -54,14 +57,17 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
         )}
         <div className="flex-1" />
         <button
-          className="px-3 py-1 rounded border text-sm hover:bg-accent"
+          type="button"
+          className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
+          disabled={readOnly}
           onClick={() => addRow(tableName)}
         >
           + 行追加
         </button>
         <button
+          type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
-          disabled={!selectedRowId}
+          disabled={!selectedRowId || readOnly}
           onClick={() => {
             if (selectedRowId) {
               deleteRow(tableName, selectedRowId)
@@ -86,6 +92,7 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
         sortDefs={viewQuery?.sort}
         selectedRowId={selectedRowId}
         onSelectRow={setSelectedRowId}
+        readOnly={readOnly}
       />
     </div>
   )

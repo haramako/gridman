@@ -16,6 +16,7 @@ interface Props {
   tableName: string
   schemas: Map<string, TableSchema>
   tables: Map<string, Map<string, Row>>
+  readOnly?: boolean
 }
 
 function getDisplayValue(
@@ -44,7 +45,7 @@ function getDisplayValue(
   return rawValue != null ? String(rawValue) : ''
 }
 
-export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables }: Props) {
+export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, readOnly }: Props) {
   const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue } =
     useSelectionStore()
   const { updateCell, dirtyRowIds } = useProjectStore()
@@ -126,12 +127,14 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
           isDirty && !isInvalid && 'bg-yellow-50',
           isInvalid && 'ring-1 ring-inset ring-red-400',
           isInRange && 'bg-blue-100',
-          isSelected && 'ring-2 ring-inset ring-blue-400'
+          isSelected && 'ring-2 ring-inset ring-blue-400',
+          readOnly && 'cursor-default opacity-80'
         )}
         onClick={() => {
           setCursor({ rowId, colKey: col.key, tableName })
-          updateCell(tableName, rowId, col.key, !row[col.key])
           focusContainer()
+          if (readOnly) return
+          updateCell(tableName, rowId, col.key, !row[col.key])
         }}
       >
         <span className="text-base leading-none">{row[col.key] ? '✓' : ''}</span>
@@ -255,18 +258,21 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   return (
     <td
       className={cn(
-        'border-b border-r px-2 py-0.5 whitespace-nowrap cursor-default select-none overflow-hidden truncate',
+        'border-b border-r px-2 py-0.5 whitespace-nowrap select-none overflow-hidden truncate',
         isDirty && !isInvalid && 'bg-yellow-50',
         isInvalid && 'ring-1 ring-inset ring-red-400 bg-red-50',
         isInRange && !isInvalid && 'bg-blue-100',
-        isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400'
+        isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400',
+        readOnly ? 'cursor-default opacity-80' : 'cursor-default'
       )}
       title={errorMessage ?? undefined}
       onClick={() => {
         setCursor({ rowId, colKey: col.key, tableName })
         focusContainer()
       }}
-      onDoubleClick={startEdit}
+      onDoubleClick={() => {
+        if (!readOnly) startEdit()
+      }}
     >
       {isInvalid && <span className="mr-1 text-red-500">⚠</span>}
       {displayValue}
