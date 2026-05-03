@@ -1,139 +1,37 @@
-# ゲームデータ管理ツール GRIDMAN Overview
+# GRIDMAN — AI Agent ガイド
 
-ゲーム開発時のデータ（敵・アイテム・スキルなど）をExcelの代替として管理するWebアプリ。
-JSONL形式でローカルファイルに保存し、gitで差分管理できることが特徴。
+ゲーム開発用データをスプレッドシート形式で編集する Web アプリ。
+詳細なドキュメントは `doc/` フォルダを参照。
 
-## Note
+## 注意事項
 
-- human_memo.md は、人間向けのメモです。AI Agentは内容を読む必要はありません。
+- `human_memo.md` は人間向けのメモ。AI Agent は読まなくてよい。
 
-## Directory Structure
+---
 
-```
-react-spreadsheet/
-├── plan/                        設計ドキュメント（実装前に必ず参照）
-│   ├── index.md                 全体概要・決定事項サマリー・将来対応リスト
-│   ├── mvp.md                   Phase 1〜4 のスコープ定義（タスクリスト）
-│   ├── data-model.md            データモデル・ファイル形式・バリデーション設計
-│   ├── architecture.md          アーキテクチャ・Zustand ストア設計
-│   ├── view-system.md           ビューシステム設計
-│   ├── ui-layout.md             UI・画面設計
-│   └── tech-stack.md            技術スタック
-├── src/
-│   ├── main.tsx                 エントリポイント
-│   ├── App.tsx                  RouterProvider ラッパー
-│   ├── router.tsx               ルート定義
-│   ├── index.css                Tailwind CSS + shadcn/ui CSS 変数
-│   ├── components/
-│   │   └── spreadsheet/
-│   │       ├── SpreadsheetView.tsx   ツールバー + グリッドのコンテナ
-│   │       ├── SpreadsheetGrid.tsx   HTML table ベースのグリッド
-│   │       ├── DataRow.tsx           行コンポーネント
-│   │       └── Cell.tsx             セル（表示・編集・バリデーション）
-│   ├── domain/
-│   │   └── validator.ts         型変換・バリデーションロジック
-│   ├── fs/
-│   │   ├── adapter.ts           FileSystemAdapter インターフェース
-│   │   └── local-server.ts      LocalServerAdapter（fetch → Hono API）
-│   ├── lib/
-│   │   └── utils.ts             cn() ユーティリティ（Tailwind merge）
-│   ├── pages/
-│   │   ├── HomePage.tsx         プロジェクト選択画面
-│   │   └── EditorPage.tsx       メインエディター画面
-│   ├── stores/
-│   │   ├── project.store.ts     プロジェクト・テーブルデータ・保存状態
-│   │   ├── view.store.ts        アクティブビュー・フィルター状態
-│   │   └── selection.store.ts   セル選択・編集中セルの状態
-│   └── types/
-│       ├── row.ts               Row 型（_id / _order / _invalid）
-│       ├── schema.ts            ColumnDef / TableSchema 型
-│       └── view.ts              ViewQuery / ProjectConfig 型
-├── server/
-│   └── index.ts                 Hono サーバー（ファイル読み書き API）
-├── var/
-│   └── sample/                  開発用サンプルデータ（.gitignore 対象）
-│       ├── project.json
-│       ├── enemy.jsonl / enemy.schema.json
-│       └── item.jsonl / item.schema.json
-├── vite.config.ts               Vite 設定（@ エイリアス・API プロキシ）
-├── tailwind.config.ts           Tailwind + shadcn/ui カラートークン
-└── biome.json                   Linter / Formatter 設定
-```
-
-## Overview
-
-### アーキテクチャ
-
-SPA（Vite + React）+ ローカルサーバー（Hono on Node.js）の 2 層構成。
-
-```
-ブラウザ (React SPA :5173)
-    ↕ /api/* プロキシ
-Hono サーバー (:8080)
-    ↕ ファイル I/O
-プロジェクトフォルダ (*.jsonl / *.schema.json / project.json)
-```
-
-### データモデル
-
-- テーブルデータ: `{tableName}.jsonl`（1 行 1 レコード）
-- スキーマ定義: `{tableName}.schema.json`
-- プロジェクト設定: `project.json`（または `.spreadsheet/project.json`）
-
-Row の内部フィールド:
-- `_id`: ユニーク ID
-- `_order`: 表示順序（整数）
-- `_invalid`: バリデーション違反値の保持領域（`{ colKey: 入力値 }`）
-
-### 状態管理（Zustand）
-
-| Store | 役割 |
-|-------|------|
-| `useProjectStore` | テーブルデータ・スキーマ・保存状態。テーブルは `Map<string, Map<string, Row>>` で保持 |
-| `useViewStore` | アクティブビュー・テキストフィルター |
-| `useSelectionStore` | カーソル位置・編集中セル（`{ rowId, colKey, tableName }` で特定） |
-
-### バリデーション（ソフトバリデーション）
-
-違反値は拒否せず `_invalid` に保持。通常カラムには最後の正常値を保持。
-`_invalid` はファイルにそのまま保存され、再起動後も復元される。
-
-### 現在のフェーズ
-
-**Phase 1（コアエディター）実装中。**
-フェーズ定義は `plan/mvp.md` を参照。
-
-## Agent Workflow
-
-### 開発サーバー起動
+## 開発サーバーの起動
 
 ```bash
-# フロントエンド（port 5173）
+# ターミナル1: フロントエンド (port 5173)
 npm run dev
 
-# バックエンド（port 8080）
+# ターミナル2: バックエンド (port 8080)
 npm run server
 ```
 
-両方を起動した状態で `http://localhost:5173` にアクセスする。
-サンプルデータのパス: `C:\Work\react-spreadsheet\var\sample`
-
-### E2E テスト（動作確認）
-
-UI の動作を headless ブラウザで自動検証する。
+サンプルデータを使う場合:
 
 ```bash
-# headless で実行（CI / AI Agent 向け）
-npm run test:e2e
-
-# ブラウザを表示して実行（デバッグ向け）
-npm run test:e2e:ui
+npm run dev:init   # var/sample を初期化（初回のみ）
 ```
 
-- テストファイル: `e2e/` フォルダ
-- サーバー（port 5173, 8080）は Playwright が自動起動する（`reuseExistingServer: true` なので起動済みでも可）
-- サンプルデータ: `var/sample/` を使用
-- 実装後に動作を確認したい場合は `e2e/` にテストを追加してから `npm run test:e2e` を実行すること
+`http://localhost:5173` を開き、`var/sample` の絶対パスを入力する。
+
+---
+
+## 動作確認（タスク完了の必須条件）
+
+実装後は以下を必ず実行し、全て通過することを確認すること。
 
 ### 型チェック
 
@@ -141,7 +39,11 @@ npm run test:e2e:ui
 npx tsc --noEmit
 ```
 
-実装後は必ずこれを実行してエラーがないことを確認すること。
+### ユニット・コンポーネントテスト
+
+```bash
+npm run test
+```
 
 ### E2E テスト
 
@@ -149,43 +51,39 @@ npx tsc --noEmit
 npm run test:e2e
 ```
 
-実装後は必ずこれを実行して、全テストがパスすることを確認すること。
-タスク完了の必須条件とする。
+Playwright がサーバーを自動起動する。`reuseExistingServer: true` のため起動済みでも可。
 
-### Lint / Format
-
-```bash
-npm run lint
-```
-
-### 設計ドキュメントの参照
-
-実装・変更時は `plan/` フォルダのドキュメントを参照すること。
-特に以下を確認する:
-- 新機能追加 → `plan/mvp.md` でフェーズを確認
-- データ構造の変更 → `plan/data-model.md`
-- ストア設計の変更 → `plan/architecture.md`
-- ビュー関連 → `plan/view-system.md`
-
-### shadcn/ui コンポーネントの追加
-
-```bash
-npx shadcn@latest add <component>
-```
-
-例: `npx shadcn@latest add button input tooltip`
-
-## Git Rules
-
-- コミットメッセージの先頭に `[AI]` を付ける
-- 例: `[AI] StyleParserのEOFハンドリング修正`
-- Phase 1 の作業は `main` ブランチで直接行う
-- 大きな機能追加（Phase 2 以降）はブランチを切ること
-- **コミット前に必ず `npm run test:e2e` を実行し、全テストがパスすることを確認すること**
+---
 
 ## Pull Request
 
 コミットを行った場合は、必ず gh コマンドで Pull Request を作成すること。
 
-- Pull Request のタイトル・説明は日本語を使用すること
-- Pull Request は Ready for Review の状態にすること
+- タイトル・説明は日本語
+- Ready for Review の状態にすること
+
+---
+
+## Git Rules
+
+- コミットメッセージの先頭に `[AI]` を付ける（例: `[AI] フィルター条件の保存を修正`）
+
+---
+
+## コード規約
+
+- Lint / Format: `npm run lint`（Biome）
+- shadcn/ui コンポーネントの追加: `npx shadcn@latest add <component>`
+
+---
+
+## 設計ドキュメント
+
+| ドキュメント | 内容 |
+|---|---|
+| `doc/index.md` | 目次・クイックスタート |
+| `doc/overview.md` | ディレクトリ構成・npm スクリプト一覧 |
+| `doc/architecture.md` | システム構成・ストア・データフロー |
+| `doc/data-model.md` | ファイル形式・型定義・ビュークエリ |
+| `doc/testing.md` | テストの書き方・環境の分離 |
+| `plan/mvp.md` | フェーズ別スコープ定義（現在 Phase 2・3 完了、Phase 4 未着手） |
