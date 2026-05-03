@@ -18,6 +18,7 @@ interface SelectionState {
   anchorCell: CellPosition | null
   editingCell: CellPosition | null
   editInitialValue: string | null
+  jsonPanelCell: CellPosition | null
 
   // Normal navigation: resets selection to single cell
   setCursor: (pos: CellPosition | null) => void
@@ -27,6 +28,7 @@ interface SelectionState {
   // Type-to-edit: start editing with the character that was typed
   startEditWithInput: (pos: CellPosition, initialValue: string) => void
   clearEditInitialValue: () => void
+  setJsonPanelCell: (pos: CellPosition | null) => void
 }
 
 export const useSelectionStore = create<SelectionState>((set, _get) => ({
@@ -34,6 +36,7 @@ export const useSelectionStore = create<SelectionState>((set, _get) => ({
   anchorCell: null,
   editingCell: null,
   editInitialValue: null,
+  jsonPanelCell: null,
 
   setCursor: (pos) => set({ cursor: pos, anchorCell: pos }),
   extendCursor: (pos) =>
@@ -50,4 +53,5 @@ export const useSelectionStore = create<SelectionState>((set, _get) => ({
       editInitialValue: initialValue,
     }),
   clearEditInitialValue: () => set({ editInitialValue: null }),
+  setJsonPanelCell: (pos) => set({ jsonPanelCell: pos }),
 }))

@@ -1,4 +1,5 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
+import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import { applyFilter } from '@/domain/filter';
@@ -332,6 +333,9 @@ export default function EditorPage() {
             </div>
           )}
         </main>
+
+        {/* JSON Editor Panel */}
+        <JsonEditorPanel />
       </div>
 
       {/* View dialogs */}
