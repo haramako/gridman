@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import path from 'node:path'
 
-const SAMPLE_PATH = path.resolve('fixtures/sample')
+const SAMPLE_PATH = path.resolve('var/sample')
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
