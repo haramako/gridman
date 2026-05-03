@@ -24,6 +24,7 @@ export type ColumnDef = {
   validation?: ValidationRule
   isDisplayName?: boolean
   enumValues?: string[]
+  enumRef?: string
   refTable?: string
   readonly?: boolean
 }

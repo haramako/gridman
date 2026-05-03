@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ColumnDef, TableSchema } from '@/types/schema'
-import type { FilterExpr, FilterViewQuery, ViewDefinition } from '@/types/view'
+import type { FilterExpr, FilterViewQuery, ViewDefinition, ProjectConfig } from '@/types/view'
+import { resolveEnumValues } from '@/lib/enum-resolver'
 
 const OPS_STRING = ['eq', 'neq', 'contains', 'startsWith', 'isNull', 'isNotNull'] as const
 const OPS_NUMBER = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'isNull', 'isNotNull'] as const
@@ -41,13 +42,14 @@ function buildFilterExpr(
 interface Props {
   schemas: Map<string, TableSchema>
   tables: string[]
+  project: ProjectConfig | null
   editView?: ViewDefinition
   onSave: (view: ViewDefinition) => void
   onDelete?: (id: string) => void
   onClose: () => void
 }
 
-export default function FilterViewDialog({ schemas, tables, editView, onSave, onDelete, onClose }: Props) {
+export default function FilterViewDialog({ schemas, tables, project, editView, onSave, onDelete, onClose }: Props) {
   const existing = editView?.query.type === 'filter' ? (editView.query as FilterViewQuery) : undefined
 
   const [name, setName] = useState(editView?.name ?? '')
@@ -191,14 +193,14 @@ export default function FilterViewDialog({ schemas, tables, editView, onSave, on
                     </select>
                     {/* Value */}
                     {needsValue(cond.op) && (
-                      colDef?.type === 'enum' && colDef.enumValues ? (
+                      colDef?.type === 'enum' ? (
                         <select
                           className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
                           value={cond.value}
                           onChange={(e) => updateCond(cond.id, { value: e.target.value })}
                         >
                           <option value="">-</option>
-                          {colDef.enumValues.map((v) => (
+                          {(resolveEnumValues(colDef, project) ?? []).map((v) => (
                             <option key={v} value={v}>{v}</option>
                           ))}
                         </select>
