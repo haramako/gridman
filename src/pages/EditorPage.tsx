@@ -213,14 +213,39 @@ export default function EditorPage() {
   };
 
   const handleSavePageTemplate = async (template: PageTemplate & { id?: string }) => {
-    if (!projectPath) return;
+    if (!projectPath || !project) return;
     const adapter = new LocalServerAdapter();
     await adapter.writePageTemplate(projectPath, template.name, template);
+
+    // Create or update a View for this page template
+    const pageViewQuery: import('@/types/view').PageViewQuery = {
+      type: 'page',
+      from: template.table,
+      pageLayout: template.name,
+    };
+    const view: import('@/types/view').ViewDefinition = {
+      id: template.id ?? Math.random().toString(36).slice(2, 8),
+      name: template.name,
+      query: pageViewQuery,
+    };
+
+    if (template.id) {
+      await updateView(view);
+    } else {
+      await addView(view);
+    }
+
     setPageTemplateDialogOpen(false);
   };
 
-  const handleDeletePageTemplate = async (_id: string) => {
-    // TODO: Implement page template deletion
+  const handleDeletePageTemplate = async (id: string) => {
+    if (!projectPath || !project) return;
+    // Find and delete the associated view
+    const view = project.views.find((v) => v.id === id);
+    if (view) {
+      await deleteView(id);
+    }
+    // TODO: Also delete the .page.json file
     setPageTemplateDialogOpen(false);
   };
 
