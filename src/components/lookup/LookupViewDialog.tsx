@@ -113,7 +113,10 @@ export default function LookupViewDialog({ schemas, tables, editView, onSave, on
   const canSave = name.trim() && fromTable && lookups.length > 0 && lookups.every((l) => l.fields.length > 0)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); e.stopPropagation(); }}
+    >
       <div className="bg-background rounded-lg border shadow-lg w-[600px] max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
