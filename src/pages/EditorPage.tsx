@@ -1,4 +1,5 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
+import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import { applyFilter } from '@/domain/filter';
@@ -95,7 +96,7 @@ export default function EditorPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty, hasDraft]);
 
-  // Ctrl+S / Ctrl+Z / Ctrl+Y
+  // Ctrl+S / Ctrl+Z / Ctrl+Y / Ctrl+Shift+F
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!e.ctrlKey) return;
@@ -114,10 +115,14 @@ export default function EditorPage() {
         e.preventDefault();
         redo();
       }
+      if (e.key === 'f' && e.shiftKey) {
+        e.preventDefault();
+        navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [saveAll, undo, redo]);
+  }, [saveAll, undo, redo, navigate, project?.name]);
 
   useEffect(() => {
     const name = project?.name ?? 'Spreadsheet';
@@ -251,6 +256,16 @@ export default function EditorPage() {
               : '')}
         </span>
         <button
+          type="button"
+          className="px-3 py-1 rounded border text-sm hover:bg-accent"
+          onClick={() =>
+            navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`)
+          }
+          title="横断検索 (Ctrl+Shift+F)"
+        >
+          🔍 検索
+        </button>
+        <button
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
           disabled={!isDirty}
           onClick={() => saveAll()}
@@ -332,6 +347,9 @@ export default function EditorPage() {
             </div>
           )}
         </main>
+
+        {/* JSON Editor Panel */}
+        <JsonEditorPanel />
       </div>
 
       {/* View dialogs */}

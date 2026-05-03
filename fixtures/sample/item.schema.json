@@ -2,8 +2,33 @@
   "name": "item",
   "displayName": "アイテム",
   "columns": [
-    { "key": "name", "displayName": "名前", "type": "string", "validation": { "required": true }, "isDisplayName": true },
-    { "key": "itemType", "displayName": "種別", "type": "enum", "enumRef": "itemType" },
-    { "key": "value", "displayName": "価値", "type": "integer", "validation": { "min": 0 } }
+    {
+      "key": "name",
+      "displayName": "名前",
+      "type": "string",
+      "validation": {
+        "required": true
+      },
+      "isDisplayName": true
+    },
+    {
+      "key": "itemType",
+      "displayName": "種別",
+      "type": "enum",
+      "enumRef": "itemType"
+    },
+    {
+      "key": "value",
+      "displayName": "価値",
+      "type": "integer",
+      "validation": {
+        "min": 0
+      }
+    },
+    {
+      "key": "effect",
+      "displayName": "効果",
+      "type": "json"
+    }
   ]
 }
