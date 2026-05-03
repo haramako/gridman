@@ -11,7 +11,7 @@
     "lint": "biome check src server",
     "dev:init": "node scripts/reset-sample.js",
     "e2e:reset": "node scripts/reset-e2e.js",
-    "dummy:gen": "node scripts/gen-dummy.js",
+    "dev:gen-dummy": "node scripts/gen-dummy.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

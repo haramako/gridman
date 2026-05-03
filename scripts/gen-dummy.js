@@ -2,7 +2,7 @@
  * パフォーマンステスト用ダミーデータ生成
  * 出力先: var/dummy/ (gitignore対象)
  *
- * Usage: npm run dummy:gen
+ * Usage: npm run dev:gen-dummy
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs'
