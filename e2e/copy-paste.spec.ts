@@ -58,3 +58,48 @@ test('範囲選択した複数セルをコピー＆ペーストできる', async
   const lines = clipboard.split('\n')
   expect(lines.length).toBe(2)
 })
+
+test('Ctrl+X でセルをカットできる（クリップボードにコピー＋セルがクリアされる）', async ({ page }) => {
+  // value列（3番目の列、整数型、必須ではない）を使用
+  const valueCell = page.locator('tbody tr:first-child td:nth-child(4)')
+  await valueCell.click()
+
+  // 元の値を取得
+  const originalText = await valueCell.textContent()
+
+  // カット（Ctrl+X）
+  await page.keyboard.press('Control+x')
+
+  // クリップボードの内容を確認（元の値が入っている）
+  const clipboard = await page.evaluate(() => navigator.clipboard.readText())
+  expect(clipboard.trim()).toBe(originalText?.trim() ?? '')
+
+  // セルがクリアされていることを確認（整数型なので0になる）
+  await expect(valueCell).toHaveText('0')
+})
+
+test('Ctrl+X で範囲選択した複数セルをカットできる', async ({ page }) => {
+  // value列（3番目の列）を選択
+  const firstCell = page.locator('tbody tr:first-child td:nth-child(4)')
+  await firstCell.click()
+
+  // Shift+ArrowDown で2行分選択
+  await page.keyboard.press('Shift+ArrowDown')
+
+  // 1行目の値を保持
+  const firstText = await firstCell.textContent()
+
+  // カット（Ctrl+X）
+  await page.keyboard.press('Control+x')
+
+  // クリップボードの内容を確認（2行分のTSVが入っている）
+  const clipboard = await page.evaluate(() => navigator.clipboard.readText())
+  const lines = clipboard.split('\n')
+  expect(lines.length).toBe(2)
+  expect(lines[0].trim()).toBe(firstText?.trim() ?? '')
+
+  // 選択範囲のセルがクリアされていることを確認（整数型なので0になる）
+  await expect(firstCell).toHaveText('0')
+  const secondCell = page.locator('tbody tr:nth-child(2) td:nth-child(4)')
+  await expect(secondCell).toHaveText('0')
+})

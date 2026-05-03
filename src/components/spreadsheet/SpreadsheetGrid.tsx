@@ -355,6 +355,72 @@ export default function SpreadsheetGrid({
   }, [displayRows, schema.columns, tableName, updateCell])
 
   // ---------------------------------------------------------------------------
+  // Cut
+  // ---------------------------------------------------------------------------
+
+  const handleCut = useCallback(async () => {
+    if (readOnly) return
+
+    const { cursor: cur, anchorCell } = useSelectionStore.getState()
+    if (!cur) return
+
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+
+    let minRow = cursorRowIdx
+    let maxRow = cursorRowIdx
+    let minCol = cursorColIdx
+    let maxCol = cursorColIdx
+
+    if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
+        minRow = Math.min(cursorRowIdx, anchorRowIdx)
+        maxRow = Math.max(cursorRowIdx, anchorRowIdx)
+        minCol = Math.min(cursorColIdx, anchorColIdx)
+        maxCol = Math.max(cursorColIdx, anchorColIdx)
+      }
+    }
+
+    // Build TSV data for clipboard (same as handleCopy)
+    const lines: string[] = []
+    for (let ri = minRow; ri <= maxRow; ri++) {
+      const row = displayRows[ri]
+      const cells: string[] = []
+      for (let ci = minCol; ci <= maxCol; ci++) {
+        const col = schema.columns[ci]
+        const rawVal =
+          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
+      }
+      lines.push(cells.join('\t'))
+    }
+
+    // Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'))
+    } catch {
+      // clipboard access denied
+      return
+    }
+
+    // Clear the selected cells
+    for (let ri = minRow; ri <= maxRow; ri++) {
+      const row = displayRows[ri]
+      for (let ci = minCol; ci <= maxCol; ci++) {
+        const col = schema.columns[ci]
+        // Skip read-only columns and types that shouldn't be cleared directly
+        if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
+
+        const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : ''
+        updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal)
+      }
+    }
+  }, [displayRows, schema.columns, tableName, readOnly, updateCell])
+
+  // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)
   // ---------------------------------------------------------------------------
 
@@ -366,6 +432,13 @@ export default function SpreadsheetGrid({
       // Let edit-mode key events be handled by the input/select in Cell
       if (editingCell) return
       if (!cur) return
+
+      // Ctrl+X / Cmd+X: cut selected cells (copy + clear)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+        e.preventDefault()
+        handleCut()
+        return
+      }
 
       // Ctrl+C / Cmd+C: copy selected cells as TSV
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
@@ -494,7 +567,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste]
+    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut]
   )
 
   // ---------------------------------------------------------------------------
