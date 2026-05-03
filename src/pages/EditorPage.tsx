@@ -1,11 +1,13 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
+import UnionViewDialog from '@/components/union/UnionViewDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import { applyFilter } from '@/domain/filter';
+import { applyUnion } from '@/domain/union';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, ViewDefinition } from '@/types/view';
+import type { FilterViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -40,6 +42,7 @@ export default function EditorPage() {
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<'filter' | 'union'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
@@ -130,13 +133,24 @@ export default function EditorPage() {
     if (activeView?.query.type === 'filter') {
       return (activeView.query as FilterViewQuery).from;
     }
+    if (activeView?.query.type === 'union') {
+      return '__union__';
+    }
     return tableName || project?.tables[0] || '';
   }, [activeView, tableName, project?.tables]);
 
-  const schema = schemas.get(currentTable);
+  const unionResult = useMemo(() => {
+    if (activeView?.query.type !== 'union') return null;
+    return applyUnion(activeView.query as UnionViewQuery, tables, schemas);
+  }, [activeView, tables, schemas]);
+
+  const schema = unionResult?.schema ?? schemas.get(currentTable);
   const rawRows = tables.get(currentTable);
 
   const displayRows = useMemo((): Map<string, Row> => {
+    if (activeView?.query.type === 'union' && unionResult) {
+      return new Map(unionResult.rows.map((r) => [r._id as string, r]));
+    }
     if (!rawRows) return new Map();
     if (activeView?.query.type === 'filter') {
       const q = activeView.query as FilterViewQuery;
@@ -144,16 +158,18 @@ export default function EditorPage() {
       return new Map(filtered.map((r) => [r._id as string, r]));
     }
     return rawRows;
-  }, [rawRows, activeView]);
+  }, [rawRows, activeView, unionResult]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (type: 'filter' | 'union') => {
     setEditingView(undefined);
+    setDialogType(type);
     setDialogOpen(true);
   };
 
   const openEditDialog = () => {
     if (activeView) {
       setEditingView(activeView);
+      setDialogType(activeView.query.type === 'union' ? 'union' : 'filter');
       setDialogOpen(true);
     }
   };
@@ -274,20 +290,29 @@ export default function EditorPage() {
           </div>
           <button
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-            onClick={openCreateDialog}
+            onClick={() => openCreateDialog('filter')}
           >
-            + 追加
+            + フィルター
           </button>
-          {project.views.map((view) => (
-            <button
-              key={view.id}
-              className={`text-left px-4 py-1.5 text-sm hover:bg-accent flex items-center gap-1 ${activeViewId === view.id ? 'bg-accent font-medium' : ''}`}
-              onClick={() => setActiveViewId(view.id)}
-            >
-              <span className="text-xs opacity-60">🔍</span>
-              <span className="truncate">{view.name}</span>
-            </button>
-          ))}
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={() => openCreateDialog('union')}
+          >
+            + ユニオン
+          </button>
+          {project.views.map((view) => {
+            const icon = view.query.type === 'union' ? '⊕' : '🔍'
+            return (
+              <button
+                key={view.id}
+                className={`text-left px-4 py-1.5 text-sm hover:bg-accent flex items-center gap-1 ${activeViewId === view.id ? 'bg-accent font-medium' : ''}`}
+                onClick={() => setActiveViewId(view.id)}
+              >
+                <span className="text-xs opacity-60">{icon}</span>
+                <span className="truncate">{view.name}</span>
+              </button>
+            )
+          })}
         </aside>
 
         {/* Main */}
@@ -309,9 +334,19 @@ export default function EditorPage() {
         </main>
       </div>
 
-      {/* FilterViewDialog */}
-      {dialogOpen && (
+      {/* View dialogs */}
+      {dialogOpen && dialogType === 'filter' && (
         <FilterViewDialog
+          schemas={schemas}
+          tables={project.tables}
+          editView={editingView}
+          onSave={handleSaveView}
+          onDelete={editingView ? handleDeleteView : undefined}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
+      {dialogOpen && dialogType === 'union' && (
+        <UnionViewDialog
           schemas={schemas}
           tables={project.tables}
           editView={editingView}
