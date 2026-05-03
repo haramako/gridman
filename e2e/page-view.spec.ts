@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('ページビュー', () => {
   test.beforeEach(async ({ page }) => {
     // 正しいパス（/editor）を使用
-    await page.goto('/editor?project=var/sample&table=enemy');
+    await page.goto('/editor?project=var/e2e-test&table=enemy');
     // Wait for the spreadsheet to load
     await page.waitForSelector('aside');
     await page.waitForLoadState('networkidle');
