@@ -11,6 +11,7 @@ JSONL + JSON Schema でデータを保存し、git による差分管理を可�
 | [architecture.md](architecture.md) | システム構成・ストア・データフロー |
 | [data-model.md](data-model.md) | ファイル形式・型定義 |
 | [testing.md](testing.md) | テストの実行と記述 |
+| [input-behavior.md](input-behavior.md) | キーボード・マウス入力の仕様と Excel との差異 |
 
 ## クイックスタート
 
