@@ -11,5 +11,6 @@ export interface FileSystemAdapter {
   readSchema(projectPath: string, tableName: string): Promise<TableSchema>;
   readPageTemplate(projectPath: string, name: string): Promise<PageTemplate>;
   writePageTemplate(projectPath: string, name: string, template: PageTemplate): Promise<void>;
+  deletePageTemplate(projectPath: string, name: string): Promise<void>;
   listPageTemplates(projectPath: string): Promise<string[]>;
 }

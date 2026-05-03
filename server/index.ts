@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
@@ -194,6 +194,19 @@ app.put('/api/page-templates/:name', async (c) => {
   const name = c.req.param('name');
   const template = await c.req.json();
   await writePageTemplateFile(projectPath, name, JSON.stringify(template, null, 2));
+  return c.json({ ok: true });
+});
+
+app.delete('/api/page-templates/:name', async (c) => {
+  const projectPath = c.req.query('project');
+  if (!projectPath) return c.json({ error: 'project required' }, 400);
+  const name = c.req.param('name');
+  const filePath = join(projectPath, `${name}.page.json`);
+  try {
+    await unlink(filePath);
+  } catch {
+    // Ignore if file doesn't exist
+  }
   return c.json({ ok: true });
 });
 

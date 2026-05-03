@@ -60,4 +60,10 @@ export class LocalServerAdapter implements FileSystemAdapter {
   async listPageTemplates(projectPath: string): Promise<string[]> {
     return fetchJson(`${BASE}/page-templates?project=${encodeURIComponent(projectPath)}`);
   }
+
+  async deletePageTemplate(projectPath: string, name: string): Promise<void> {
+    await fetch(`${BASE}/page-templates/${name}?project=${encodeURIComponent(projectPath)}`, {
+      method: 'DELETE',
+    });
+  }
 }

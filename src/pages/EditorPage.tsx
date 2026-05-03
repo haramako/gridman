@@ -1,12 +1,14 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
-import UnionViewDialog from '@/components/union/UnionViewDialog';
+import PageTemplateDialog from '@/components/page/PageTemplateDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
+import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
 import { applyUnion } from '@/domain/union';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
+import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
 import type { FilterViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
@@ -43,8 +45,9 @@ export default function EditorPage() {
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'filter' | 'union'>('filter');
+  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
+  const [editingPageTemplate, setEditingPageTemplate] = useState<(PageTemplate & { id?: string }) | undefined>();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
   const draftHandledRef = useRef(false);
@@ -193,6 +196,31 @@ export default function EditorPage() {
     setActiveViewId(null);
   };
 
+  const openCreatePageTemplate = () => {
+    setEditingPageTemplate(undefined);
+    setDialogType('page');
+    setDialogOpen(true);
+  };
+
+  const handleSavePageTemplate = async (template: PageTemplate & { id?: string }) => {
+    const { addPageTemplate } = useProjectStore.getState();
+    await addPageTemplate(template);
+    setDialogOpen(false);
+
+    // Create a View entry so it appears in the left sidebar
+    const viewId = `page-${template.name}`;
+    const existingView = project?.views.find((v) => v.id === viewId);
+    if (!existingView) {
+      const newView: ViewDefinition = {
+        id: viewId,
+        name: template.name,
+        query: { type: 'page', pageLayout: template.name } as any,
+      };
+      await addView(newView);
+      setActiveViewId(viewId);
+    }
+  };
+
   if (!project) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
@@ -315,6 +343,12 @@ export default function EditorPage() {
           >
             + ユニオン
           </button>
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={openCreatePageTemplate}
+          >
+            + ページ
+          </button>
           {project.views.map((view) => {
             const icon = view.query.type === 'union' ? '⊕' : '🔍'
             return (
@@ -370,6 +404,20 @@ export default function EditorPage() {
           editView={editingView}
           onSave={handleSaveView}
           onDelete={editingView ? handleDeleteView : undefined}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
+      {dialogOpen && dialogType === 'page' && (
+        <PageTemplateDialog
+          schema={schema ?? schemas.get(project.tables[0])!}
+          tables={project.tables}
+          schemas={schemas}
+          editTemplate={editingPageTemplate}
+          onSave={handleSavePageTemplate}
+          onDelete={editingPageTemplate?.id ? () => {
+            useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
+            setDialogOpen(false);
+          } : undefined}
           onClose={() => setDialogOpen(false)}
         />
       )}
