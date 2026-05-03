@@ -169,7 +169,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => { commitEdit(editValue); focusContainer() }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
+              if (e.key === 'Enter') { e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
               if (e.key === 'Escape') cancelEdit()
               if (e.key === 'Tab') {
                 e.preventDefault()
@@ -205,7 +205,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => { commitEdit(editValue); focusContainer() }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
+              if (e.key === 'Enter') { e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
               if (e.key === 'Escape') cancelEdit()
               if (e.key === 'Tab') {
                 e.preventDefault()
@@ -235,7 +235,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => { commitEdit(editValue); focusContainer() }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
+            if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
             if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
             if (e.key === 'Tab') {
               e.preventDefault()
