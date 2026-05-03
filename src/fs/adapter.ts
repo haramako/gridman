@@ -9,6 +9,7 @@ export interface FileSystemAdapter {
   readTable(projectPath: string, tableName: string): Promise<Row[]>;
   patchTable(projectPath: string, tableName: string, rows: Row[]): Promise<void>;
   readSchema(projectPath: string, tableName: string): Promise<TableSchema>;
+  writeSchema(projectPath: string, tableName: string, schema: TableSchema): Promise<void>;
   readPageTemplate(projectPath: string, name: string): Promise<PageTemplate>;
   writePageTemplate(projectPath: string, name: string, template: PageTemplate): Promise<void>;
   deletePageTemplate(projectPath: string, name: string): Promise<void>;

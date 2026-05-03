@@ -168,6 +168,15 @@ app.get('/api/schemas/:name', async (c) => {
   }
 });
 
+app.put('/api/schemas/:name', async (c) => {
+  const projectPath = c.req.query('project');
+  if (!projectPath) return c.json({ error: 'project required' }, 400);
+  const name = c.req.param('name');
+  const schema = await c.req.json();
+  await writeFile(join(projectPath, `${name}.schema.json`), JSON.stringify(schema, null, 2), 'utf-8');
+  return c.json({ ok: true });
+});
+
 // Page Templates API
 app.get('/api/page-templates', async (c) => {
   const projectPath = c.req.query('project');
