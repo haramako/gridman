@@ -168,16 +168,14 @@ npx shadcn@latest add <component>
 
 ## Git Rules
 
-- ブランチ名は、`agents/some-feature-description` のように `agents/` を先頭につける
 - コミットメッセージの先頭に `[AI]` を付ける
 - 例: `[AI] StyleParserのEOFハンドリング修正`
-- Phase 1 の作業は `main` ブランチで直接行う（後述の Multica 制御下のときはその限りではない）
+- Phase 1 の作業は `main` ブランチで直接行う
 - 大きな機能追加（Phase 2 以降）はブランチを切ること
 
-## Multica Rules
+## Pull Request
 
-Multica(AI Agent管理ツール)の制御下では、以下の処理を行うこと。
+コミットを行った場合は、必ず gh コマンドで Pull Request を作成すること。
 
-- コミットするようなタスクをおこなった場合は、そのコミットを gh コマンドでPull Requestを作成する
-  - Pull Request のタイトル、説明は日本語を使用すること
-  - Pull Request は Ready for Review の状態にすること
+- Pull Request のタイトル・説明は日本語を使用すること
+- Pull Request は Ready for Review の状態にすること
