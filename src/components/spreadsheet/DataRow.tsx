@@ -14,6 +14,7 @@ interface Props {
   project: ProjectConfig | null
   isSelected: boolean
   onSelect: () => void
+  onRowNumberMouseDown?: (e: React.MouseEvent, rowIndex: number) => void
   readOnly?: boolean
 }
 
@@ -28,6 +29,7 @@ export default function DataRow({
   project,
   isSelected,
   onSelect,
+  onRowNumberMouseDown,
   readOnly,
 }: Props) {
   const effectiveTableName = (() => {
@@ -42,8 +44,10 @@ export default function DataRow({
   return (
     <tr className={isSelected ? 'bg-blue-50' : 'hover:bg-muted/30'}>
       <td
+        data-row-index={gridRowIndex}
         className="border-b border-r px-2 py-0.5 text-center text-muted-foreground text-xs select-none cursor-pointer w-10"
         onClick={onSelect}
+        onMouseDown={(e) => onRowNumberMouseDown?.(e, gridRowIndex)}
       >
         {rowIndex}
       </td>
