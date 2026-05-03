@@ -335,16 +335,17 @@ export default function EditorPage() {
       </div>
 
       {/* View dialogs */}
-      {dialogOpen && dialogType === 'filter' && (
-        <FilterViewDialog
-          schemas={schemas}
-          tables={project.tables}
-          editView={editingView}
-          onSave={handleSaveView}
-          onDelete={editingView ? handleDeleteView : undefined}
-          onClose={() => setDialogOpen(false)}
-        />
-      )}
+       {dialogOpen && dialogType === 'filter' && (
+         <FilterViewDialog
+           schemas={schemas}
+           tables={project.tables}
+           project={project}
+           editView={editingView}
+           onSave={handleSaveView}
+           onDelete={editingView ? handleDeleteView : undefined}
+           onClose={() => setDialogOpen(false)}
+         />
+       )}
       {dialogOpen && dialogType === 'union' && (
         <UnionViewDialog
           schemas={schemas}

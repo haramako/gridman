@@ -1,5 +1,6 @@
 import Cell from './Cell'
 import type { TableSchema } from '@/types/schema'
+import type { ProjectConfig } from '@/types/view'
 import type { Row } from '@/types/row'
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   schema: TableSchema
   schemas: Map<string, TableSchema>
   tables: Map<string, Map<string, Row>>
+  project: ProjectConfig | null
   isSelected: boolean
   onSelect: () => void
   readOnly?: boolean
@@ -23,6 +25,7 @@ export default function DataRow({
   schema,
   schemas,
   tables,
+  project,
   isSelected,
   onSelect,
   readOnly,
@@ -46,6 +49,7 @@ export default function DataRow({
           tableName={effectiveTableName}
           schemas={schemas}
           tables={tables}
+          project={project}
           readOnly={readOnly}
         />
       ))}

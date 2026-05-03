@@ -1,6 +1,16 @@
 {
   "version": 1,
-  "name": "サンプルゲームデータ",
-  "tables": ["enemy", "item"],
+  "name": "Sample Game Data",
+  "tables": ["enemy", "item", "skill"],
+  "enums": [
+    {
+      "name": "elementType",
+      "values": ["fire", "water", "earth", "wind", "light", "dark", "none"]
+    },
+    {
+      "name": "itemType",
+      "values": ["consumable", "equipment", "material", "key"]
+    }
+  ],
   "views": []
 }

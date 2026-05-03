@@ -88,7 +88,7 @@ export default function SpreadsheetGrid({
   onSelectRow,
   readOnly,
 }: Props) {
-  const { schemas, tables, updateCell } = useProjectStore()
+  const { schemas, tables, updateCell, project } = useProjectStore()
   const {
     cursor,
     anchorCell,
@@ -589,6 +589,7 @@ export default function SpreadsheetGrid({
                   schema={schema}
                   schemas={schemas}
                   tables={tables}
+                  project={project}
                   isSelected={selectedRowId === (row._id as string)}
                   onSelect={() =>
                     onSelectRow(
