@@ -15,12 +15,7 @@
       "key": "itemType",
       "displayName": "種別",
       "type": "enum",
-      "enumValues": [
-        "consumable",
-        "weapon",
-        "armor",
-        "accessory"
-      ]
+      "enumRef": "itemType"
     },
     {
       "key": "value",

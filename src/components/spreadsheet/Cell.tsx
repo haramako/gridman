@@ -4,7 +4,9 @@ import { useSelectionStore } from '@/stores/selection.store'
 import { useGridContext } from './SpreadsheetGrid'
 import { validateCell, coerceToType } from '@/domain/validator'
 import { cn } from '@/lib/utils'
+import { resolveEnumValues } from '@/lib/enum-resolver'
 import type { ColumnDef } from '@/types/schema'
+import type { ProjectConfig } from '@/types/view'
 import type { TableSchema } from '@/types/schema'
 import type { Row } from '@/types/row'
 
@@ -16,6 +18,7 @@ interface Props {
   tableName: string
   schemas: Map<string, TableSchema>
   tables: Map<string, Map<string, Row>>
+  project: ProjectConfig | null
   readOnly?: boolean
 }
 
@@ -45,10 +48,11 @@ function getDisplayValue(
   return rawValue != null ? String(rawValue) : ''
 }
 
-export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, readOnly }: Props) {
+export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, project, readOnly }: Props) {
   const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue, setJsonPanelCell } =
     useSelectionStore()
   const { updateCell, dirtyRowIds } = useProjectStore()
+  const resolvedEnumValues = resolveEnumValues(col, project)
   const { navigate, selectionBounds, focusContainer } = useGridContext()
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
 
@@ -113,7 +117,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   const startEdit = () => {
-    if (col.type === 'json' || col.type === 'text') return
+    if (col.type === 'json' || col.type === 'text' || col.readonly) return
     setCursor({ rowId, colKey: col.key, tableName })
     setEditing({ rowId, colKey: col.key, tableName })
   }
@@ -142,8 +146,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     )
   }
 
-  // readonly types
-  if (col.type === 'json' || col.type === 'text') {
+  // readonly types (json, text, or explicitly readonly columns e.g. lookup expansions)
+  if (col.type === 'json' || col.type === 'text' || col.readonly) {
     const handleClick = () => {
       setCursor({ rowId, colKey: col.key, tableName })
       focusContainer()
@@ -167,7 +171,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   if (isEditing) {
-    if (col.type === 'enum' && col.enumValues) {
+    if (col.type === 'enum' && resolvedEnumValues) {
       return (
         <td className="border-b border-r p-0">
           <select
@@ -189,7 +193,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             }}
           >
             <option value="">-</option>
-            {col.enumValues.map((v) => (
+            {resolvedEnumValues.map((v) => (
               <option key={v} value={v}>{v}</option>
             ))}
           </select>

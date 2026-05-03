@@ -5,7 +5,7 @@
     { "key": "name", "displayName": "名前", "type": "string", "validation": { "required": true, "maxLength": 50 }, "isDisplayName": true },
     { "key": "hp", "displayName": "HP", "type": "integer", "validation": { "required": true, "min": 1 } },
     { "key": "attack", "displayName": "攻撃力", "type": "integer", "validation": { "min": 0 } },
-    { "key": "element", "displayName": "属性", "type": "enum", "enumValues": ["fire", "water", "earth", "wind", "none"] },
+    { "key": "element", "displayName": "属性", "type": "enum", "enumRef": "elementType" },
     { "key": "dropItemId", "displayName": "ドロップアイテム", "type": "ref", "refTable": "item" }
   ]
 }

@@ -1,17 +1,19 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
+import LookupViewDialog from '@/components/lookup/LookupViewDialog';
 import PageTemplateDialog from '@/components/page/PageTemplateDialog';
 import PageView from '@/components/page/PageView';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
+import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
+import type { FilterViewQuery, LookupViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -46,7 +48,7 @@ export default function EditorPage() {
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'page'>('filter');
+  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
   const [editingPageTemplate, setEditingPageTemplate] = useState<(PageTemplate & { id?: string }) | undefined>();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
@@ -145,6 +147,9 @@ export default function EditorPage() {
     if (activeView?.query.type === 'union') {
       return '__union__';
     }
+    if (activeView?.query.type === 'lookup') {
+      return '__lookup__';
+    }
     return tableName || project?.tables[0] || '';
   }, [activeView, tableName, project?.tables]);
 
@@ -153,12 +158,20 @@ export default function EditorPage() {
     return applyUnion(activeView.query as UnionViewQuery, tables, schemas);
   }, [activeView, tables, schemas]);
 
-  const schema = unionResult?.schema ?? schemas.get(currentTable);
+  const lookupResult = useMemo(() => {
+    if (activeView?.query.type !== 'lookup') return null;
+    return applyLookup(activeView.query as LookupViewQuery, tables, schemas);
+  }, [activeView, tables, schemas]);
+
+  const schema = lookupResult?.schema ?? unionResult?.schema ?? schemas.get(currentTable);
   const rawRows = tables.get(currentTable);
 
   const displayRows = useMemo((): Map<string, Row> => {
     if (activeView?.query.type === 'union' && unionResult) {
       return new Map(unionResult.rows.map((r) => [r._id as string, r]));
+    }
+    if (activeView?.query.type === 'lookup' && lookupResult) {
+      return new Map(lookupResult.rows.map((r) => [r._id as string, r]));
     }
     if (!rawRows) return new Map();
     if (activeView?.query.type === 'filter') {
@@ -167,7 +180,7 @@ export default function EditorPage() {
       return new Map(filtered.map((r) => [r._id as string, r]));
     }
     return rawRows;
-  }, [rawRows, activeView, unionResult]);
+  }, [rawRows, activeView, unionResult, lookupResult]);
 
   const isPageView = activeView?.query.type === 'page';
   const pageTemplateName = isPageView ? (activeView.query as any).pageLayout : undefined;
@@ -192,7 +205,7 @@ export default function EditorPage() {
     setPageRowIndex(index);
   };
 
-  const openCreateDialog = (type: 'filter' | 'union') => {
+  const openCreateDialog = (type: 'filter' | 'union' | 'lookup') => {
     setEditingView(undefined);
     setDialogType(type);
     setDialogOpen(true);
@@ -201,7 +214,8 @@ export default function EditorPage() {
   const openEditDialog = () => {
     if (activeView) {
       setEditingView(activeView);
-      setDialogType(activeView.query.type === 'union' ? 'union' : 'filter');
+      const t = activeView.query.type;
+      setDialogType(t === 'union' ? 'union' : t === 'lookup' ? 'lookup' : 'filter');
       setDialogOpen(true);
     }
   };
@@ -369,12 +383,18 @@ export default function EditorPage() {
           </button>
           <button
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={() => openCreateDialog('lookup')}
+          >
+            + ルックアップ
+          </button>
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={openCreatePageTemplate}
           >
             + ページ
           </button>
           {project.views.map((view) => {
-            const icon = view.query.type === 'union' ? '⊕' : '🔍'
+            const icon = view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍'
             return (
               <button
                 key={view.id}
@@ -423,8 +443,19 @@ export default function EditorPage() {
       </div>
 
       {/* View dialogs */}
-      {dialogOpen && dialogType === 'filter' && (
-        <FilterViewDialog
+       {dialogOpen && dialogType === 'filter' && (
+         <FilterViewDialog
+           schemas={schemas}
+           tables={project.tables}
+           project={project}
+           editView={editingView}
+           onSave={handleSaveView}
+           onDelete={editingView ? handleDeleteView : undefined}
+           onClose={() => setDialogOpen(false)}
+         />
+       )}
+      {dialogOpen && dialogType === 'union' && (
+        <UnionViewDialog
           schemas={schemas}
           tables={project.tables}
           editView={editingView}
@@ -433,8 +464,8 @@ export default function EditorPage() {
           onClose={() => setDialogOpen(false)}
         />
       )}
-      {dialogOpen && dialogType === 'union' && (
-        <UnionViewDialog
+      {dialogOpen && dialogType === 'lookup' && (
+        <LookupViewDialog
           schemas={schemas}
           tables={project.tables}
           editView={editingView}

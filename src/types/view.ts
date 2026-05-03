@@ -44,9 +44,15 @@ export type ViewDefinition = {
   query: ViewQuery;
 };
 
+export type SharedEnum = {
+  name: string
+  values: string[]
+}
+
 export type ProjectConfig = {
   version: number;
   name: string;
   tables: string[];
   views: ViewDefinition[];
+  enums?: SharedEnum[];
 };
