@@ -26,10 +26,11 @@ test('Ctrl+C でセル値がクリップボードにコピーされる', async (
 })
 
 test('Ctrl+V でクリップボードの値がセルにペーストされる', async ({ page }) => {
-  // 1行目のname列をコピー
+  // 1行目のname列の値を取得し、クリップボードに直接書き込む
+  // (ヘッドレス環境では Ctrl+C による navigator.clipboard.writeText が失敗する場合がある)
   const firstCell = page.locator('tbody tr:first-child td:nth-child(2)')
-  await firstCell.click()
-  await page.keyboard.press('Control+c')
+  const firstText = await firstCell.textContent()
+  await page.evaluate((text) => navigator.clipboard.writeText(text), firstText?.trim() ?? '')
 
   // 2行目のname列にペースト
   const secondCell = page.locator('tbody tr:nth-child(2) td:nth-child(2)')
@@ -37,7 +38,6 @@ test('Ctrl+V でクリップボードの値がセルにペーストされる', a
   await page.keyboard.press('Control+v')
 
   // 1行目の値と同じ値が2行目にペーストされていること
-  const firstText = await firstCell.textContent()
   const secondText = await secondCell.textContent()
   expect(secondText?.trim()).toBe(firstText?.trim())
 })
