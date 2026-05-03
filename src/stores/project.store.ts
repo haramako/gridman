@@ -53,6 +53,7 @@ interface ProjectState {
   deleteView: (id: string) => Promise<void>;
   addPageTemplate: (template: PageTemplate & { id?: string }) => Promise<void>;
   deletePageTemplate: (name: string) => Promise<void>;
+  readPageTemplate: (projectPath: string, name: string) => Promise<PageTemplate>;
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
   addRow: (tableName: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
@@ -194,6 +195,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { projectPath } = get();
     if (!projectPath) return;
     await adapter.deletePageTemplate(projectPath, name);
+  },
+
+  readPageTemplate: async (projectPath, name) => {
+    return adapter.readPageTemplate(projectPath, name);
   },
 
   saveAll: async () => {

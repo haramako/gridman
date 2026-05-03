@@ -1,6 +1,7 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
 import PageTemplateDialog from '@/components/page/PageTemplateDialog';
+import PageView from '@/components/page/PageView';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
@@ -167,6 +168,29 @@ export default function EditorPage() {
     }
     return rawRows;
   }, [rawRows, activeView, unionResult]);
+
+  const isPageView = activeView?.query.type === 'page';
+  const pageTemplateName = isPageView ? (activeView.query as any).pageLayout : undefined;
+  const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
+
+  useEffect(() => {
+    if (pageTemplateName && projectPath) {
+      useProjectStore.getState().readPageTemplate(projectPath, pageTemplateName).then(setPageTemplate).catch(() => setPageTemplate(null));
+    } else {
+      setPageTemplate(null);
+    }
+  }, [pageTemplateName, projectPath]);
+
+  const [pageRowIndex, setPageRowIndex] = useState(0);
+  const pageRow = useMemo(() => {
+    if (!isPageView || !pageTemplate || displayRows.size === 0) return null;
+    const rows = [...displayRows.values()];
+    return rows[Math.min(pageRowIndex, rows.length - 1)] ?? null;
+  }, [isPageView, pageTemplate, displayRows, pageRowIndex]);
+
+  const handlePageNavigate = (index: number) => {
+    setPageRowIndex(index);
+  };
 
   const openCreateDialog = (type: 'filter' | 'union') => {
     setEditingView(undefined);
@@ -366,7 +390,19 @@ export default function EditorPage() {
 
         {/* Main */}
         <main className="flex-1 overflow-hidden flex flex-col">
-          {schema ? (
+          {isPageView && pageTemplate && pageRow ? (
+            <PageView
+              template={pageTemplate}
+              row={pageRow}
+              tableName={currentTable}
+              schema={schema!}
+              schemas={schemas}
+              tables={tables}
+              currentIndex={pageRowIndex}
+              totalRows={displayRows.size}
+              onNavigate={handlePageNavigate}
+            />
+          ) : schema ? (
             <SpreadsheetView
               tableName={currentTable}
               schema={schema}
