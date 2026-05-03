@@ -1,11 +1,15 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
+import PageTemplateDialog from '@/components/page/PageTemplateDialog';
+import PageView from '@/components/page/PageView';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import { applyFilter } from '@/domain/filter';
+import { LocalServerAdapter } from '@/fs/local-server';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
+import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, ViewDefinition } from '@/types/view';
+import type { FilterViewQuery, PageViewQuery, ViewDefinition } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -41,6 +45,10 @@ export default function EditorPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
+  const [pageTemplateDialogOpen, setPageTemplateDialogOpen] = useState(false);
+  const [editingPageTemplate, setEditingPageTemplate] = useState<
+    (PageTemplate & { id?: string }) | undefined
+  >();
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
   const draftHandledRef = useRef(false);
@@ -126,12 +134,18 @@ export default function EditorPage() {
 
   const activeView = project?.views.find((v) => v.id === activeViewId) ?? null;
 
+  const isPageView = activeView?.query.type === 'page';
+  const pageQuery = isPageView ? (activeView.query as PageViewQuery) : undefined;
+
   const currentTable = useMemo(() => {
     if (activeView?.query.type === 'filter') {
       return (activeView.query as FilterViewQuery).from;
     }
+    if (isPageView && pageQuery) {
+      return pageQuery.from;
+    }
     return tableName || project?.tables[0] || '';
-  }, [activeView, tableName, project?.tables]);
+  }, [activeView, tableName, project?.tables, isPageView, pageQuery]);
 
   const schema = schemas.get(currentTable);
   const rawRows = tables.get(currentTable);
@@ -145,6 +159,27 @@ export default function EditorPage() {
     }
     return rawRows;
   }, [rawRows, activeView]);
+
+  // For page view, get the first row or allow navigation
+  const pageRow = useMemo((): Row | undefined => {
+    if (!isPageView || !displayRows) return undefined;
+    return [...displayRows.values()][0];
+  }, [isPageView, displayRows]);
+
+  // Page template for the current view
+  const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
+
+  useEffect(() => {
+    if (!isPageView || !pageQuery?.pageLayout || !projectPath) {
+      setPageTemplate(null);
+      return;
+    }
+    const adapter = new LocalServerAdapter();
+    adapter
+      .readPageTemplate(projectPath, pageQuery.pageLayout)
+      .then((template) => setPageTemplate({ ...template, id: pageQuery.pageLayout }))
+      .catch(() => setPageTemplate(null));
+  }, [isPageView, pageQuery?.pageLayout, projectPath]);
 
   const openCreateDialog = () => {
     setEditingView(undefined);
@@ -170,6 +205,23 @@ export default function EditorPage() {
   const handleDeleteView = async (id: string) => {
     await deleteView(id);
     setActiveViewId(null);
+  };
+
+  const openPageTemplateDialog = () => {
+    setEditingPageTemplate(undefined);
+    setPageTemplateDialogOpen(true);
+  };
+
+  const handleSavePageTemplate = async (template: PageTemplate & { id?: string }) => {
+    if (!projectPath) return;
+    const adapter = new LocalServerAdapter();
+    await adapter.writePageTemplate(projectPath, template.name, template);
+    setPageTemplateDialogOpen(false);
+  };
+
+  const handleDeletePageTemplate = async (_id: string) => {
+    // TODO: Implement page template deletion
+    setPageTemplateDialogOpen(false);
   };
 
   if (!project) {
@@ -228,11 +280,8 @@ export default function EditorPage() {
           </span>
         )}
         <span className="text-xs text-muted-foreground">
-          {writeMode && (hasDraft && !isDirty
-            ? 'ローカルに保存済み'
-            : isDirty
-              ? '未保存の変更があります'
-              : '')}
+          {writeMode &&
+            (hasDraft && !isDirty ? 'ローカルに保存済み' : isDirty ? '未保存の変更があります' : '')}
         </span>
         <button
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
@@ -276,23 +325,32 @@ export default function EditorPage() {
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={openCreateDialog}
           >
-            + 追加
+            + フィルタービュー
           </button>
-          {project.views.map((view) => (
-            <button
-              key={view.id}
-              className={`text-left px-4 py-1.5 text-sm hover:bg-accent flex items-center gap-1 ${activeViewId === view.id ? 'bg-accent font-medium' : ''}`}
-              onClick={() => setActiveViewId(view.id)}
-            >
-              <span className="text-xs opacity-60">🔍</span>
-              <span className="truncate">{view.name}</span>
-            </button>
-          ))}
+          <button
+            className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={openPageTemplateDialog}
+          >
+            + ページテンプレート
+          </button>
+          {project.views.map((view) => {
+            const isPage = view.query.type === 'page';
+            return (
+              <button
+                key={view.id}
+                className={`text-left px-4 py-1.5 text-sm hover:bg-accent flex items-center gap-1 ${activeViewId === view.id ? 'bg-accent font-medium' : ''}`}
+                onClick={() => setActiveViewId(view.id)}
+              >
+                <span className="text-xs opacity-60">{isPage ? '📄' : '🔍'}</span>
+                <span className="truncate">{view.name}</span>
+              </button>
+            );
+          })}
         </aside>
 
         {/* Main */}
         <main className="flex-1 overflow-hidden flex flex-col">
-          {schema ? (
+          {schema && !isPageView && (
             <SpreadsheetView
               tableName={currentTable}
               schema={schema}
@@ -301,7 +359,23 @@ export default function EditorPage() {
               onEditView={openEditDialog}
               readOnly={!writeMode}
             />
-          ) : (
+          )}
+          {schema && isPageView && pageTemplate && pageRow && (
+            <PageView
+              template={pageTemplate}
+              row={pageRow}
+              tableName={currentTable}
+              schema={schema}
+              schemas={schemas}
+              tables={tables}
+            />
+          )}
+          {schema && isPageView && !pageTemplate && (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+              ページテンプレートが見つかりません
+            </div>
+          )}
+          {!schema && !isPageView && (
             <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
               テーブルを選択してください
             </div>
@@ -318,6 +392,19 @@ export default function EditorPage() {
           onSave={handleSaveView}
           onDelete={editingView ? handleDeleteView : undefined}
           onClose={() => setDialogOpen(false)}
+        />
+      )}
+
+      {/* PageTemplateDialog */}
+      {pageTemplateDialogOpen && (
+        <PageTemplateDialog
+          schema={schema!}
+          tables={project.tables}
+          schemas={schemas}
+          editTemplate={editingPageTemplate}
+          onSave={handleSavePageTemplate}
+          onDelete={editingPageTemplate ? handleDeletePageTemplate : undefined}
+          onClose={() => setPageTemplateDialogOpen(false)}
         />
       )}
 
