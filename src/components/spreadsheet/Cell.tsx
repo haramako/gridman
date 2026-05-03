@@ -173,6 +173,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
               if (e.key === 'Escape') cancelEdit()
               if (e.key === 'Tab') {
                 e.preventDefault()
+                e.stopPropagation()
                 commitEdit(editValue)
                 if (e.shiftKey) navigate(rowId, col.key, 0, -1)
                 else navigate(rowId, col.key, 0, 1)
@@ -209,6 +210,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
               if (e.key === 'Escape') cancelEdit()
               if (e.key === 'Tab') {
                 e.preventDefault()
+                e.stopPropagation()
                 commitEdit(editValue)
                 if (e.shiftKey) navigate(rowId, col.key, 0, -1)
                 else navigate(rowId, col.key, 0, 1)
@@ -239,6 +241,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
             if (e.key === 'Tab') {
               e.preventDefault()
+              e.stopPropagation()
               commitEdit(editValue)
               if (e.shiftKey) navigate(rowId, col.key, 0, -1)
               else navigate(rowId, col.key, 0, 1)
