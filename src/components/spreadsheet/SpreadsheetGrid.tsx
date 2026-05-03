@@ -261,6 +261,90 @@ export default function SpreadsheetGrid({
   }, [cursor, filteredRows])
 
   // ---------------------------------------------------------------------------
+  // Copy & Paste
+  // ---------------------------------------------------------------------------
+
+  const handleCopy = useCallback(async () => {
+    const { cursor: cur, anchorCell } = useSelectionStore.getState()
+    if (!cur) return
+
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+
+    let minRow = cursorRowIdx
+    let maxRow = cursorRowIdx
+    let minCol = cursorColIdx
+    let maxCol = cursorColIdx
+
+    if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
+        minRow = Math.min(cursorRowIdx, anchorRowIdx)
+        maxRow = Math.max(cursorRowIdx, anchorRowIdx)
+        minCol = Math.min(cursorColIdx, anchorColIdx)
+        maxCol = Math.max(cursorColIdx, anchorColIdx)
+      }
+    }
+
+    const lines: string[] = []
+    for (let ri = minRow; ri <= maxRow; ri++) {
+      const row = displayRows[ri]
+      const cells: string[] = []
+      for (let ci = minCol; ci <= maxCol; ci++) {
+        const col = schema.columns[ci]
+        const rawVal =
+          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
+      }
+      lines.push(cells.join('\t'))
+    }
+
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'))
+    } catch {
+      // clipboard access denied
+    }
+  }, [displayRows, schema.columns])
+
+  const handlePaste = useCallback(async () => {
+    const { cursor: cur } = useSelectionStore.getState()
+    if (!cur) return
+
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+
+    let text: string
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      return
+    }
+
+    const lines = text.split('\n')
+    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
+
+    for (let ri = 0; ri < lines.length; ri++) {
+      const rowIdx = cursorRowIdx + ri
+      if (rowIdx >= displayRows.length) break
+
+      const row = displayRows[rowIdx]
+      const cells = lines[ri].split('\t')
+      for (let ci = 0; ci < cells.length; ci++) {
+        const colIdx = cursorColIdx + ci
+        if (colIdx >= schema.columns.length) break
+
+        const col = schema.columns[colIdx]
+        if (col.type === 'json' || col.type === 'text') continue
+
+        updateCell(tableName, row._id as string, col.key, cells[ci])
+      }
+    }
+  }, [displayRows, schema.columns, tableName, updateCell])
+
+  // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)
   // ---------------------------------------------------------------------------
 
@@ -272,6 +356,20 @@ export default function SpreadsheetGrid({
       // Let edit-mode key events be handled by the input/select in Cell
       if (editingCell) return
       if (!cur) return
+
+      // Ctrl+C / Cmd+C: copy selected cells as TSV
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault()
+        handleCopy()
+        return
+      }
+
+      // Ctrl+V / Cmd+V: paste TSV into cells starting at cursor
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault()
+        handlePaste()
+        return
+      }
 
       switch (e.key) {
         case 'ArrowUp':
@@ -382,7 +480,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell]
+    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste]
   )
 
   // ---------------------------------------------------------------------------
