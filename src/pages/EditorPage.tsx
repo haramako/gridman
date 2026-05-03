@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/stores/project.store'
 import { useViewStore } from '@/stores/view.store'
+import { useSelectionStore } from '@/stores/selection.store'
 import { applyFilter } from '@/domain/filter'
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView'
 import FilterViewDialog from '@/components/filter/FilterViewDialog'
@@ -14,7 +15,7 @@ export default function EditorPage() {
   const projectPath = params.get('project') ?? ''
   const tableName = params.get('table') ?? ''
 
-  const { project, schemas, tables, isDirty, dirtyRowIds, loadProject, saveAll, addView, updateView, deleteView } = useProjectStore()
+  const { project, schemas, tables, isDirty, dirtyRowIds, loadProject, saveAll, addView, updateView, deleteView, undo, redo } = useProjectStore()
   const { activeViewId, setActiveViewId } = useViewStore()
 
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -25,14 +26,19 @@ export default function EditorPage() {
     loadProject(projectPath).catch(() => navigate('/'))
   }, [projectPath])
 
-  // Ctrl+S
+  // Ctrl+S / Ctrl+Z / Ctrl+Y
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveAll() }
+      if (!e.ctrlKey) return
+      if (e.key === 's') { e.preventDefault(); saveAll(); return }
+      // Skip undo/redo while a cell is being edited (let the input handle native undo)
+      if (useSelectionStore.getState().editingCell) return
+      if (e.key === 'z') { e.preventDefault(); undo() }
+      if (e.key === 'y') { e.preventDefault(); redo() }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [saveAll])
+  }, [saveAll, undo, redo])
 
   useEffect(() => {
     const name = project?.name ?? 'Spreadsheet'
