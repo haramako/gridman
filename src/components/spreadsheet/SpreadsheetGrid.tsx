@@ -751,6 +751,36 @@ export default function SpreadsheetGrid({
         }
       }
 
+      // Ctrl+A: select all cells
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'a') {
+        e.preventDefault()
+
+        // Select all rows visually
+        const allRowIds = filteredRows.map((row) => row._id as string)
+        onSelectRows(allRowIds)
+
+        // Set cell selection range from first to last cell
+        if (filteredRows.length > 0 && schema.columns.length > 0) {
+          const firstRow = filteredRows[0]
+          const lastRow = filteredRows[filteredRows.length - 1]
+          const firstCol = schema.columns[0]
+          const lastCol = schema.columns[schema.columns.length - 1]
+
+          setCursor({
+            rowId: firstRow._id as string,
+            colKey: firstCol.key,
+            tableName: tableName,
+          })
+          extendCursor({
+            rowId: lastRow._id as string,
+            colKey: lastCol.key,
+            tableName: tableName,
+          })
+        }
+
+        return
+      }
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault()
