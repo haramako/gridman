@@ -796,6 +796,16 @@ export default function SpreadsheetGrid({
           }
           break
 
+        case 'PageUp':
+          e.preventDefault()
+          navigate(cur.rowId, cur.colKey, -Math.floor(containerHeight / ROW_HEIGHT), 0)
+          break
+
+        case 'PageDown':
+          e.preventDefault()
+          navigate(cur.rowId, cur.colKey, Math.floor(containerHeight / ROW_HEIGHT), 0)
+          break
+
         case 'Home':
           e.preventDefault()
           if (schema.columns.length > 0) {
@@ -864,7 +874,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-[filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
+    [filteredRows, schema.columns, tableName, containerHeight, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
   // ---------------------------------------------------------------------------
