@@ -5,7 +5,7 @@ import { applySort } from '@/domain/filter'
 import DataRow from './DataRow'
 import type { TableSchema, ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
-import type { SelectionBounds } from '@/stores/selection.store'
+import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
 import type { SortDef } from '@/types/view'
 
 const TYPE_ICON: Record<string, string> = {
@@ -50,6 +50,7 @@ type GridContextValue = {
   filteredRows: Row[]
   columns: ColumnDef[]
   readOnly: boolean
+  onCellMouseDown: (e: React.MouseEvent, pos: CellPosition) => void
 }
 
 const GridContext = createContext<GridContextValue>({
@@ -59,6 +60,7 @@ const GridContext = createContext<GridContextValue>({
   filteredRows: [],
   columns: [],
   readOnly: false,
+  onCellMouseDown: () => {},
 })
 
 export const useGridContext = () => useContext(GridContext)
@@ -426,6 +428,39 @@ export default function SpreadsheetGrid({
   const focusContainer = useCallback(() => {
     containerRef.current?.focus()
   }, [])
+
+  const handleCellMouseDown = useCallback(
+    (e: React.MouseEvent, pos: CellPosition) => {
+      if (e.button !== 0) return
+      if (e.shiftKey) {
+        extendCursor(pos)
+      } else {
+        setCursor(pos)
+      }
+      focusContainer()
+      document.body.style.userSelect = 'none'
+
+      const onMouseMove = (ev: MouseEvent) => {
+        const el = document.elementFromPoint(ev.clientX, ev.clientY)
+        const td = el?.closest('[data-row-id]') as HTMLElement | null
+        if (!td) return
+        const rowId = td.getAttribute('data-row-id')
+        const colKey = td.getAttribute('data-col-key')
+        if (!rowId || !colKey) return
+        extendCursor({ rowId, colKey, tableName: pos.tableName })
+      }
+
+      const onMouseUp = () => {
+        document.body.style.userSelect = ''
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+      }
+
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [setCursor, extendCursor, focusContainer]
+  )
 
   const navigate = useCallback(
     (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
@@ -964,8 +999,8 @@ export default function SpreadsheetGrid({
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false }),
-    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly]
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false, onCellMouseDown: handleCellMouseDown }),
+    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly, handleCellMouseDown]
   )
 
   // ---------------------------------------------------------------------------
