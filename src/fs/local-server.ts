@@ -41,6 +41,14 @@ export class LocalServerAdapter implements FileSystemAdapter {
     return fetchJson(`${BASE}/schemas/${tableName}?project=${encodeURIComponent(projectPath)}`);
   }
 
+  async writeSchema(projectPath: string, tableName: string, schema: TableSchema): Promise<void> {
+    await fetch(`${BASE}/schemas/${tableName}?project=${encodeURIComponent(projectPath)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(schema),
+    });
+  }
+
   async readPageTemplate(projectPath: string, name: string): Promise<PageTemplate> {
     return fetchJson(`${BASE}/page-templates/${name}?project=${encodeURIComponent(projectPath)}`);
   }

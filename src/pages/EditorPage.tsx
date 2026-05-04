@@ -1,5 +1,6 @@
 import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
+import SchemaEditorDialog from '@/components/schema/SchemaEditorDialog';
 import LookupViewDialog from '@/components/lookup/LookupViewDialog';
 import PageTemplateDialog from '@/components/page/PageTemplateDialog';
 import PageView from '@/components/page/PageView';
@@ -38,6 +39,7 @@ export default function EditorPage() {
     addView,
     updateView,
     deleteView,
+    updateSchema,
     undo,
     redo,
     clearDraftState,
@@ -47,6 +49,7 @@ export default function EditorPage() {
   } = useProjectStore();
   const { activeViewId, setActiveViewId } = useViewStore();
 
+  const [schemaEditorTable, setSchemaEditorTable] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
@@ -351,17 +354,33 @@ export default function EditorPage() {
             const isTableDirty = (dirtyRowIds.get(name)?.size ?? 0) > 0;
             const isActive = !activeViewId && name === currentTable;
             return (
-              <button
+              <div
                 key={name}
-                className={`text-left px-4 py-1.5 text-sm hover:bg-accent ${isActive ? 'bg-accent font-medium' : ''}`}
-                onClick={() => {
-                  setActiveViewId(null);
-                  setParams({ project: projectPath, table: name });
-                }}
+                className={`flex items-center group ${isActive ? 'bg-accent' : ''}`}
               >
-                {isTableDirty ? '* ' : ''}
-                {schemas.get(name)?.displayName ?? name}
-              </button>
+                <button
+                  className={`flex-1 text-left px-4 py-1.5 text-sm hover:bg-accent ${isActive ? 'font-medium' : ''}`}
+                  onClick={() => {
+                    setActiveViewId(null);
+                    setParams({ project: projectPath, table: name });
+                  }}
+                >
+                  {isTableDirty ? '* ' : ''}
+                  {schemas.get(name)?.displayName ?? name}
+                </button>
+                {writeMode && (
+                  <button
+                    className="mr-2 px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 shrink-0"
+                    title="スキーマを編集"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSchemaEditorTable(name);
+                    }}
+                  >
+                    ⚙
+                  </button>
+                )}
+              </div>
             );
           })}
 
@@ -513,6 +532,20 @@ export default function EditorPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Schema editor dialog */}
+      {schemaEditorTable && schemas.get(schemaEditorTable) && (
+        <SchemaEditorDialog
+          tableName={schemaEditorTable}
+          schema={schemas.get(schemaEditorTable)!}
+          tables={project.tables}
+          onSave={async (newSchema) => {
+            await updateSchema(schemaEditorTable, newSchema);
+            setSchemaEditorTable(null);
+          }}
+          onClose={() => setSchemaEditorTable(null)}
+        />
       )}
 
       {/* Lock steal confirmation dialog */}

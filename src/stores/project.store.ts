@@ -54,6 +54,7 @@ interface ProjectState {
   addPageTemplate: (template: PageTemplate & { id?: string }) => Promise<void>;
   deletePageTemplate: (name: string) => Promise<void>;
   readPageTemplate: (projectPath: string, name: string) => Promise<PageTemplate>;
+  updateSchema: (tableName: string, schema: TableSchema) => Promise<void>;
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
   addRow: (tableName: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
@@ -232,6 +233,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     } else {
       set({ dirtyRowIds: newDirtyRowIds, isDirty: true });
     }
+  },
+
+  updateSchema: async (tableName, schema) => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    await adapter.writeSchema(projectPath, tableName, schema);
+    set((s) => {
+      const newSchemas = new Map(s.schemas);
+      newSchemas.set(tableName, schema);
+      return { schemas: newSchemas };
+    });
   },
 
   updateCell: (tableName, rowId, col, inputValue) => {
