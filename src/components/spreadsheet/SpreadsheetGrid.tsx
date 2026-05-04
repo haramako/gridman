@@ -316,125 +316,25 @@ export default function SpreadsheetGrid({
   // ---------------------------------------------------------------------------
 
   const findDataEdgeRow = useCallback(
-    (startIdx: number, colKey: string, direction: 'up' | 'down'): number => {
-      const step = direction === 'up' ? -1 : 1
+    (_startIdx: number, _colKey: string, direction: 'up' | 'down'): number => {
       const rows = filteredRows
-      let idx = startIdx + step
-      let lastDataIdx = startIdx
-
       if (direction === 'down') {
-        // If current cell has data, find last contiguous non-empty cell
-        // If current cell is empty, find first non-empty cell
-        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
-        if (currentHasData) {
-          while (idx < rows.length) {
-            const val = rows[idx][colKey]
-            if (val == null || val === '') break
-            lastDataIdx = idx
-            idx += step
-          }
-        } else {
-          while (idx < rows.length) {
-            const val = rows[idx][colKey]
-            if (val != null && val !== '') {
-              lastDataIdx = idx
-              break
-            }
-            idx += step
-          }
-        }
-        // If no data found, jump to last row
-        if (lastDataIdx === startIdx && !currentHasData) {
-          lastDataIdx = rows.length - 1
-        }
+        return Math.max(0, rows.length - 1)
       } else {
-        // direction === 'up'
-        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
-        if (currentHasData) {
-          while (idx >= 0) {
-            const val = rows[idx][colKey]
-            if (val == null || val === '') break
-            lastDataIdx = idx
-            idx += step
-          }
-        } else {
-          while (idx >= 0) {
-            const val = rows[idx][colKey]
-            if (val != null && val !== '') {
-              lastDataIdx = idx
-              break
-            }
-            idx += step
-          }
-        }
-        // If no data found, jump to first row
-        if (lastDataIdx === startIdx && !currentHasData) {
-          lastDataIdx = 0
-        }
+        return 0
       }
-
-      return Math.max(0, Math.min(rows.length - 1, lastDataIdx))
     },
     [filteredRows]
   )
 
   const findDataEdgeCol = useCallback(
-    (row: Row, startColKey: string, direction: 'left' | 'right'): string => {
+    (_row: Row, _startColKey: string, direction: 'left' | 'right'): string => {
       const cols = schema.columns
-      const startIdx = cols.findIndex((c) => c.key === startColKey)
-      if (startIdx === -1) return startColKey
-
-      const step = direction === 'left' ? -1 : 1
-      let idx = startIdx + step
-      let lastDataKey = startColKey
-      const currentHasData = row[startColKey] != null && row[startColKey] !== ''
-
       if (direction === 'right') {
-        if (currentHasData) {
-          while (idx < cols.length) {
-            const val = row[cols[idx].key]
-            if (val == null || val === '') break
-            lastDataKey = cols[idx].key
-            idx += step
-          }
-        } else {
-          while (idx < cols.length) {
-            const val = row[cols[idx].key]
-            if (val != null && val !== '') {
-              lastDataKey = cols[idx].key
-              break
-            }
-            idx += step
-          }
-        }
-        if (lastDataKey === startColKey && !currentHasData && idx >= cols.length) {
-          lastDataKey = cols[cols.length - 1].key
-        }
+        return cols[cols.length - 1]?.key ?? _startColKey
       } else {
-        // direction === 'left'
-        if (currentHasData) {
-          while (idx >= 0) {
-            const val = row[cols[idx].key]
-            if (val == null || val === '') break
-            lastDataKey = cols[idx].key
-            idx += step
-          }
-        } else {
-          while (idx >= 0) {
-            const val = row[cols[idx].key]
-            if (val != null && val !== '') {
-              lastDataKey = cols[idx].key
-              break
-            }
-            idx += step
-          }
-        }
-        if (lastDataKey === startColKey && !currentHasData && idx < 0) {
-          lastDataKey = cols[0].key
-        }
+        return cols[0]?.key ?? _startColKey
       }
-
-      return lastDataKey
     },
     [schema.columns]
   )
