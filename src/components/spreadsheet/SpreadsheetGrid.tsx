@@ -104,9 +104,26 @@ export default function SpreadsheetGrid({
     startEditWithInput,
   } = useSelectionStore()
 
+  const colWidthMapRef = useRef<Record<string, number>>(
+    Object.fromEntries(schema.columns.map((col) => [col.key, DEFAULT_COL_WIDTH[col.type] ?? 150]))
+  )
+
   const [colWidths, setColWidths] = useState<number[]>(() =>
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
   )
+
+  // Sync colWidths when schema columns change (e.g., after adding/removing columns in the schema editor)
+  useEffect(() => {
+    setColWidths(
+      schema.columns.map((col) => {
+        const existing = colWidthMapRef.current[col.key]
+        if (existing !== undefined) return existing
+        const def = DEFAULT_COL_WIDTH[col.type] ?? 150
+        colWidthMapRef.current[col.key] = def
+        return def
+      })
+    )
+  }, [schema.columns])
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -124,6 +141,7 @@ export default function SpreadsheetGrid({
 
   const dragState = useRef<{
     colIndex: number
+    colKey: string
     startX: number
     startWidth: number
   } | null>(null)
@@ -138,6 +156,7 @@ export default function SpreadsheetGrid({
       e.stopPropagation()
       dragState.current = {
         colIndex,
+        colKey: schema.columns[colIndex]?.key ?? '',
         startX: e.clientX,
         startWidth: colWidths[colIndex],
       }
@@ -148,12 +167,11 @@ export default function SpreadsheetGrid({
         if (!dragState.current) return
         const delta = ev.clientX - dragState.current.startX
         const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta)
+        const { colIndex: idx, colKey: key } = dragState.current
         setColWidths((prev) => {
           const next = [...prev]
-          const colIndex = dragState.current?.colIndex
-          if (colIndex !== undefined) {
-            next[colIndex] = newWidth
-          }
+          next[idx] = newWidth
+          if (key) colWidthMapRef.current[key] = newWidth
           return next
         })
       }
@@ -169,7 +187,7 @@ export default function SpreadsheetGrid({
       document.addEventListener('mousemove', onMouseMove)
       document.addEventListener('mouseup', onMouseUp)
     },
-    [colWidths]
+    [colWidths, schema.columns]
   )
 
   // Virtual scroll
