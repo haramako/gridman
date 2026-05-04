@@ -1,12 +1,20 @@
-import { createContext, useContext, useMemo, useState, useRef, useCallback, useEffect } from 'react'
-import { useProjectStore } from '@/stores/project.store'
-import { useSelectionStore } from '@/stores/selection.store'
-import { applySort } from '@/domain/filter'
-import DataRow from './DataRow'
-import type { TableSchema, ColumnDef } from '@/types/schema'
-import type { Row } from '@/types/row'
-import type { SelectionBounds } from '@/stores/selection.store'
-import type { SortDef } from '@/types/view'
+import { applySort } from '@/domain/filter';
+import { useProjectStore } from '@/stores/project.store';
+import { useSelectionStore } from '@/stores/selection.store';
+import type { SelectionBounds } from '@/stores/selection.store';
+import type { Row } from '@/types/row';
+import type { ColumnDef, TableSchema } from '@/types/schema';
+import type { SortDef } from '@/types/view';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import DataRow from './DataRow';
 
 const TYPE_ICON: Record<string, string> = {
   string: '🔤',
@@ -19,7 +27,7 @@ const TYPE_ICON: Record<string, string> = {
   json: '{}',
   text: '📝',
   date: '📅',
-}
+};
 
 const DEFAULT_COL_WIDTH: Record<string, number> = {
   boolean: 60,
@@ -32,25 +40,25 @@ const DEFAULT_COL_WIDTH: Record<string, number> = {
   text: 200,
   date: 120,
   string: 150,
-}
+};
 
-const ROW_HEIGHT = 28
-const ROW_NUM_WIDTH = 40
-const MIN_COL_WIDTH = 40
-const OVERSCAN = 5
+const ROW_HEIGHT = 28;
+const ROW_NUM_WIDTH = 40;
+const MIN_COL_WIDTH = 40;
+const OVERSCAN = 5;
 
 // ---------------------------------------------------------------------------
 // Grid context: shared with Cell components for navigation and selection range
 // ---------------------------------------------------------------------------
 
 type GridContextValue = {
-  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void
-  selectionBounds: SelectionBounds | null
-  focusContainer: () => void
-  filteredRows: Row[]
-  columns: ColumnDef[]
-  readOnly: boolean
-}
+  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void;
+  selectionBounds: SelectionBounds | null;
+  focusContainer: () => void;
+  filteredRows: Row[];
+  columns: ColumnDef[];
+  readOnly: boolean;
+};
 
 const GridContext = createContext<GridContextValue>({
   navigate: () => {},
@@ -59,25 +67,26 @@ const GridContext = createContext<GridContextValue>({
   filteredRows: [],
   columns: [],
   readOnly: false,
-})
+});
 
-export const useGridContext = () => useContext(GridContext)
+export const useGridContext = () => useContext(GridContext);
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 interface Props {
-  tableName: string
-  schema: TableSchema
-  rows: Map<string, Row>
-  filter: string
-  sortDefs?: SortDef[]
-  selectedRowIds: Set<string>
-  onSelectRow: (id: string) => void
-  onSelectRows: (ids: string[]) => void
-  onClearSelection: () => void
-  readOnly?: boolean
+  tableName: string;
+  schema: TableSchema;
+  rows: Map<string, Row>;
+  filter: string;
+  sortDefs?: SortDef[];
+  selectedRowIds: Set<string>;
+  onSelectRow: (id: string) => void;
+  onSelectRows: (ids: string[]) => void;
+  onClearSelection: () => void;
+  onRowContextMenu?: (e: React.MouseEvent, rowId: string) => void;
+  readOnly?: boolean;
 }
 
 export default function SpreadsheetGrid({
@@ -90,206 +99,205 @@ export default function SpreadsheetGrid({
   onSelectRow,
   onSelectRows,
   onClearSelection,
+  onRowContextMenu,
   readOnly,
 }: Props) {
-  const { schemas, tables, updateCell, project } = useProjectStore()
-  const {
-    cursor,
-    anchorCell,
-    setCursor,
-    extendCursor,
-    setEditing,
-    startEditWithInput,
-  } = useSelectionStore()
+  const { schemas, tables, updateCell, project } = useProjectStore();
+  const { cursor, anchorCell, setCursor, extendCursor, setEditing, startEditWithInput } =
+    useSelectionStore();
 
   const [colWidths, setColWidths] = useState<number[]>(() =>
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
-  )
+  );
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
     dir: 'asc',
-  })
+  });
 
   const handleHeaderClick = useCallback((colKey: string) => {
     setSort((prev) => {
       if (prev.col === colKey) {
-        return { col: colKey, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+        return { col: colKey, dir: prev.dir === 'asc' ? 'desc' : 'asc' };
       }
-      return { col: colKey, dir: 'asc' }
-    })
-  }, [])
+      return { col: colKey, dir: 'asc' };
+    });
+  }, []);
 
   const dragState = useRef<{
-    colIndex: number
-    startX: number
-    startWidth: number
-  } | null>(null)
+    colIndex: number;
+    startX: number;
+    startWidth: number;
+  } | null>(null);
 
   // Row drag selection state
-  const dragStartRowIndex = useRef<number | null>(null)
-  const dragCurrentRowIndex = useRef<number | null>(null)
+  const dragStartRowIndex = useRef<number | null>(null);
+  const dragCurrentRowIndex = useRef<number | null>(null);
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent, colIndex: number) => {
-      e.preventDefault()
-      e.stopPropagation()
+      e.preventDefault();
+      e.stopPropagation();
       dragState.current = {
         colIndex,
         startX: e.clientX,
         startWidth: colWidths[colIndex],
-      }
-      document.body.style.userSelect = 'none'
-      document.body.style.cursor = 'col-resize'
+      };
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
 
       const onMouseMove = (ev: MouseEvent) => {
-        if (!dragState.current) return
-        const delta = ev.clientX - dragState.current.startX
-        const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta)
+        if (!dragState.current) return;
+        const delta = ev.clientX - dragState.current.startX;
+        const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta);
         setColWidths((prev) => {
-          const next = [...prev]
-          const colIndex = dragState.current?.colIndex
+          const next = [...prev];
+          const colIndex = dragState.current?.colIndex;
           if (colIndex !== undefined) {
-            next[colIndex] = newWidth
+            next[colIndex] = newWidth;
           }
-          return next
-        })
-      }
+          return next;
+        });
+      };
 
       const onMouseUp = () => {
-        dragState.current = null
-        document.body.style.userSelect = ''
-        document.body.style.cursor = ''
-        document.removeEventListener('mousemove', onMouseMove)
-        document.removeEventListener('mouseup', onMouseUp)
-      }
+        dragState.current = null;
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
 
-      document.addEventListener('mousemove', onMouseMove)
-      document.addEventListener('mouseup', onMouseUp)
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     },
     [colWidths]
-  )
+  );
 
   // Virtual scroll
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [scrollTop, setScrollTop] = useState(0)
-  const [containerHeight, setContainerHeight] = useState(600)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
 
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
+    const el = containerRef.current;
+    if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      setContainerHeight(entry.contentRect.height)
-    })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+      setContainerHeight(entry.contentRect.height);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-  const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0)
+  const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0);
 
   const sortedRows = useMemo(() => {
-    const arr = [...rows.values()]
-    if (sortDefs && sortDefs.length > 0) return applySort(arr, sortDefs)
-    return arr.sort((a, b) => (a._order as number) - (b._order as number))
-  }, [rows, sortDefs])
+    const arr = [...rows.values()];
+    if (sortDefs && sortDefs.length > 0) return applySort(arr, sortDefs);
+    return arr.sort((a, b) => (a._order as number) - (b._order as number));
+  }, [rows, sortDefs]);
 
   const filteredRows = useMemo(() => {
-    if (!filter.trim()) return sortedRows
-    const q = filter.toLowerCase()
+    if (!filter.trim()) return sortedRows;
+    const q = filter.toLowerCase();
     return sortedRows.filter((row) =>
-      Object.values(row).some((v) => String(v ?? '').toLowerCase().includes(q))
-    )
-  }, [sortedRows, filter])
+      Object.values(row).some((v) =>
+        String(v ?? '')
+          .toLowerCase()
+          .includes(q)
+      )
+    );
+  }, [sortedRows, filter]);
 
   // Row drag selection handlers
   const handleRowNumberMouseDown = useCallback(
     (e: React.MouseEvent, rowIndex: number) => {
-      e.preventDefault()
-      const row = filteredRows[rowIndex]
-      if (!row) return
-      const rowId = row._id as string
+      e.preventDefault();
+      const row = filteredRows[rowIndex];
+      if (!row) return;
+      const rowId = row._id as string;
 
       // If Ctrl/Cmd key is pressed, add/remove from selection
       if (e.ctrlKey || e.metaKey) {
         if (selectedRowIds.has(rowId)) {
-          const newIds = new Set(selectedRowIds)
-          newIds.delete(rowId)
-          onSelectRows([...newIds])
+          const newIds = new Set(selectedRowIds);
+          newIds.delete(rowId);
+          onSelectRows([...newIds]);
         } else {
-          onSelectRow(rowId)
+          onSelectRow(rowId);
         }
-        return
+        return;
       }
 
       // Start drag selection
-      dragStartRowIndex.current = rowIndex
-      dragCurrentRowIndex.current = rowIndex
-      onClearSelection()
-      onSelectRow(rowId)
+      dragStartRowIndex.current = rowIndex;
+      dragCurrentRowIndex.current = rowIndex;
+      onClearSelection();
+      onSelectRow(rowId);
 
       const onMouseMove = (ev: MouseEvent) => {
         // Check if mouse is over a row number cell
-        const target = document.elementFromPoint(ev.clientX, ev.clientY)
-        const rowCell = target?.closest('[data-row-index]')
-        if (!rowCell) return
-        const idx = parseInt(rowCell.getAttribute('data-row-index') || '', 10)
-        if (isNaN(idx) || idx === dragCurrentRowIndex.current) return
-        dragCurrentRowIndex.current = idx
+        const target = document.elementFromPoint(ev.clientX, ev.clientY);
+        const rowCell = target?.closest('[data-row-index]');
+        if (!rowCell) return;
+        const idx = Number.parseInt(rowCell.getAttribute('data-row-index') || '', 10);
+        if (isNaN(idx) || idx === dragCurrentRowIndex.current) return;
+        dragCurrentRowIndex.current = idx;
 
         // Select all rows between start and current
-        const start = Math.min(dragStartRowIndex.current!, idx)
-        const end = Math.max(dragStartRowIndex.current!, idx)
-        const ids: string[] = []
+        const start = Math.min(dragStartRowIndex.current!, idx);
+        const end = Math.max(dragStartRowIndex.current!, idx);
+        const ids: string[] = [];
         for (let i = start; i <= end; i++) {
-          const r = filteredRows[i]
-          if (r) ids.push(r._id as string)
+          const r = filteredRows[i];
+          if (r) ids.push(r._id as string);
         }
-        onSelectRows(ids)
-      }
+        onSelectRows(ids);
+      };
 
       const onMouseUp = () => {
-        dragStartRowIndex.current = null
-        dragCurrentRowIndex.current = null
-        document.removeEventListener('mousemove', onMouseMove)
-        document.removeEventListener('mouseup', onMouseUp)
-        document.body.style.userSelect = ''
-        document.body.style.cursor = ''
-      }
+        dragStartRowIndex.current = null;
+        dragCurrentRowIndex.current = null;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      };
 
-      document.body.style.userSelect = 'none'
-      document.body.style.cursor = 'default'
-      document.addEventListener('mousemove', onMouseMove)
-      document.addEventListener('mouseup', onMouseUp)
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'default';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     },
     [filteredRows, selectedRowIds, onSelectRow, onSelectRows, onClearSelection]
-  )
+  );
 
   const displayRows = useMemo(() => {
-    if (!sort.col) return filteredRows
+    if (!sort.col) return filteredRows;
     return [...filteredRows].sort((a, b) => {
-      const av = a[sort.col!]
-      const bv = b[sort.col!]
-      if (av == null && bv == null) return 0
-      if (av == null) return 1
-      if (bv == null) return -1
-      let cmp: number
+      const av = a[sort.col!];
+      const bv = b[sort.col!];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      let cmp: number;
       if (typeof av === 'number' && typeof bv === 'number') {
-        cmp = av - bv
+        cmp = av - bv;
       } else {
-        cmp = String(av).localeCompare(String(bv), undefined, { numeric: true })
+        cmp = String(av).localeCompare(String(bv), undefined, { numeric: true });
       }
-      return sort.dir === 'asc' ? cmp : -cmp
-    })
-  }, [filteredRows, sort])
+      return sort.dir === 'asc' ? cmp : -cmp;
+    });
+  }, [filteredRows, sort]);
 
-  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN)
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
   const endIndex = Math.min(
     displayRows.length - 1,
     Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN
-  )
-  const visibleRows = displayRows.slice(startIndex, endIndex + 1)
-  const topPad = startIndex * ROW_HEIGHT
-  const bottomPad = Math.max(0, (displayRows.length - 1 - endIndex) * ROW_HEIGHT)
+  );
+  const visibleRows = displayRows.slice(startIndex, endIndex + 1);
+  const topPad = startIndex * ROW_HEIGHT;
+  const bottomPad = Math.max(0, (displayRows.length - 1 - endIndex) * ROW_HEIGHT);
 
   // ---------------------------------------------------------------------------
   // Data edge helpers (Ctrl+Arrow jump)
@@ -297,327 +305,328 @@ export default function SpreadsheetGrid({
 
   const findDataEdgeRow = useCallback(
     (startIdx: number, colKey: string, direction: 'up' | 'down'): number => {
-      const step = direction === 'up' ? -1 : 1
-      const rows = filteredRows
-      let idx = startIdx + step
-      let lastDataIdx = startIdx
+      const step = direction === 'up' ? -1 : 1;
+      const rows = filteredRows;
+      let idx = startIdx + step;
+      let lastDataIdx = startIdx;
 
       if (direction === 'down') {
         // If current cell has data, find last contiguous non-empty cell
         // If current cell is empty, find first non-empty cell
-        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
+        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== '';
         if (currentHasData) {
           while (idx < rows.length) {
-            const val = rows[idx][colKey]
-            if (val == null || val === '') break
-            lastDataIdx = idx
-            idx += step
+            const val = rows[idx][colKey];
+            if (val == null || val === '') break;
+            lastDataIdx = idx;
+            idx += step;
           }
         } else {
           while (idx < rows.length) {
-            const val = rows[idx][colKey]
+            const val = rows[idx][colKey];
             if (val != null && val !== '') {
-              lastDataIdx = idx
-              break
+              lastDataIdx = idx;
+              break;
             }
-            idx += step
+            idx += step;
           }
         }
         // If no data found, jump to last row
         if (lastDataIdx === startIdx && !currentHasData) {
-          lastDataIdx = rows.length - 1
+          lastDataIdx = rows.length - 1;
         }
       } else {
         // direction === 'up'
-        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
+        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== '';
         if (currentHasData) {
           while (idx >= 0) {
-            const val = rows[idx][colKey]
-            if (val == null || val === '') break
-            lastDataIdx = idx
-            idx += step
+            const val = rows[idx][colKey];
+            if (val == null || val === '') break;
+            lastDataIdx = idx;
+            idx += step;
           }
         } else {
           while (idx >= 0) {
-            const val = rows[idx][colKey]
+            const val = rows[idx][colKey];
             if (val != null && val !== '') {
-              lastDataIdx = idx
-              break
+              lastDataIdx = idx;
+              break;
             }
-            idx += step
+            idx += step;
           }
         }
         // If no data found, jump to first row
         if (lastDataIdx === startIdx && !currentHasData) {
-          lastDataIdx = 0
+          lastDataIdx = 0;
         }
       }
 
-      return Math.max(0, Math.min(rows.length - 1, lastDataIdx))
+      return Math.max(0, Math.min(rows.length - 1, lastDataIdx));
     },
     [filteredRows]
-  )
+  );
 
   const findDataEdgeCol = useCallback(
     (row: Row, startColKey: string, direction: 'left' | 'right'): string => {
-      const cols = schema.columns
-      const startIdx = cols.findIndex((c) => c.key === startColKey)
-      if (startIdx === -1) return startColKey
+      const cols = schema.columns;
+      const startIdx = cols.findIndex((c) => c.key === startColKey);
+      if (startIdx === -1) return startColKey;
 
-      const step = direction === 'left' ? -1 : 1
-      let idx = startIdx + step
-      let lastDataKey = startColKey
-      const currentHasData = row[startColKey] != null && row[startColKey] !== ''
+      const step = direction === 'left' ? -1 : 1;
+      let idx = startIdx + step;
+      let lastDataKey = startColKey;
+      const currentHasData = row[startColKey] != null && row[startColKey] !== '';
 
       if (direction === 'right') {
         if (currentHasData) {
           while (idx < cols.length) {
-            const val = row[cols[idx].key]
-            if (val == null || val === '') break
-            lastDataKey = cols[idx].key
-            idx += step
+            const val = row[cols[idx].key];
+            if (val == null || val === '') break;
+            lastDataKey = cols[idx].key;
+            idx += step;
           }
         } else {
           while (idx < cols.length) {
-            const val = row[cols[idx].key]
+            const val = row[cols[idx].key];
             if (val != null && val !== '') {
-              lastDataKey = cols[idx].key
-              break
+              lastDataKey = cols[idx].key;
+              break;
             }
-            idx += step
+            idx += step;
           }
         }
         if (lastDataKey === startColKey && !currentHasData && idx >= cols.length) {
-          lastDataKey = cols[cols.length - 1].key
+          lastDataKey = cols[cols.length - 1].key;
         }
       } else {
         // direction === 'left'
         if (currentHasData) {
           while (idx >= 0) {
-            const val = row[cols[idx].key]
-            if (val == null || val === '') break
-            lastDataKey = cols[idx].key
-            idx += step
+            const val = row[cols[idx].key];
+            if (val == null || val === '') break;
+            lastDataKey = cols[idx].key;
+            idx += step;
           }
         } else {
           while (idx >= 0) {
-            const val = row[cols[idx].key]
+            const val = row[cols[idx].key];
             if (val != null && val !== '') {
-              lastDataKey = cols[idx].key
-              break
+              lastDataKey = cols[idx].key;
+              break;
             }
-            idx += step
+            idx += step;
           }
         }
         if (lastDataKey === startColKey && !currentHasData && idx < 0) {
-          lastDataKey = cols[0].key
+          lastDataKey = cols[0].key;
         }
       }
 
-      return lastDataKey
+      return lastDataKey;
     },
     [schema.columns]
-  )
+  );
 
   // ---------------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------------
 
   const focusContainer = useCallback(() => {
-    containerRef.current?.focus()
-  }, [])
+    containerRef.current?.focus();
+  }, []);
 
   const navigate = useCallback(
     (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
-      if (filteredRows.length === 0) return
-      const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId)
-      const colIdx = schema.columns.findIndex((c) => c.key === fromColKey)
+      if (filteredRows.length === 0) return;
+      const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId);
+      const colIdx = schema.columns.findIndex((c) => c.key === fromColKey);
 
-      const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr))
-      const newColIdx = Math.max(0, Math.min(schema.columns.length - 1, colIdx + dc))
+      const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr));
+      const newColIdx = Math.max(0, Math.min(schema.columns.length - 1, colIdx + dc));
 
-      const newRow = filteredRows[newRowIdx]
-      const newCol = schema.columns[newColIdx]
-      const navSources = newRow._sources as Record<string, unknown> | undefined
+      const newRow = filteredRows[newRowIdx];
+      const newCol = schema.columns[newColIdx];
+      const navSources = newRow._sources as Record<string, unknown> | undefined;
       const rowTableName =
-        (newRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
+        (newRow._source as string) ??
+        (navSources ? Object.keys(navSources)[0] : undefined) ??
+        tableName;
 
-      setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName: rowTableName })
-      setEditing(null)
-      containerRef.current?.focus()
+      setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName: rowTableName });
+      setEditing(null);
+      containerRef.current?.focus();
     },
     [filteredRows, schema.columns, tableName, setCursor, setEditing]
-  )
+  );
 
   // Scroll to keep cursor row visible after navigation
   useEffect(() => {
-    if (!cursor) return
-    const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
-    if (rowIdx === -1) return
-    const el = containerRef.current
-    if (!el) return
-    const rowTop = rowIdx * ROW_HEIGHT
-    const rowBottom = rowTop + ROW_HEIGHT
+    if (!cursor) return;
+    const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId);
+    if (rowIdx === -1) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const rowTop = rowIdx * ROW_HEIGHT;
+    const rowBottom = rowTop + ROW_HEIGHT;
     // Account for sticky thead height (~34px)
-    const theadHeight = 34
-    const visibleTop = el.scrollTop
-    const visibleBottom = el.scrollTop + el.clientHeight - theadHeight
+    const theadHeight = 34;
+    const visibleTop = el.scrollTop;
+    const visibleBottom = el.scrollTop + el.clientHeight - theadHeight;
     if (rowTop < visibleTop) {
-      el.scrollTop = rowTop
+      el.scrollTop = rowTop;
     } else if (rowBottom > visibleBottom) {
-      el.scrollTop = rowBottom - (el.clientHeight - theadHeight)
+      el.scrollTop = rowBottom - (el.clientHeight - theadHeight);
     }
-  }, [cursor, filteredRows])
+  }, [cursor, filteredRows]);
 
   // ---------------------------------------------------------------------------
   // Copy & Paste
   // ---------------------------------------------------------------------------
 
   const handleCopy = useCallback(async () => {
-    const { cursor: cur, anchorCell } = useSelectionStore.getState()
-    if (!cur) return
+    const { cursor: cur, anchorCell } = useSelectionStore.getState();
+    if (!cur) return;
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
 
-    let minRow = cursorRowIdx
-    let maxRow = cursorRowIdx
-    let minCol = cursorColIdx
-    let maxCol = cursorColIdx
+    let minRow = cursorRowIdx;
+    let maxRow = cursorRowIdx;
+    let minCol = cursorColIdx;
+    let maxCol = cursorColIdx;
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
-      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
+      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
-        minRow = Math.min(cursorRowIdx, anchorRowIdx)
-        maxRow = Math.max(cursorRowIdx, anchorRowIdx)
-        minCol = Math.min(cursorColIdx, anchorColIdx)
-        maxCol = Math.max(cursorColIdx, anchorColIdx)
+        minRow = Math.min(cursorRowIdx, anchorRowIdx);
+        maxRow = Math.max(cursorRowIdx, anchorRowIdx);
+        minCol = Math.min(cursorColIdx, anchorColIdx);
+        maxCol = Math.max(cursorColIdx, anchorColIdx);
       }
     }
 
-    const lines: string[] = []
+    const lines: string[] = [];
     for (let ri = minRow; ri <= maxRow; ri++) {
-      const row = displayRows[ri]
-      const cells: string[] = []
+      const row = displayRows[ri];
+      const cells: string[] = [];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
-        const rawVal =
-          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
-        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
+        const col = schema.columns[ci];
+        const rawVal = row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key];
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal));
       }
-      lines.push(cells.join('\t'))
+      lines.push(cells.join('\t'));
     }
 
     try {
-      await navigator.clipboard.writeText(lines.join('\n'))
+      await navigator.clipboard.writeText(lines.join('\n'));
     } catch {
       // clipboard access denied
     }
-  }, [displayRows, schema.columns])
+  }, [displayRows, schema.columns]);
 
   const handlePaste = useCallback(async () => {
-    const { cursor: cur } = useSelectionStore.getState()
-    if (!cur) return
+    const { cursor: cur } = useSelectionStore.getState();
+    if (!cur) return;
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
 
-    let text: string
+    let text: string;
     try {
-      text = await navigator.clipboard.readText()
+      text = await navigator.clipboard.readText();
     } catch {
-      return
+      return;
     }
 
-    const lines = text.split('\n')
-    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
+    const lines = text.split('\n');
+    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
 
     for (let ri = 0; ri < lines.length; ri++) {
-      const rowIdx = cursorRowIdx + ri
-      if (rowIdx >= displayRows.length) break
+      const rowIdx = cursorRowIdx + ri;
+      if (rowIdx >= displayRows.length) break;
 
-      const row = displayRows[rowIdx]
-      const cells = lines[ri].split('\t')
+      const row = displayRows[rowIdx];
+      const cells = lines[ri].split('\t');
       for (let ci = 0; ci < cells.length; ci++) {
-        const colIdx = cursorColIdx + ci
-        if (colIdx >= schema.columns.length) break
+        const colIdx = cursorColIdx + ci;
+        if (colIdx >= schema.columns.length) break;
 
-        const col = schema.columns[colIdx]
-        if (col.type === 'json' || col.type === 'text') continue
+        const col = schema.columns[colIdx];
+        if (col.type === 'json' || col.type === 'text') continue;
 
-        updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci])
+        updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci]);
       }
     }
-  }, [displayRows, schema.columns, tableName, updateCell])
+  }, [displayRows, schema.columns, tableName, updateCell]);
 
   // ---------------------------------------------------------------------------
   // Cut
   // ---------------------------------------------------------------------------
 
   const handleCut = useCallback(async () => {
-    if (readOnly) return
+    if (readOnly) return;
 
-    const { cursor: cur, anchorCell } = useSelectionStore.getState()
-    if (!cur) return
+    const { cursor: cur, anchorCell } = useSelectionStore.getState();
+    if (!cur) return;
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
 
-    let minRow = cursorRowIdx
-    let maxRow = cursorRowIdx
-    let minCol = cursorColIdx
-    let maxCol = cursorColIdx
+    let minRow = cursorRowIdx;
+    let maxRow = cursorRowIdx;
+    let minCol = cursorColIdx;
+    let maxCol = cursorColIdx;
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
-      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
+      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
-        minRow = Math.min(cursorRowIdx, anchorRowIdx)
-        maxRow = Math.max(cursorRowIdx, anchorRowIdx)
-        minCol = Math.min(cursorColIdx, anchorColIdx)
-        maxCol = Math.max(cursorColIdx, anchorColIdx)
+        minRow = Math.min(cursorRowIdx, anchorRowIdx);
+        maxRow = Math.max(cursorRowIdx, anchorRowIdx);
+        minCol = Math.min(cursorColIdx, anchorColIdx);
+        maxCol = Math.max(cursorColIdx, anchorColIdx);
       }
     }
 
     // Build TSV data for clipboard (same as handleCopy)
-    const lines: string[] = []
+    const lines: string[] = [];
     for (let ri = minRow; ri <= maxRow; ri++) {
-      const row = displayRows[ri]
-      const cells: string[] = []
+      const row = displayRows[ri];
+      const cells: string[] = [];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
-        const rawVal =
-          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
-        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
+        const col = schema.columns[ci];
+        const rawVal = row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key];
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal));
       }
-      lines.push(cells.join('\t'))
+      lines.push(cells.join('\t'));
     }
 
     // Copy to clipboard
     try {
-      await navigator.clipboard.writeText(lines.join('\n'))
+      await navigator.clipboard.writeText(lines.join('\n'));
     } catch {
       // clipboard access denied
-      return
+      return;
     }
 
     // Clear the selected cells
     for (let ri = minRow; ri <= maxRow; ri++) {
-      const row = displayRows[ri]
+      const row = displayRows[ri];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
+        const col = schema.columns[ci];
         // Skip read-only columns and types that shouldn't be cleared directly
-        if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
+        if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean')
+          continue;
 
-        const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : ''
-        updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal)
+        const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : '';
+        updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal);
       }
     }
-  }, [displayRows, schema.columns, tableName, readOnly, updateCell])
+  }, [displayRows, schema.columns, tableName, readOnly, updateCell]);
 
   // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)
@@ -625,230 +634,274 @@ export default function SpreadsheetGrid({
 
   const handleContainerKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const state = useSelectionStore.getState()
-      const { cursor: cur, editingCell } = state
+      const state = useSelectionStore.getState();
+      const { cursor: cur, editingCell } = state;
 
       // Let edit-mode key events be handled by the input/select in Cell
-      if (editingCell) return
-      if (!cur) return
+      if (editingCell) return;
+      if (!cur) return;
 
       // Ctrl+X / Cmd+X: cut selected cells (copy + clear)
       if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
-        e.preventDefault()
-        handleCut()
-        return
+        e.preventDefault();
+        handleCut();
+        return;
       }
 
       // Ctrl+C / Cmd+C: copy selected cells as TSV
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-        e.preventDefault()
-        handleCopy()
-        return
+        e.preventDefault();
+        handleCopy();
+        return;
       }
 
       // Ctrl+V / Cmd+V: paste TSV into cells starting at cursor
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        e.preventDefault()
-        handlePaste()
-        return
+        e.preventDefault();
+        handlePaste();
+        return;
       }
 
       // Ctrl+Arrow: jump to data edge
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId);
 
         switch (e.key) {
           case 'ArrowUp':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up')
-              const edgeRow = filteredRows[edgeRowIdx]
-              const navSources = edgeRow._sources as Record<string, unknown> | undefined
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up');
+              const edgeRow = filteredRows[edgeRowIdx];
+              const navSources = edgeRow._sources as Record<string, unknown> | undefined;
               const rowTableName =
-                (edgeRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
-              setCursor({ rowId: edgeRow._id as string, colKey: cur.colKey, tableName: rowTableName })
-              setEditing(null)
-              containerRef.current?.focus()
+                (edgeRow._source as string) ??
+                (navSources ? Object.keys(navSources)[0] : undefined) ??
+                tableName;
+              setCursor({
+                rowId: edgeRow._id as string,
+                colKey: cur.colKey,
+                tableName: rowTableName,
+              });
+              setEditing(null);
+              containerRef.current?.focus();
             }
-            return
+            return;
 
           case 'ArrowDown':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down')
-              const edgeRow = filteredRows[edgeRowIdx]
-              const navSources = edgeRow._sources as Record<string, unknown> | undefined
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down');
+              const edgeRow = filteredRows[edgeRowIdx];
+              const navSources = edgeRow._sources as Record<string, unknown> | undefined;
               const rowTableName =
-                (edgeRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
-              setCursor({ rowId: edgeRow._id as string, colKey: cur.colKey, tableName: rowTableName })
-              setEditing(null)
-              containerRef.current?.focus()
+                (edgeRow._source as string) ??
+                (navSources ? Object.keys(navSources)[0] : undefined) ??
+                tableName;
+              setCursor({
+                rowId: edgeRow._id as string,
+                colKey: cur.colKey,
+                tableName: rowTableName,
+              });
+              setEditing(null);
+              containerRef.current?.focus();
             }
-            return
+            return;
 
           case 'ArrowLeft':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const row = filteredRows[rowIdx]
-              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left')
-              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
-              setEditing(null)
-              containerRef.current?.focus()
+              const row = filteredRows[rowIdx];
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left');
+              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName });
+              setEditing(null);
+              containerRef.current?.focus();
             }
-            return
+            return;
 
           case 'ArrowRight':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const row = filteredRows[rowIdx]
-              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right')
-              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
-              setEditing(null)
-              containerRef.current?.focus()
+              const row = filteredRows[rowIdx];
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right');
+              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName });
+              setEditing(null);
+              containerRef.current?.focus();
             }
-            return
+            return;
         }
       }
 
       // Ctrl+Shift+Arrow: extend selection to data edge
       if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId);
 
         switch (e.key) {
           case 'ArrowUp':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up')
-              extendCursor({ rowId: filteredRows[edgeRowIdx]._id as string, colKey: cur.colKey, tableName: cur.tableName })
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up');
+              extendCursor({
+                rowId: filteredRows[edgeRowIdx]._id as string,
+                colKey: cur.colKey,
+                tableName: cur.tableName,
+              });
             }
-            return
+            return;
 
           case 'ArrowDown':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down')
-              extendCursor({ rowId: filteredRows[edgeRowIdx]._id as string, colKey: cur.colKey, tableName: cur.tableName })
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down');
+              extendCursor({
+                rowId: filteredRows[edgeRowIdx]._id as string,
+                colKey: cur.colKey,
+                tableName: cur.tableName,
+              });
             }
-            return
+            return;
 
           case 'ArrowLeft':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const row = filteredRows[rowIdx]
-              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left')
-              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+              const row = filteredRows[rowIdx];
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left');
+              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName });
             }
-            return
+            return;
 
           case 'ArrowRight':
-            e.preventDefault()
+            e.preventDefault();
             if (rowIdx !== -1) {
-              const row = filteredRows[rowIdx]
-              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right')
-              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+              const row = filteredRows[rowIdx];
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right');
+              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName });
             }
-            return
+            return;
         }
       }
 
       switch (e.key) {
         case 'ArrowUp':
-          e.preventDefault()
+          e.preventDefault();
           if (e.shiftKey) {
-            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
-            const newRowIdx = Math.max(0, rowIdx - 1)
-            extendCursor({ rowId: filteredRows[newRowIdx]._id as string, colKey: cur.colKey, tableName })
+            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId);
+            const newRowIdx = Math.max(0, rowIdx - 1);
+            extendCursor({
+              rowId: filteredRows[newRowIdx]._id as string,
+              colKey: cur.colKey,
+              tableName,
+            });
           } else {
-            navigate(cur.rowId, cur.colKey, -1, 0)
+            navigate(cur.rowId, cur.colKey, -1, 0);
           }
-          break
+          break;
 
         case 'ArrowDown':
-          e.preventDefault()
+          e.preventDefault();
           if (e.shiftKey) {
-            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
-            const newRowIdx = Math.min(filteredRows.length - 1, rowIdx + 1)
-            extendCursor({ rowId: filteredRows[newRowIdx]._id as string, colKey: cur.colKey, tableName })
+            const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId);
+            const newRowIdx = Math.min(filteredRows.length - 1, rowIdx + 1);
+            extendCursor({
+              rowId: filteredRows[newRowIdx]._id as string,
+              colKey: cur.colKey,
+              tableName,
+            });
           } else {
-            navigate(cur.rowId, cur.colKey, 1, 0)
+            navigate(cur.rowId, cur.colKey, 1, 0);
           }
-          break
+          break;
 
         case 'ArrowLeft':
-          e.preventDefault()
+          e.preventDefault();
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-            const newColIdx = Math.max(0, colIdx - 1)
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
+            const newColIdx = Math.max(0, colIdx - 1);
+            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName });
           } else {
-            navigate(cur.rowId, cur.colKey, 0, -1)
+            navigate(cur.rowId, cur.colKey, 0, -1);
           }
-          break
+          break;
 
         case 'ArrowRight':
-          e.preventDefault()
+          e.preventDefault();
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-            const newColIdx = Math.min(schema.columns.length - 1, colIdx + 1)
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
+            const newColIdx = Math.min(schema.columns.length - 1, colIdx + 1);
+            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName });
           } else {
-            navigate(cur.rowId, cur.colKey, 0, 1)
+            navigate(cur.rowId, cur.colKey, 0, 1);
           }
-          break
+          break;
 
         case 'Home':
-          e.preventDefault()
+          e.preventDefault();
           if (schema.columns.length > 0) {
-            setCursor({ rowId: cur.rowId, colKey: schema.columns[0].key, tableName: cur.tableName })
+            setCursor({
+              rowId: cur.rowId,
+              colKey: schema.columns[0].key,
+              tableName: cur.tableName,
+            });
           }
-          break
+          break;
 
         case 'End':
-          e.preventDefault()
+          e.preventDefault();
           if (schema.columns.length > 0) {
             setCursor({
               rowId: cur.rowId,
               colKey: schema.columns[schema.columns.length - 1].key,
               tableName: cur.tableName,
-            })
+            });
           }
-          break
+          break;
 
         case 'Delete':
         case 'Backspace': {
-          if (readOnly) break
-          e.preventDefault()
-          const colDef = schema.columns.find((c) => c.key === cur.colKey)
-          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
-            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
-            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
+          if (readOnly) break;
+          e.preventDefault();
+          const colDef = schema.columns.find((c) => c.key === cur.colKey);
+          if (
+            colDef &&
+            !colDef.readonly &&
+            colDef.type !== 'json' &&
+            colDef.type !== 'text' &&
+            colDef.type !== 'boolean'
+          ) {
+            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : '';
+            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal);
           }
-          break
+          break;
         }
 
         case 'Enter':
         case 'F2': {
-          if (readOnly) break
-          e.preventDefault()
-          const colDef = schema.columns.find((c) => c.key === cur.colKey)
-          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
-            setEditing(cur)
+          if (readOnly) break;
+          e.preventDefault();
+          const colDef = schema.columns.find((c) => c.key === cur.colKey);
+          if (
+            colDef &&
+            !colDef.readonly &&
+            colDef.type !== 'json' &&
+            colDef.type !== 'text' &&
+            colDef.type !== 'boolean'
+          ) {
+            setEditing(cur);
           }
-          break
+          break;
         }
 
         case 'Tab': {
-          e.preventDefault()
-          if (e.shiftKey) navigate(cur.rowId, cur.colKey, 0, -1)
-          else navigate(cur.rowId, cur.colKey, 0, 1)
-          break
+          e.preventDefault();
+          if (e.shiftKey) navigate(cur.rowId, cur.colKey, 0, -1);
+          else navigate(cur.rowId, cur.colKey, 0, 1);
+          break;
         }
 
         default:
-          if (readOnly) break
+          if (readOnly) break;
           // Printable characters (IME-off / single char): type-to-edit
           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            const colDef = schema.columns.find((c) => c.key === cur.colKey)
+            const colDef = schema.columns.find((c) => c.key === cur.colKey);
             if (
               colDef &&
               !colDef.readonly &&
@@ -859,45 +912,67 @@ export default function SpreadsheetGrid({
               colDef.type !== 'ref[]' &&
               colDef.type !== 'enum'
             ) {
-              startEditWithInput(cur, e.key)
+              startEditWithInput(cur, e.key);
             }
           }
       }
     },
-[filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
-  )
+    [
+      filteredRows,
+      schema.columns,
+      tableName,
+      navigate,
+      setCursor,
+      extendCursor,
+      setEditing,
+      startEditWithInput,
+      updateCell,
+      handleCopy,
+      handlePaste,
+      handleCut,
+      findDataEdgeRow,
+      findDataEdgeCol,
+    ]
+  );
 
   // ---------------------------------------------------------------------------
   // Selection bounds for range highlighting
   // ---------------------------------------------------------------------------
 
   const selectionBounds = useMemo<SelectionBounds | null>(() => {
-    if (!cursor || !anchorCell) return null
-    if (cursor.rowId === anchorCell.rowId && cursor.colKey === anchorCell.colKey) return null
+    if (!cursor || !anchorCell) return null;
+    if (cursor.rowId === anchorCell.rowId && cursor.colKey === anchorCell.colKey) return null;
 
-    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
-    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cursor.colKey)
-    const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId);
+    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
+    const cursorColIdx = schema.columns.findIndex((c) => c.key === cursor.colKey);
+    const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
 
-    if (cursorRowIdx === -1 || anchorRowIdx === -1) return null
+    if (cursorRowIdx === -1 || anchorRowIdx === -1) return null;
 
     return {
       minRow: Math.min(cursorRowIdx, anchorRowIdx),
       maxRow: Math.max(cursorRowIdx, anchorRowIdx),
       minCol: Math.min(cursorColIdx, anchorColIdx),
       maxCol: Math.max(cursorColIdx, anchorColIdx),
-    }
-  }, [cursor, anchorCell, filteredRows, schema.columns])
+    };
+  }, [cursor, anchorCell, filteredRows, schema.columns]);
 
   // ---------------------------------------------------------------------------
   // Context value
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false }),
+    () => ({
+      navigate,
+      selectionBounds,
+      focusContainer,
+      filteredRows,
+      columns: schema.columns,
+      readOnly: readOnly ?? false,
+    }),
     [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly]
-  )
+  );
 
   // ---------------------------------------------------------------------------
   // Render
@@ -941,8 +1016,8 @@ export default function SpreadsheetGrid({
                   <div
                     className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400 hover:opacity-60"
                     onMouseDown={(e) => {
-                      e.stopPropagation()
-                      handleResizeMouseDown(e, i)
+                      e.stopPropagation();
+                      handleResizeMouseDown(e, i);
                     }}
                   />
                 </th>
@@ -969,16 +1044,17 @@ export default function SpreadsheetGrid({
                   project={project}
                   isSelected={selectedRowIds.has(row._id as string)}
                   onSelect={() => {
-                    const rowId = row._id as string
+                    const rowId = row._id as string;
                     if (selectedRowIds.has(rowId)) {
-                      const newIds = new Set(selectedRowIds)
-                      newIds.delete(rowId)
-                      onSelectRows([...newIds])
+                      const newIds = new Set(selectedRowIds);
+                      newIds.delete(rowId);
+                      onSelectRows([...newIds]);
                     } else {
-                      onSelectRow(rowId)
+                      onSelectRow(rowId);
                     }
                   }}
                   onRowNumberMouseDown={handleRowNumberMouseDown}
+                  onRowContextMenu={onRowContextMenu}
                   readOnly={readOnly}
                 />
               ))
@@ -1001,5 +1077,5 @@ export default function SpreadsheetGrid({
         </table>
       </div>
     </GridContext.Provider>
-  )
+  );
 }

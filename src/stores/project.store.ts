@@ -57,6 +57,8 @@ interface ProjectState {
   updateSchema: (tableName: string, schema: TableSchema) => Promise<void>;
   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
   addRow: (tableName: string) => void;
+  addRowAfter: (tableName: string, afterRowId: string) => void;
+  addRowBefore: (tableName: string, beforeRowId: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
   undo: () => void;
   redo: () => void;
@@ -353,6 +355,128 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     };
 
     commandHistory.execute(cmd);
+  },
+
+  addRowAfter: (tableName, afterRowId) => {
+    if (!get().writeMode) return;
+    const { tables } = get();
+    const table = tables.get(tableName);
+    if (!table) return;
+
+    const afterRow = table.get(afterRowId);
+    if (!afterRow) return;
+
+    const afterOrder = afterRow._order as number;
+    let nextOrder = afterOrder + 2000;
+    for (const row of table.values()) {
+      const o = row._order as number;
+      if (o > afterOrder && o < nextOrder) nextOrder = o;
+    }
+
+    const id = makeId();
+    const order = (afterOrder + nextOrder) / 2;
+    const newRow: Row = { _id: id, _order: order };
+
+    const doAdd = () => {
+      set((s) => {
+        const t = s.tables.get(tableName);
+        if (!t) return s;
+        const newTable = new Map(t);
+        newTable.set(id, newRow);
+        const newTables = new Map(s.tables);
+        newTables.set(tableName, newTable);
+        const newDirtyRowIds = new Map(s.dirtyRowIds);
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
+        dirty.add(id);
+        newDirtyRowIds.set(tableName, dirty);
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+      });
+      scheduleAutoSave();
+    };
+
+    const doDelete = () => {
+      set((s) => {
+        const t = s.tables.get(tableName);
+        if (!t) return s;
+        const newTable = new Map(t);
+        newTable.delete(id);
+        const newTables = new Map(s.tables);
+        newTables.set(tableName, newTable);
+        return { tables: newTables, isDirty: true, hasDraft: true };
+      });
+      scheduleAutoSave();
+    };
+
+    commandHistory.execute({
+      description: '行を下に追加',
+      execute() {
+        doAdd();
+      },
+      undo() {
+        doDelete();
+      },
+    });
+  },
+
+  addRowBefore: (tableName, beforeRowId) => {
+    if (!get().writeMode) return;
+    const { tables } = get();
+    const table = tables.get(tableName);
+    if (!table) return;
+
+    const beforeRow = table.get(beforeRowId);
+    if (!beforeRow) return;
+
+    const beforeOrder = beforeRow._order as number;
+    let prevOrder = beforeOrder - 2000;
+    for (const row of table.values()) {
+      const o = row._order as number;
+      if (o < beforeOrder && o > prevOrder) prevOrder = o;
+    }
+
+    const id = makeId();
+    const order = (prevOrder + beforeOrder) / 2;
+    const newRow: Row = { _id: id, _order: order };
+
+    const doAdd = () => {
+      set((s) => {
+        const t = s.tables.get(tableName);
+        if (!t) return s;
+        const newTable = new Map(t);
+        newTable.set(id, newRow);
+        const newTables = new Map(s.tables);
+        newTables.set(tableName, newTable);
+        const newDirtyRowIds = new Map(s.dirtyRowIds);
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
+        dirty.add(id);
+        newDirtyRowIds.set(tableName, dirty);
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+      });
+      scheduleAutoSave();
+    };
+
+    const doDelete = () => {
+      set((s) => {
+        const t = s.tables.get(tableName);
+        if (!t) return s;
+        const newTable = new Map(t);
+        newTable.delete(id);
+        const newTables = new Map(s.tables);
+        newTables.set(tableName, newTable);
+        return { tables: newTables, isDirty: true, hasDraft: true };
+      });
+      scheduleAutoSave();
+    };
+
+    commandHistory.execute({
+      description: '行を上に追加',
+      execute() {
+        doAdd();
+      },
+      undo() {
+        doDelete();
+      },
+    });
   },
 
   deleteRow: (tableName, rowId) => {
