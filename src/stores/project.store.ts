@@ -224,15 +224,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
     await adapter.patchTable(projectPath, name, rows);
 
-    const newDirtyRowIds = new Map(dirtyRowIds);
-    newDirtyRowIds.set(name, new Set());
-    const isDirty = [...newDirtyRowIds.values()].some((s) => s.size > 0);
-    if (!isDirty) {
-      clearDraft(projectPath);
-      set({ dirtyRowIds: newDirtyRowIds, isDirty: false, hasDraft: false });
-    } else {
-      set({ dirtyRowIds: newDirtyRowIds, isDirty: true });
-    }
+    set((state) => {
+      const newDirtyRowIds = new Map(state.dirtyRowIds);
+      newDirtyRowIds.set(name, new Set());
+      const isDirty = [...newDirtyRowIds.values()].some((s) => s.size > 0);
+      if (!isDirty) {
+        if (state.projectPath) clearDraft(state.projectPath);
+        return { dirtyRowIds: newDirtyRowIds, isDirty: false, hasDraft: false };
+      } else {
+        return { dirtyRowIds: newDirtyRowIds, isDirty: true };
+      }
+    });
   },
 
   updateSchema: async (tableName, schema) => {
