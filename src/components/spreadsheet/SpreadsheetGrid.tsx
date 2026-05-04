@@ -873,6 +873,7 @@ export default function SpreadsheetGrid({
             }
           }
       }
+    },
     [filteredRows, schema.columns, tableName, containerHeight, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
