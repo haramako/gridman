@@ -292,6 +292,134 @@ export default function SpreadsheetGrid({
   const bottomPad = Math.max(0, (displayRows.length - 1 - endIndex) * ROW_HEIGHT)
 
   // ---------------------------------------------------------------------------
+  // Data edge helpers (Ctrl+Arrow jump)
+  // ---------------------------------------------------------------------------
+
+  const findDataEdgeRow = useCallback(
+    (startIdx: number, colKey: string, direction: 'up' | 'down'): number => {
+      const step = direction === 'up' ? -1 : 1
+      const rows = filteredRows
+      let idx = startIdx + step
+      let lastDataIdx = startIdx
+
+      if (direction === 'down') {
+        // If current cell has data, find last contiguous non-empty cell
+        // If current cell is empty, find first non-empty cell
+        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
+        if (currentHasData) {
+          while (idx < rows.length) {
+            const val = rows[idx][colKey]
+            if (val == null || val === '') break
+            lastDataIdx = idx
+            idx += step
+          }
+        } else {
+          while (idx < rows.length) {
+            const val = rows[idx][colKey]
+            if (val != null && val !== '') {
+              lastDataIdx = idx
+              break
+            }
+            idx += step
+          }
+        }
+        // If no data found, jump to last row
+        if (lastDataIdx === startIdx && !currentHasData) {
+          lastDataIdx = rows.length - 1
+        }
+      } else {
+        // direction === 'up'
+        const currentHasData = rows[startIdx]?.[colKey] != null && rows[startIdx][colKey] !== ''
+        if (currentHasData) {
+          while (idx >= 0) {
+            const val = rows[idx][colKey]
+            if (val == null || val === '') break
+            lastDataIdx = idx
+            idx += step
+          }
+        } else {
+          while (idx >= 0) {
+            const val = rows[idx][colKey]
+            if (val != null && val !== '') {
+              lastDataIdx = idx
+              break
+            }
+            idx += step
+          }
+        }
+        // If no data found, jump to first row
+        if (lastDataIdx === startIdx && !currentHasData) {
+          lastDataIdx = 0
+        }
+      }
+
+      return Math.max(0, Math.min(rows.length - 1, lastDataIdx))
+    },
+    [filteredRows]
+  )
+
+  const findDataEdgeCol = useCallback(
+    (row: Row, startColKey: string, direction: 'left' | 'right'): string => {
+      const cols = schema.columns
+      const startIdx = cols.findIndex((c) => c.key === startColKey)
+      if (startIdx === -1) return startColKey
+
+      const step = direction === 'left' ? -1 : 1
+      let idx = startIdx + step
+      let lastDataKey = startColKey
+      const currentHasData = row[startColKey] != null && row[startColKey] !== ''
+
+      if (direction === 'right') {
+        if (currentHasData) {
+          while (idx < cols.length) {
+            const val = row[cols[idx].key]
+            if (val == null || val === '') break
+            lastDataKey = cols[idx].key
+            idx += step
+          }
+        } else {
+          while (idx < cols.length) {
+            const val = row[cols[idx].key]
+            if (val != null && val !== '') {
+              lastDataKey = cols[idx].key
+              break
+            }
+            idx += step
+          }
+        }
+        if (lastDataKey === startColKey && !currentHasData && idx >= cols.length) {
+          lastDataKey = cols[cols.length - 1].key
+        }
+      } else {
+        // direction === 'left'
+        if (currentHasData) {
+          while (idx >= 0) {
+            const val = row[cols[idx].key]
+            if (val == null || val === '') break
+            lastDataKey = cols[idx].key
+            idx += step
+          }
+        } else {
+          while (idx >= 0) {
+            const val = row[cols[idx].key]
+            if (val != null && val !== '') {
+              lastDataKey = cols[idx].key
+              break
+            }
+            idx += step
+          }
+        }
+        if (lastDataKey === startColKey && !currentHasData && idx < 0) {
+          lastDataKey = cols[0].key
+        }
+      }
+
+      return lastDataKey
+    },
+    [schema.columns]
+  )
+
+  // ---------------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------------
 
@@ -525,6 +653,104 @@ export default function SpreadsheetGrid({
         return
       }
 
+      // Ctrl+Arrow: jump to data edge
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up')
+              const edgeRow = filteredRows[edgeRowIdx]
+              const navSources = edgeRow._sources as Record<string, unknown> | undefined
+              const rowTableName =
+                (edgeRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
+              setCursor({ rowId: edgeRow._id as string, colKey: cur.colKey, tableName: rowTableName })
+              setEditing(null)
+              containerRef.current?.focus()
+            }
+            return
+
+          case 'ArrowDown':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down')
+              const edgeRow = filteredRows[edgeRowIdx]
+              const navSources = edgeRow._sources as Record<string, unknown> | undefined
+              const rowTableName =
+                (edgeRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
+              setCursor({ rowId: edgeRow._id as string, colKey: cur.colKey, tableName: rowTableName })
+              setEditing(null)
+              containerRef.current?.focus()
+            }
+            return
+
+          case 'ArrowLeft':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const row = filteredRows[rowIdx]
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left')
+              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+              setEditing(null)
+              containerRef.current?.focus()
+            }
+            return
+
+          case 'ArrowRight':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const row = filteredRows[rowIdx]
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right')
+              setCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+              setEditing(null)
+              containerRef.current?.focus()
+            }
+            return
+        }
+      }
+
+      // Ctrl+Shift+Arrow: extend selection to data edge
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+        const rowIdx = filteredRows.findIndex((r) => (r._id as string) === cur.rowId)
+
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up')
+              extendCursor({ rowId: filteredRows[edgeRowIdx]._id as string, colKey: cur.colKey, tableName: cur.tableName })
+            }
+            return
+
+          case 'ArrowDown':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down')
+              extendCursor({ rowId: filteredRows[edgeRowIdx]._id as string, colKey: cur.colKey, tableName: cur.tableName })
+            }
+            return
+
+          case 'ArrowLeft':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const row = filteredRows[rowIdx]
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'left')
+              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+            }
+            return
+
+          case 'ArrowRight':
+            e.preventDefault()
+            if (rowIdx !== -1) {
+              const row = filteredRows[rowIdx]
+              const edgeColKey = findDataEdgeCol(row, cur.colKey, 'right')
+              extendCursor({ rowId: cur.rowId, colKey: edgeColKey, tableName: cur.tableName })
+            }
+            return
+        }
+      }
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault()
@@ -638,7 +864,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut]
+[filteredRows, schema.columns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
   // ---------------------------------------------------------------------------
