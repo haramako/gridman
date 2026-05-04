@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Select-String \"playwright|vitest|testing-library\")",
+      "PowerShell(Get-ChildItem c:\\\\Work\\\\gridman\\\\node_modules -Directory | Where-Object { $_.Name -match \"playwright|vitest|testing-library\" } | Select-Object -ExpandProperty Name)",
+      "Bash(Remove-Item \"c:\\\\Work\\\\gridman\\\\.multica\\\\SKILL.md\")",
+      "Bash(git -C c:\\\\Work\\\\gridman status)",
+      "Bash(git -C c:\\\\Work\\\\gridman diff --staged)",
+      "Bash(git status *)",
+      "Bash(git rm *)"
+    ]
+  }
+}
