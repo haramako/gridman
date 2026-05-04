@@ -517,20 +517,14 @@ export default function SpreadsheetGrid({
     }
   }, [displayRows, schema.columns])
 
-  const handlePaste = useCallback(async () => {
+  const applyPastedText = useCallback((text: string) => {
+    if (readOnly) return
     const { cursor: cur } = useSelectionStore.getState()
     if (!cur) return
 
     const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
     const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
     if (cursorRowIdx === -1 || cursorColIdx === -1) return
-
-    let text: string
-    try {
-      text = await navigator.clipboard.readText()
-    } catch {
-      return
-    }
 
     const lines = text.split('\n')
     if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
@@ -551,7 +545,42 @@ export default function SpreadsheetGrid({
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci])
       }
     }
-  }, [displayRows, schema.columns, tableName, updateCell])
+  }, [readOnly, displayRows, schema.columns, tableName, updateCell])
+
+  // Global paste listener — fires even when focus is not on the grid container,
+  // and uses clipboardData (no HTTPS/permission required unlike clipboard.readText).
+  useEffect(() => {
+    const onDocumentPaste = (e: ClipboardEvent) => {
+      const { cursor: cur, editingCell } = useSelectionStore.getState()
+      if (!cur || editingCell) return
+      // Don't intercept pastes into other editable elements on the page.
+      const activeEl = document.activeElement
+      if (
+        activeEl &&
+        activeEl !== document.body &&
+        activeEl !== containerRef.current &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'SELECT' ||
+          (activeEl as HTMLElement).isContentEditable)
+      ) return
+      e.preventDefault()
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (text) applyPastedText(text)
+    }
+    document.addEventListener('paste', onDocumentPaste)
+    return () => document.removeEventListener('paste', onDocumentPaste)
+  }, [applyPastedText])
+
+  const handlePaste = useCallback(async () => {
+    let text: string
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      return
+    }
+    applyPastedText(text)
+  }, [applyPastedText])
 
   // ---------------------------------------------------------------------------
   // Cut
