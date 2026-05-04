@@ -92,7 +92,7 @@ export default function SpreadsheetGrid({
   onClearSelection,
   readOnly,
 }: Props) {
-  const { schemas, tables, updateCell, project } = useProjectStore()
+   const { schemas, tables, updateCell, updateCells, project } = useProjectStore()
   const {
     cursor,
     anchorCell,
@@ -605,19 +605,28 @@ export default function SpreadsheetGrid({
       return
     }
 
-    // Clear the selected cells
-    for (let ri = minRow; ri <= maxRow; ri++) {
-      const row = displayRows[ri]
-      for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
-        // Skip read-only columns and types that shouldn't be cleared directly
-        if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
+     // Clear the selected cells
+     const updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[] = []
+     for (let ri = minRow; ri <= maxRow; ri++) {
+       const row = displayRows[ri]
+       for (let ci = minCol; ci <= maxCol; ci++) {
+         const col = schema.columns[ci]
+         // Skip read-only columns and types that shouldn't be cleared directly
+         if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
 
-        const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : ''
-        updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal)
-      }
-    }
-  }, [displayRows, schema.columns, tableName, readOnly, updateCell])
+         const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : ''
+         updates.push({
+           tableName: (row._source as string) ?? tableName,
+           rowId: row._id as string,
+           col: col.key,
+           inputValue: emptyVal,
+         })
+       }
+     }
+     if (updates.length > 0) {
+       updateCells(updates)
+     }
+   }, [displayRows, schema.columns, tableName, readOnly, updateCells])
 
   // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)

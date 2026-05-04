@@ -1,4 +1,4 @@
-import { commandHistory } from '@/domain/commands';
+import { commandHistory, CompositeCommand } from '@/domain/commands';
 import type { Command } from '@/domain/commands';
 import { coerceToType, validateCell } from '@/domain/validator';
 import { LocalServerAdapter } from '@/fs/local-server';
@@ -55,8 +55,9 @@ interface ProjectState {
   deletePageTemplate: (name: string) => Promise<void>;
   readPageTemplate: (projectPath: string, name: string) => Promise<PageTemplate>;
   updateSchema: (tableName: string, schema: TableSchema) => Promise<void>;
-  updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
-  addRow: (tableName: string) => void;
+   updateCell: (tableName: string, rowId: string, col: string, inputValue: unknown) => void;
+   updateCells: (updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[]) => void;
+   addRow: (tableName: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
   undo: () => void;
   redo: () => void;
@@ -246,61 +247,121 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
   },
 
-  updateCell: (tableName, rowId, col, inputValue) => {
-    if (!get().writeMode) return;
-    const state = get();
-    const table = state.tables.get(tableName);
-    const row = table?.get(rowId);
-    const schema = state.schemas.get(tableName);
-    const colDef = schema?.columns.find((c) => c.key === col);
-    if (!table || !row || !colDef) return;
+   updateCell: (tableName, rowId, col, inputValue) => {
+     if (!get().writeMode) return;
+     const state = get();
+     const table = state.tables.get(tableName);
+     const row = table?.get(rowId);
+     const schema = state.schemas.get(tableName);
+     const colDef = schema?.columns.find((c) => c.key === col);
+     if (!table || !row || !colDef) return;
 
-    const coerced = coerceToType(inputValue, colDef.type);
-    const error = validateCell(coerced, colDef);
+     const coerced = coerceToType(inputValue, colDef.type);
+     const error = validateCell(coerced, colDef);
 
-    let newRow: Row;
-    if (error !== null) {
-      const invalid = { ...(row._invalid ?? {}), [col]: inputValue };
-      newRow = { ...row, _invalid: invalid };
-    } else {
-      const invalid = { ...(row._invalid ?? {}) };
-      delete invalid[col];
-      newRow = { ...row, [col]: coerced };
-      if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
-      else delete newRow._invalid;
-    }
+     let newRow: Row;
+     if (error !== null) {
+       const invalid = { ...(row._invalid ?? {}), [col]: inputValue };
+       newRow = { ...row, _invalid: invalid };
+     } else {
+       const invalid = { ...(row._invalid ?? {}) };
+       delete invalid[col];
+       newRow = { ...row, [col]: coerced };
+       if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
+       else delete newRow._invalid;
+     }
 
-    const prevRow = row;
+     const prevRow = row;
 
-    const applyRow = (r: Row) => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(rowId, r);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(rowId);
-        newDirtyRowIds.set(tableName, dirty);
-        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
+     const applyRow = (r: Row) => {
+       set((s) => {
+         const t = s.tables.get(tableName);
+         if (!t) return s;
+         const newTable = new Map(t);
+         newTable.set(rowId, r);
+         const newTables = new Map(s.tables);
+         newTables.set(tableName, newTable);
+         const newDirtyRowIds = new Map(s.dirtyRowIds);
+         const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
+         dirty.add(rowId);
+         newDirtyRowIds.set(tableName, dirty);
+         return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+       });
+       scheduleAutoSave();
+     };
 
-    const cmd: Command = {
-      description: 'セル編集',
-      execute() {
-        applyRow(newRow);
-      },
-      undo() {
-        applyRow(prevRow);
-      },
-    };
+     const cmd: Command = {
+       description: 'セル編集',
+       execute() {
+         applyRow(newRow);
+       },
+       undo() {
+         applyRow(prevRow);
+       },
+     };
 
-    commandHistory.execute(cmd);
-  },
+     commandHistory.execute(cmd);
+   },
+
+   updateCells: (updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[]) => {
+     if (!get().writeMode) return;
+     const cmds: Command[] = [];
+     for (const { tableName, rowId, col, inputValue } of updates) {
+       const state = get();
+       const table = state.tables.get(tableName);
+       const row = table?.get(rowId);
+       const schema = state.schemas.get(tableName);
+       const colDef = schema?.columns.find((c) => c.key === col);
+       if (!table || !row || !colDef) continue;
+
+       const coerced = coerceToType(inputValue, colDef.type);
+       const error = validateCell(coerced, colDef);
+
+       let newRow: Row;
+       if (error !== null) {
+         const invalid = { ...(row._invalid ?? {}), [col]: inputValue };
+         newRow = { ...row, _invalid: invalid };
+       } else {
+         const invalid = { ...(row._invalid ?? {}) };
+         delete invalid[col];
+         newRow = { ...row, [col]: coerced };
+         if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
+         else delete newRow._invalid;
+       }
+
+       const prevRow = row;
+
+       const applyRow = (r: Row) => {
+         set((s) => {
+           const t = s.tables.get(tableName);
+           if (!t) return s;
+           const newTable = new Map(t);
+           newTable.set(rowId, r);
+           const newTables = new Map(s.tables);
+           newTables.set(tableName, newTable);
+           const newDirtyRowIds = new Map(s.dirtyRowIds);
+           const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
+           dirty.add(rowId);
+           newDirtyRowIds.set(tableName, dirty);
+           return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+         });
+         scheduleAutoSave();
+       };
+
+       cmds.push({
+         description: 'セル編集',
+         execute() {
+           applyRow(newRow);
+         },
+         undo() {
+           applyRow(prevRow);
+         },
+       });
+     }
+     if (cmds.length > 0) {
+       commandHistory.execute(new CompositeCommand(cmds, '複数セルの編集'));
+     }
+   },
 
   addRow: (tableName) => {
     if (!get().writeMode) return;
