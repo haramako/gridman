@@ -73,6 +73,7 @@ interface Props {
   rows: Map<string, Row>
   filter: string
   sortDefs?: SortDef[]
+  visibleColumnKeys?: string[] | null
   selectedRowIds: Set<string>
   onSelectRow: (id: string) => void
   onSelectRows: (ids: string[]) => void
@@ -86,6 +87,7 @@ export default function SpreadsheetGrid({
   rows,
   filter,
   sortDefs,
+  visibleColumnKeys,
   selectedRowIds,
   onSelectRow,
   onSelectRows,
@@ -102,9 +104,20 @@ export default function SpreadsheetGrid({
     startEditWithInput,
   } = useSelectionStore()
 
+  // Compute visible columns based on visibleColumnKeys
+  const visibleColumns = useMemo(() => {
+    if (!visibleColumnKeys) return schema.columns
+    return schema.columns.filter((col) => visibleColumnKeys.includes(col.key))
+  }, [schema.columns, visibleColumnKeys])
+
   const [colWidths, setColWidths] = useState<number[]>(() =>
-    schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
+    visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
   )
+
+  // Reset column widths when visible columns change
+  useEffect(() => {
+    setColWidths(visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150))
+  }, [visibleColumns])
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -360,7 +373,7 @@ export default function SpreadsheetGrid({
 
   const findDataEdgeCol = useCallback(
     (row: Row, startColKey: string, direction: 'left' | 'right'): string => {
-      const cols = schema.columns
+      const cols = visibleColumns
       const startIdx = cols.findIndex((c) => c.key === startColKey)
       if (startIdx === -1) return startColKey
 
@@ -416,7 +429,7 @@ export default function SpreadsheetGrid({
 
       return lastDataKey
     },
-    [schema.columns]
+    [visibleColumns]
   )
 
   // ---------------------------------------------------------------------------
@@ -431,13 +444,13 @@ export default function SpreadsheetGrid({
     (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
       if (filteredRows.length === 0) return
       const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId)
-      const colIdx = schema.columns.findIndex((c) => c.key === fromColKey)
+      const colIdx = visibleColumns.findIndex((c) => c.key === fromColKey)
 
       const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr))
-      const newColIdx = Math.max(0, Math.min(schema.columns.length - 1, colIdx + dc))
+      const newColIdx = Math.max(0, Math.min(visibleColumns.length - 1, colIdx + dc))
 
       const newRow = filteredRows[newRowIdx]
-      const newCol = schema.columns[newColIdx]
+      const newCol = visibleColumns[newColIdx]
       const navSources = newRow._sources as Record<string, unknown> | undefined
       const rowTableName =
         (newRow._source as string) ?? (navSources ? Object.keys(navSources)[0] : undefined) ?? tableName
@@ -446,7 +459,7 @@ export default function SpreadsheetGrid({
       setEditing(null)
       containerRef.current?.focus()
     },
-    [filteredRows, schema.columns, tableName, setCursor, setEditing]
+    [filteredRows, visibleColumns, tableName, setCursor, setEditing]
   )
 
   // Scroll to keep cursor row visible after navigation
@@ -478,7 +491,7 @@ export default function SpreadsheetGrid({
     if (!cur) return
 
     const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
     if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     let minRow = cursorRowIdx
@@ -488,7 +501,7 @@ export default function SpreadsheetGrid({
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
       const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
         minRow = Math.min(cursorRowIdx, anchorRowIdx)
         maxRow = Math.max(cursorRowIdx, anchorRowIdx)
@@ -502,7 +515,7 @@ export default function SpreadsheetGrid({
       const row = displayRows[ri]
       const cells: string[] = []
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
+        const col = visibleColumns[ci]
         const rawVal =
           row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
         cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
@@ -515,14 +528,14 @@ export default function SpreadsheetGrid({
     } catch {
       // clipboard access denied
     }
-  }, [displayRows, schema.columns])
+  }, [displayRows, visibleColumns])
 
   const handlePaste = useCallback(async () => {
     const { cursor: cur } = useSelectionStore.getState()
     if (!cur) return
 
     const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
     if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     let text: string
@@ -543,15 +556,15 @@ export default function SpreadsheetGrid({
       const cells = lines[ri].split('\t')
       for (let ci = 0; ci < cells.length; ci++) {
         const colIdx = cursorColIdx + ci
-        if (colIdx >= schema.columns.length) break
+        if (colIdx >= visibleColumns.length) break
 
-        const col = schema.columns[colIdx]
+        const col = visibleColumns[colIdx]
         if (col.type === 'json' || col.type === 'text') continue
 
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci])
       }
     }
-  }, [displayRows, schema.columns, tableName, updateCell])
+  }, [displayRows, visibleColumns, tableName, updateCell])
 
   // ---------------------------------------------------------------------------
   // Cut
@@ -564,7 +577,7 @@ export default function SpreadsheetGrid({
     if (!cur) return
 
     const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
     if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     let minRow = cursorRowIdx
@@ -574,7 +587,7 @@ export default function SpreadsheetGrid({
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
       const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+      const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
         minRow = Math.min(cursorRowIdx, anchorRowIdx)
         maxRow = Math.max(cursorRowIdx, anchorRowIdx)
@@ -589,7 +602,7 @@ export default function SpreadsheetGrid({
       const row = displayRows[ri]
       const cells: string[] = []
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
+        const col = visibleColumns[ci]
         const rawVal =
           row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
         cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
@@ -609,7 +622,7 @@ export default function SpreadsheetGrid({
     for (let ri = minRow; ri <= maxRow; ri++) {
       const row = displayRows[ri]
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci]
+        const col = visibleColumns[ci]
         // Skip read-only columns and types that shouldn't be cleared directly
         if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
 
@@ -617,7 +630,7 @@ export default function SpreadsheetGrid({
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal)
       }
     }
-  }, [displayRows, schema.columns, tableName, readOnly, updateCell])
+  }, [displayRows, visibleColumns, tableName, readOnly, updateCell])
 
   // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)
@@ -777,9 +790,9 @@ export default function SpreadsheetGrid({
         case 'ArrowLeft':
           e.preventDefault()
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
+            const colIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
             const newColIdx = Math.max(0, colIdx - 1)
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+            extendCursor({ rowId: cur.rowId, colKey: visibleColumns[newColIdx].key, tableName })
           } else {
             navigate(cur.rowId, cur.colKey, 0, -1)
           }
@@ -788,9 +801,9 @@ export default function SpreadsheetGrid({
         case 'ArrowRight':
           e.preventDefault()
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey)
-            const newColIdx = Math.min(schema.columns.length - 1, colIdx + 1)
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName })
+            const colIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+            const newColIdx = Math.min(visibleColumns.length - 1, colIdx + 1)
+            extendCursor({ rowId: cur.rowId, colKey: visibleColumns[newColIdx].key, tableName })
           } else {
             navigate(cur.rowId, cur.colKey, 0, 1)
           }
@@ -808,17 +821,17 @@ export default function SpreadsheetGrid({
 
         case 'Home':
           e.preventDefault()
-          if (schema.columns.length > 0) {
-            setCursor({ rowId: cur.rowId, colKey: schema.columns[0].key, tableName: cur.tableName })
+          if (visibleColumns.length > 0) {
+            setCursor({ rowId: cur.rowId, colKey: visibleColumns[0].key, tableName: cur.tableName })
           }
           break
 
         case 'End':
           e.preventDefault()
-          if (schema.columns.length > 0) {
+          if (visibleColumns.length > 0) {
             setCursor({
               rowId: cur.rowId,
-              colKey: schema.columns[schema.columns.length - 1].key,
+              colKey: visibleColumns[visibleColumns.length - 1].key,
               tableName: cur.tableName,
             })
           }
@@ -828,7 +841,7 @@ export default function SpreadsheetGrid({
         case 'Backspace': {
           if (readOnly) break
           e.preventDefault()
-          const colDef = schema.columns.find((c) => c.key === cur.colKey)
+          const colDef = visibleColumns.find((c) => c.key === cur.colKey)
           if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
             const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
             updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
@@ -840,7 +853,7 @@ export default function SpreadsheetGrid({
         case 'F2': {
           if (readOnly) break
           e.preventDefault()
-          const colDef = schema.columns.find((c) => c.key === cur.colKey)
+          const colDef = visibleColumns.find((c) => c.key === cur.colKey)
           if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
             setEditing(cur)
           }
@@ -858,7 +871,7 @@ export default function SpreadsheetGrid({
           if (readOnly) break
           // Printable characters (IME-off / single char): type-to-edit
           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            const colDef = schema.columns.find((c) => c.key === cur.colKey)
+            const colDef = visibleColumns.find((c) => c.key === cur.colKey)
             if (
               colDef &&
               !colDef.readonly &&
@@ -874,7 +887,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [filteredRows, schema.columns, tableName, containerHeight, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
+[filteredRows, visibleColumns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
   // ---------------------------------------------------------------------------
@@ -887,8 +900,8 @@ export default function SpreadsheetGrid({
 
     const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
     const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cursor.colKey)
-    const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cursor.colKey)
+    const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
 
     if (cursorRowIdx === -1 || anchorRowIdx === -1) return null
 
@@ -898,20 +911,26 @@ export default function SpreadsheetGrid({
       minCol: Math.min(cursorColIdx, anchorColIdx),
       maxCol: Math.max(cursorColIdx, anchorColIdx),
     }
-  }, [cursor, anchorCell, filteredRows, schema.columns])
+  }, [cursor, anchorCell, filteredRows, visibleColumns])
 
   // ---------------------------------------------------------------------------
   // Context value
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false }),
-    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly]
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: visibleColumns, readOnly: readOnly ?? false }),
+    [navigate, selectionBounds, focusContainer, filteredRows, visibleColumns, readOnly]
   )
 
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  // Create a filtered schema with only visible columns for DataRow
+  const visibleSchema = useMemo(() => ({
+    ...schema,
+    columns: visibleColumns,
+  }), [schema, visibleColumns])
 
   return (
     <GridContext.Provider value={gridContextValue}>
@@ -928,7 +947,7 @@ export default function SpreadsheetGrid({
         >
           <colgroup>
             <col style={{ width: ROW_NUM_WIDTH }} />
-            {schema.columns.map((col, i) => (
+            {visibleColumns.map((col, i) => (
               <col key={col.key} style={{ width: colWidths[i] }} />
             ))}
           </colgroup>
@@ -937,7 +956,7 @@ export default function SpreadsheetGrid({
               <th className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground text-center select-none overflow-hidden">
                 #
               </th>
-              {schema.columns.map((col, i) => (
+              {visibleColumns.map((col, i) => (
                 <th
                   key={col.key}
                   className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative cursor-pointer hover:bg-accent/50"
@@ -962,7 +981,7 @@ export default function SpreadsheetGrid({
           <tbody>
             {topPad > 0 && (
               <tr style={{ height: topPad }}>
-                <td colSpan={schema.columns.length + 1} />
+                <td colSpan={visibleColumns.length + 1} />
               </tr>
             )}
             {visibleRows.length > 0 ? (
@@ -973,7 +992,7 @@ export default function SpreadsheetGrid({
                   rowIndex={startIndex + i + 1}
                   gridRowIndex={startIndex + i}
                   tableName={tableName}
-                  schema={schema}
+                  schema={visibleSchema}
                   schemas={schemas}
                   tables={tables}
                   project={project}
@@ -995,7 +1014,7 @@ export default function SpreadsheetGrid({
             ) : (
               <tr>
                 <td
-                  colSpan={schema.columns.length + 1}
+                  colSpan={visibleColumns.length + 1}
                   className="px-4 py-8 text-center text-muted-foreground text-sm"
                 >
                   {filter ? 'フィルター結果なし' : '行がありません'}
@@ -1004,7 +1023,7 @@ export default function SpreadsheetGrid({
             )}
             {bottomPad > 0 && (
               <tr style={{ height: bottomPad }}>
-                <td colSpan={schema.columns.length + 1} />
+                <td colSpan={visibleColumns.length + 1} />
               </tr>
             )}
           </tbody>

@@ -72,6 +72,10 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
   const [sorts, setSorts] = useState<SortRow[]>(
     existing?.sort?.map((s) => ({ id: makeId(), ...s })) ?? []
   )
+  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
+    const cols = existing?.columns ? new Set(existing.columns) : null
+    return cols ?? new Set<string>()
+  })
 
   const schema = schemas.get(fromTable)
   const cols = schema?.columns ?? []
@@ -100,13 +104,34 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
 
   const needsValue = (op: string) => op !== 'isNull' && op !== 'isNotNull'
 
+  const toggleColumn = (colKey: string) => {
+    setVisibleColumns((prev) => {
+      const next = new Set(prev)
+      if (next.size === 0) {
+        // All columns are visible, so hide this one
+        const allCols = cols.map((c) => c.key)
+        allCols.forEach((k) => next.add(k))
+        next.delete(colKey)
+      } else {
+        if (next.has(colKey)) {
+          next.delete(colKey)
+        } else {
+          next.add(colKey)
+        }
+      }
+      return next
+    })
+  }
+
   const handleSave = () => {
     if (!name.trim()) return
+    const hasColumnFilter = visibleColumns.size > 0
     const query: FilterViewQuery = {
       type: 'filter',
       from: fromTable,
       filter: buildFilterExpr(condMode, conds),
       sort: sorts.length > 0 ? sorts.map(({ column, order }) => ({ column, order })) : undefined,
+      columns: hasColumnFilter ? [...visibleColumns] : undefined,
     }
     onSave({ id: editView?.id ?? makeId(), name: name.trim(), query })
     onClose()
@@ -280,6 +305,30 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
             >
               + ソートを追加
             </button>
+          </div>
+
+          {/* Column visibility */}
+          <div>
+            <div className="mb-2 text-muted-foreground">表示列</div>
+            <div className="flex flex-wrap gap-1.5">
+              {cols.map((col) => {
+                const isVisible = visibleColumns.size === 0 || visibleColumns.has(col.key)
+                return (
+                  <button
+                    key={col.key}
+                    type="button"
+                    className={`px-2 py-0.5 rounded text-xs border ${
+                      isVisible
+                        ? 'bg-primary/10 border-primary text-primary'
+                        : 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                    }`}
+                    onClick={() => toggleColumn(col.key)}
+                  >
+                    {isVisible ? '✓ ' : ''}{col.displayName}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
 

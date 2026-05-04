@@ -58,6 +58,8 @@ export default function SpreadsheetView({
 
   const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍';
 
+  const visibleColumnKeys = viewQuery?.columns ?? null
+
   const handleDeleteRow = () => {
     if (selectedRowIds.size === 0) return;
     const ids = [...selectedRowIds];
@@ -152,20 +154,21 @@ export default function SpreadsheetView({
         </span>
       </div>
 
-      {/* Grid */}
-      <SpreadsheetGrid
-        key={tableName}
-        tableName={tableName}
-        schema={schema}
-        rows={rows}
-        filter={filter}
-        sortDefs={viewQuery?.sort}
-        selectedRowIds={selectedRowIds}
-        onSelectRow={(id: string) => setSelectedRowIds(new Set([id]))}
-        onSelectRows={(ids: string[]) => setSelectedRowIds(new Set(ids))}
-        onClearSelection={() => setSelectedRowIds(new Set())}
-        readOnly={readOnly}
-      />
+       {/* Grid */}
+       <SpreadsheetGrid
+         key={tableName}
+         tableName={tableName}
+         schema={schema}
+         rows={rows}
+         filter={filter}
+         sortDefs={viewQuery?.sort}
+         visibleColumnKeys={visibleColumnKeys}
+         selectedRowIds={selectedRowIds}
+         onSelectRow={(id: string) => setSelectedRowIds(new Set([id]))}
+         onSelectRows={(ids: string[]) => setSelectedRowIds(new Set(ids))}
+         onClearSelection={() => setSelectedRowIds(new Set())}
+         readOnly={readOnly}
+       />
     </div>
   );
 }
