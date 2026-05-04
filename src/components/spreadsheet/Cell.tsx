@@ -271,7 +271,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
         isDirty && !isInvalid && 'bg-yellow-50',
         isInvalid && 'ring-1 ring-inset ring-red-400 bg-red-50',
         isInRange && !isInvalid && 'bg-blue-100',
-        isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400',
+        isSelected && 'ring-2 ring-inset ring-blue-400',
         readOnly ? 'cursor-default opacity-80' : 'cursor-default'
       )}
       title={errorMessage ?? undefined}
