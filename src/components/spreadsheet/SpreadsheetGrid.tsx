@@ -73,8 +73,10 @@ interface Props {
   rows: Map<string, Row>
   filter: string
   sortDefs?: SortDef[]
-  selectedRowId: string | null
-  onSelectRow: (id: string | null) => void
+  selectedRowIds: Set<string>
+  onSelectRow: (id: string) => void
+  onSelectRows: (ids: string[]) => void
+  onClearSelection: () => void
   readOnly?: boolean
 }
 
@@ -84,8 +86,10 @@ export default function SpreadsheetGrid({
   rows,
   filter,
   sortDefs,
-  selectedRowId,
+  selectedRowIds,
   onSelectRow,
+  onSelectRows,
+  onClearSelection,
   readOnly,
 }: Props) {
   const { schemas, tables, updateCell, project } = useProjectStore()
@@ -121,6 +125,10 @@ export default function SpreadsheetGrid({
     startX: number
     startWidth: number
   } | null>(null)
+
+  // Row drag selection state
+  const dragStartRowIndex = useRef<number | null>(null)
+  const dragCurrentRowIndex = useRef<number | null>(null)
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent, colIndex: number) => {
@@ -192,6 +200,69 @@ export default function SpreadsheetGrid({
       Object.values(row).some((v) => String(v ?? '').toLowerCase().includes(q))
     )
   }, [sortedRows, filter])
+
+  // Row drag selection handlers
+  const handleRowNumberMouseDown = useCallback(
+    (e: React.MouseEvent, rowIndex: number) => {
+      e.preventDefault()
+      const row = filteredRows[rowIndex]
+      if (!row) return
+      const rowId = row._id as string
+
+      // If Ctrl/Cmd key is pressed, add/remove from selection
+      if (e.ctrlKey || e.metaKey) {
+        if (selectedRowIds.has(rowId)) {
+          const newIds = new Set(selectedRowIds)
+          newIds.delete(rowId)
+          onSelectRows([...newIds])
+        } else {
+          onSelectRow(rowId)
+        }
+        return
+      }
+
+      // Start drag selection
+      dragStartRowIndex.current = rowIndex
+      dragCurrentRowIndex.current = rowIndex
+      onClearSelection()
+      onSelectRow(rowId)
+
+      const onMouseMove = (ev: MouseEvent) => {
+        // Check if mouse is over a row number cell
+        const target = document.elementFromPoint(ev.clientX, ev.clientY)
+        const rowCell = target?.closest('[data-row-index]')
+        if (!rowCell) return
+        const idx = parseInt(rowCell.getAttribute('data-row-index') || '', 10)
+        if (isNaN(idx) || idx === dragCurrentRowIndex.current) return
+        dragCurrentRowIndex.current = idx
+
+        // Select all rows between start and current
+        const start = Math.min(dragStartRowIndex.current!, idx)
+        const end = Math.max(dragStartRowIndex.current!, idx)
+        const ids: string[] = []
+        for (let i = start; i <= end; i++) {
+          const r = filteredRows[i]
+          if (r) ids.push(r._id as string)
+        }
+        onSelectRows(ids)
+      }
+
+      const onMouseUp = () => {
+        dragStartRowIndex.current = null
+        dragCurrentRowIndex.current = null
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+        document.body.style.userSelect = ''
+        document.body.style.cursor = ''
+      }
+
+      document.body.style.userSelect = 'none'
+      document.body.style.cursor = 'default'
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [filteredRows, selectedRowIds, onSelectRow, onSelectRows, onClearSelection]
+  )
 
   const displayRows = useMemo(() => {
     if (!sort.col) return filteredRows
@@ -597,12 +668,18 @@ export default function SpreadsheetGrid({
                   schemas={schemas}
                   tables={tables}
                   project={project}
-                  isSelected={selectedRowId === (row._id as string)}
-                  onSelect={() =>
-                    onSelectRow(
-                      selectedRowId === (row._id as string) ? null : (row._id as string)
-                    )
-                  }
+                  isSelected={selectedRowIds.has(row._id as string)}
+                  onSelect={() => {
+                    const rowId = row._id as string
+                    if (selectedRowIds.has(rowId)) {
+                      const newIds = new Set(selectedRowIds)
+                      newIds.delete(rowId)
+                      onSelectRows([...newIds])
+                    } else {
+                      onSelectRow(rowId)
+                    }
+                  }}
+                  onRowNumberMouseDown={handleRowNumberMouseDown}
                   readOnly={readOnly}
                 />
               ))

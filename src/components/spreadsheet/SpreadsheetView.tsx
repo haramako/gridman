@@ -18,7 +18,7 @@ interface Props {
 export default function SpreadsheetView({ tableName, schema, rows, activeView, onEditView, readOnly }: Props) {
   const { addRow, deleteRow } = useProjectStore()
   const { filter, setFilter, setActiveViewId } = useViewStore()
-  const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set())
 
   const viewQuery = activeView?.query.type === 'filter'
     ? (activeView.query as FilterViewQuery)
@@ -30,17 +30,20 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
   const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍'
 
   const handleDeleteRow = () => {
-    if (!selectedRowId) return
-    let sourceTable = tableName
-    if (isUnionView) {
-      sourceTable = (rows.get(selectedRowId)?._source as string) ?? tableName
-    } else if (isLookupView) {
-      const sources = rows.get(selectedRowId)?._sources as Record<string, unknown> | undefined
-      const fromTable = (activeView!.query as LookupViewQuery).from
-      sourceTable = sources ? (sources[fromTable] as string ? fromTable : tableName) : tableName
-    }
-    deleteRow(sourceTable, selectedRowId)
-    setSelectedRowId(null)
+    if (selectedRowIds.size === 0) return
+    const ids = [...selectedRowIds]
+    ids.forEach((rowId) => {
+      let sourceTable = tableName
+      if (isUnionView) {
+        sourceTable = (rows.get(rowId)?._source as string) ?? tableName
+      } else if (isLookupView) {
+        const sources = rows.get(rowId)?._sources as Record<string, unknown> | undefined
+        const fromTable = (activeView!.query as LookupViewQuery).from
+        sourceTable = sources ? (sources[fromTable] as string ? fromTable : tableName) : tableName
+      }
+      deleteRow(sourceTable, rowId)
+    })
+    setSelectedRowIds(new Set())
   }
 
   return (
@@ -88,13 +91,13 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
         <button
           type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
-          disabled={!selectedRowId || readOnly}
+          disabled={selectedRowIds.size === 0 || readOnly}
           onClick={handleDeleteRow}
         >
           − 行削除
         </button>
         <span className="text-xs text-muted-foreground">
-          {rows.size} 行
+          {rows.size} 行{selectedRowIds.size > 0 && ` (${selectedRowIds.size} 選択中)`}
         </span>
       </div>
 
@@ -106,8 +109,10 @@ export default function SpreadsheetView({ tableName, schema, rows, activeView, o
         rows={rows}
         filter={filter}
         sortDefs={viewQuery?.sort}
-        selectedRowId={selectedRowId}
-        onSelectRow={setSelectedRowId}
+        selectedRowIds={selectedRowIds}
+        onSelectRow={(id: string) => setSelectedRowIds(new Set([id]))}
+        onSelectRows={(ids: string[]) => setSelectedRowIds(new Set(ids))}
+        onClearSelection={() => setSelectedRowIds(new Set())}
         readOnly={readOnly}
       />
     </div>
