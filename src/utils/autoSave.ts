@@ -91,7 +91,10 @@ export function saveDraft(projectPath: string, tables: Map<string, Map<string, R
   const draft: DraftData = { savedAt: Date.now(), tables: serialized };
   try {
     localStorage.setItem(key, JSON.stringify(draft));
-    window.dispatchEvent(new StorageEvent('storage', { key, newValue: JSON.stringify(draft) }));
+    // NOTE: window.dispatchEvent で同タブにも storage イベントを送っていたが、
+    // syncDraftFromTab がドラフト全行を dirtyRowIds に追加するため全セルが黄色になるバグの原因。
+    // localStorage.setItem は他タブへのイベントを自動発火するので同タブへの合成 dispatch は不要。
+    // window.dispatchEvent(new StorageEvent('storage', { key, newValue: JSON.stringify(draft) }));
   } catch {
     // quota exceeded or localStorage unavailable
   }
