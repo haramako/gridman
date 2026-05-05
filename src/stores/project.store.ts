@@ -43,6 +43,7 @@ interface ProjectState {
   writeMode: boolean;
   lockHolderTabId: string | null;
   dirtyRowIds: Map<string, Set<string>>;
+  dirtyCellIds: Map<string, Map<string, Set<string>>>;
 
   loadProject: (path: string) => Promise<void>;
   saveAll: () => Promise<void>;
@@ -91,6 +92,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   writeMode: false,
   lockHolderTabId: null,
   dirtyRowIds: new Map(),
+  dirtyCellIds: new Map(),
 
   loadProject: async (path) => {
     const project = await adapter.readProjectConfig(path);
@@ -153,6 +155,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       writeMode,
       lockHolderTabId,
       dirtyRowIds: new Map(),
+      dirtyCellIds: new Map(),
     });
   },
 
@@ -230,12 +233,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set((state) => {
       const newDirtyRowIds = new Map(state.dirtyRowIds);
       newDirtyRowIds.set(name, new Set());
+      const newDirtyCellIds = new Map(state.dirtyCellIds);
+      newDirtyCellIds.delete(name);
       const isDirty = [...newDirtyRowIds.values()].some((s) => s.size > 0);
       if (!isDirty) {
         if (state.projectPath) clearDraft(state.projectPath);
-        return { dirtyRowIds: newDirtyRowIds, isDirty: false, hasDraft: false };
+        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: false, hasDraft: false };
       } else {
-        return { dirtyRowIds: newDirtyRowIds, isDirty: true };
+        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: true };
       }
     });
   },
@@ -289,7 +294,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
          const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
          dirty.add(rowId);
          newDirtyRowIds.set(tableName, dirty);
-         return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+         const newDirtyCellIds = new Map(s.dirtyCellIds);
+         const rowCells = new Map(newDirtyCellIds.get(tableName) ?? []);
+         const cells = new Set(rowCells.get(rowId) ?? []);
+         cells.add(col);
+         rowCells.set(rowId, cells);
+         newDirtyCellIds.set(tableName, rowCells);
+         return { tables: newTables, dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: true, hasDraft: true };
        });
        scheduleAutoSave();
      };
@@ -347,7 +358,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
            const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
            dirty.add(rowId);
            newDirtyRowIds.set(tableName, dirty);
-           return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+           const newDirtyCellIds = new Map(s.dirtyCellIds);
+           const rowCells = new Map(newDirtyCellIds.get(tableName) ?? []);
+           const cells = new Set(rowCells.get(rowId) ?? []);
+           cells.add(col);
+           rowCells.set(rowId, cells);
+           newDirtyCellIds.set(tableName, rowCells);
+           return { tables: newTables, dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: true, hasDraft: true };
          });
          scheduleAutoSave();
        };

@@ -39,6 +39,7 @@ const baseSelectionState = {
 const baseProjectState = {
   updateCell: mockUpdateCell,
   dirtyRowIds: new Map(),
+  dirtyCellIds: new Map(),
 }
 
 const baseGridContext = {

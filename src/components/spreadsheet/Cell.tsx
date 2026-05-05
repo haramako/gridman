@@ -51,7 +51,7 @@ function getDisplayValue(
 export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, project, readOnly }: Props) {
   const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue, setJsonPanelCell } =
     useSelectionStore()
-  const { updateCell, dirtyRowIds } = useProjectStore()
+  const { updateCell, dirtyRowIds, dirtyCellIds } = useProjectStore()
   const resolvedEnumValues = resolveEnumValues(col, project)
   const { navigate, selectionBounds, focusContainer, onCellMouseDown } = useGridContext()
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
@@ -60,7 +60,10 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   const rowId = row._id as string
   const isSelected = cursor?.rowId === rowId && cursor?.colKey === col.key
   const isEditing = editingCell?.rowId === rowId && editingCell?.colKey === col.key
-  const isDirty = dirtyRowIds.get(tableName)?.has(rowId) ?? false
+  const isDirty =
+    dirtyCellIds.get(tableName)?.get(rowId)?.has(col.key) ??
+    dirtyRowIds.get(tableName)?.has(rowId) ??
+    false
   const isInvalid = row._invalid?.[col.key] !== undefined
 
   // Check if this cell is inside a multi-cell selection range
