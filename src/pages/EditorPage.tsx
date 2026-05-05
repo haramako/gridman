@@ -42,7 +42,7 @@ export default function EditorPage() {
     updateSchema,
     undo,
     redo,
-    clearDraftState,
+    // clearDraftState, // TEMP: ドラフト確認ダイアログ無効化中
     syncDraftFromTab,
     releaseLock,
     stealLock,
@@ -54,7 +54,8 @@ export default function EditorPage() {
   const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
   const [editingPageTemplate, setEditingPageTemplate] = useState<(PageTemplate & { id?: string }) | undefined>();
-  const [showDraftConfirm, setShowDraftConfirm] = useState(false);
+  // TEMP: ドラフト確認ダイアログ無効化中
+  // const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
   const draftHandledRef = useRef(false);
 
@@ -79,19 +80,21 @@ export default function EditorPage() {
   useEffect(() => {
     if (writeMode && hasDraft && !draftHandledRef.current && project) {
       draftHandledRef.current = true;
-      setShowDraftConfirm(true);
+      // TEMP: ダイアログを表示せず「変更を保持」を自動選択
+      // setShowDraftConfirm(true);
     }
   }, [writeMode, hasDraft, project]);
 
-  const handleDiscardDraft = () => {
-    clearDraftState();
-    setShowDraftConfirm(false);
-    window.location.reload();
-  };
+  // TEMP: ドラフト確認ダイアログ無効化中
+  // const handleDiscardDraft = () => {
+  //   clearDraftState();
+  //   setShowDraftConfirm(false);
+  //   window.location.reload();
+  // };
 
-  const handleKeepDraft = () => {
-    setShowDraftConfirm(false);
-  };
+  // const handleKeepDraft = () => {
+  //   setShowDraftConfirm(false);
+  // };
 
   // Warn on browser close/reload if there are unsaved changes or draft
   useEffect(() => {
@@ -508,8 +511,8 @@ export default function EditorPage() {
         />
       )}
 
-      {/* Draft confirmation dialog */}
-      {showDraftConfirm && (
+      {/* Draft confirmation dialog — TEMP: 無効化中（自動で「変更を保持」を選択） */}
+      {/* {showDraftConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 max-w-sm mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">ローカルに保存された変更があります</h3>
@@ -532,7 +535,7 @@ export default function EditorPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Schema editor dialog */}
       {schemaEditorTable && schemas.get(schemaEditorTable) && (
