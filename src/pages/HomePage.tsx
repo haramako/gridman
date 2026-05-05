@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useProjectStore } from '@/stores/project.store'
 
 const RECENT_KEY = 'recentProjects'
 const MAX_RECENT = 5
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [path, setPath] = useState('')
   const [error, setError] = useState('')
   const [recent, setRecent] = useState<string[]>([])
+  const setAdapter = useProjectStore((s) => s.setAdapter)
 
   useEffect(() => {
     setRecent(getRecent())
@@ -35,10 +37,25 @@ export default function HomePage() {
       if (!res.ok) throw new Error('プロジェクトが見つかりません')
       const project = await res.json()
       addRecent(projectPath.trim())
+      setAdapter('server')
       const firstTable = project.tables?.[0] ?? ''
       navigate(`/editor?project=${encodeURIComponent(projectPath.trim())}&table=${firstTable}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : '開けませんでした')
+    }
+  }
+
+  const openFolder = async () => {
+    setError('')
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker()
+      setAdapter('file-system-access', dirHandle)
+      addRecent(dirHandle.name)
+      navigate(`/editor?project=${encodeURIComponent(dirHandle.name)}&table=`)
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        setError(e instanceof Error ? e.message : 'フォルダを開けませんでした')
+      }
     }
   }
 
@@ -62,6 +79,12 @@ export default function HomePage() {
             開く
           </button>
         </div>
+        <button
+          className="px-4 py-2 border rounded text-sm hover:bg-accent"
+          onClick={openFolder}
+        >
+          📁 フォルダを選択（Chrome/Edge）
+        </button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
 
