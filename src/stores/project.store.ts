@@ -1,7 +1,9 @@
 import { commandHistory, CompositeCommand } from '@/domain/commands';
 import type { Command } from '@/domain/commands';
 import { coerceToType, validateCell } from '@/domain/validator';
+import { FileSystemAccessAPIAdapter } from '@/fs/file-system-access';
 import { LocalServerAdapter } from '@/fs/local-server';
+import type { FileSystemAdapter } from '@/fs/adapter';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
@@ -20,7 +22,7 @@ import {
 import type { SyncMessage } from '@/utils/autoSave';
 import { create } from 'zustand';
 
-const adapter = new LocalServerAdapter();
+let adapter: FileSystemAdapter = new LocalServerAdapter();
 
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 function scheduleAutoSave() {
@@ -44,6 +46,7 @@ interface ProjectState {
   lockHolderTabId: string | null;
   dirtyRowIds: Map<string, Set<string>>;
   dirtyCellIds: Map<string, Map<string, Set<string>>>;
+  adapterType: 'server' | 'file-system-access';
 
   loadProject: (path: string) => Promise<void>;
   saveAll: () => Promise<void>;
@@ -68,6 +71,7 @@ interface ProjectState {
   syncDraftFromTab: (msg: SyncMessage) => void;
   releaseLock: () => void;
   stealLock: () => boolean;
+  setAdapter: (type: 'server' | 'file-system-access', dirHandle?: FileSystemDirectoryHandle) => void;
 }
 
 function makeId(): string {
@@ -93,6 +97,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   lockHolderTabId: null,
   dirtyRowIds: new Map(),
   dirtyCellIds: new Map(),
+  adapterType: 'server',
 
   loadProject: async (path) => {
     const project = await adapter.readProjectConfig(path);
@@ -691,5 +696,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       set({ writeMode: true, lockHolderTabId: null });
     }
     return ok;
+  },
+
+  setAdapter: (type, dirHandle) => {
+    if (type === 'file-system-access' && dirHandle) {
+      adapter = new FileSystemAccessAPIAdapter(dirHandle);
+      set({ adapterType: 'file-system-access' });
+    } else {
+      adapter = new LocalServerAdapter();
+      set({ adapterType: 'server' });
+    }
   },
 }));
