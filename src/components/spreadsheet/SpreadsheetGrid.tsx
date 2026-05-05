@@ -627,16 +627,6 @@ export default function SpreadsheetGrid({
     return () => document.removeEventListener('paste', onDocumentPaste)
   }, [applyPastedText])
 
-  const handlePaste = useCallback(async () => {
-    let text: string
-    try {
-      text = await navigator.clipboard.readText()
-    } catch {
-      return
-    }
-    applyPastedText(text)
-  }, [applyPastedText])
-
   // ---------------------------------------------------------------------------
   // Cut
   // ---------------------------------------------------------------------------
@@ -731,10 +721,9 @@ export default function SpreadsheetGrid({
         return;
       }
 
-      // Ctrl+V / Cmd+V: paste TSV into cells starting at cursor
+      // Ctrl+V / Cmd+V: handled by the global paste listener (document 'paste' event)
+      // Do NOT call e.preventDefault() here — it would suppress the paste event and break pasting.
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        e.preventDefault();
-        handlePaste();
         return;
       }
 
@@ -1017,7 +1006,7 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [filteredRows, visibleColumns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
+    [filteredRows, visibleColumns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
   // ---------------------------------------------------------------------------
