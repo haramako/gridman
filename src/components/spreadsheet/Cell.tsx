@@ -53,7 +53,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     useSelectionStore()
   const { updateCell, dirtyRowIds } = useProjectStore()
   const resolvedEnumValues = resolveEnumValues(col, project)
-  const { navigate, selectionBounds, focusContainer } = useGridContext()
+  const { navigate, selectionBounds, focusContainer, onCellMouseDown } = useGridContext()
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
 
   const rowId = row._id as string
@@ -126,6 +126,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   if (col.type === 'boolean') {
     return (
       <td
+        data-row-id={rowId}
+        data-col-key={col.key}
         className={cn(
           'border-b border-r px-2 py-0.5 cursor-pointer select-none',
           isDirty && !isInvalid && 'bg-yellow-50',
@@ -134,9 +136,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
           isSelected && 'ring-2 ring-inset ring-blue-400',
           readOnly && 'cursor-default opacity-80'
         )}
+        onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
         onClick={() => {
-          setCursor({ rowId, colKey: col.key, tableName })
-          focusContainer()
           if (readOnly) return
           updateCell(tableName, rowId, col.key, !row[col.key])
         }}
@@ -148,22 +149,22 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
 
   // readonly types (json, text, or explicitly readonly columns e.g. lookup expansions)
   if (col.type === 'json' || col.type === 'text' || col.readonly) {
-    const handleClick = () => {
-      setCursor({ rowId, colKey: col.key, tableName })
-      focusContainer()
-      if (col.type === 'json') {
-        setJsonPanelCell({ rowId, colKey: col.key, tableName })
-      }
-    }
     return (
       <td
+        data-row-id={rowId}
+        data-col-key={col.key}
         className={cn(
           'border-b border-r px-2 py-0.5 text-muted-foreground whitespace-nowrap',
           isInRange && 'bg-blue-100',
           isSelected && 'ring-2 ring-inset ring-blue-400',
           col.type === 'json' && 'cursor-pointer hover:bg-accent'
         )}
-        onClick={handleClick}
+        onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
+        onClick={() => {
+          if (col.type === 'json') {
+            setJsonPanelCell({ rowId, colKey: col.key, tableName })
+          }
+        }}
       >
         {displayValue}
       </td>
@@ -173,7 +174,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   if (isEditing) {
     if (col.type === 'enum' && resolvedEnumValues) {
       return (
-        <td className="border-b border-r p-0">
+        <td data-row-id={rowId} data-col-key={col.key} className="border-b border-r p-0">
           <select
             ref={inputRef as React.RefObject<HTMLSelectElement>}
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -210,7 +211,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
         : []
 
       return (
-        <td className="border-b border-r p-0">
+        <td data-row-id={rowId} data-col-key={col.key} className="border-b border-r p-0">
           <select
             ref={inputRef as React.RefObject<HTMLSelectElement>}
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -241,7 +242,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     }
 
     return (
-      <td className="border-b border-r p-0">
+      <td data-row-id={rowId} data-col-key={col.key} className="border-b border-r p-0">
         <input
           ref={inputRef as React.RefObject<HTMLInputElement>}
           className="w-full px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -266,19 +267,18 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
 
   return (
     <td
+      data-row-id={rowId}
+      data-col-key={col.key}
       className={cn(
         'border-b border-r px-2 py-0.5 whitespace-nowrap select-none overflow-hidden truncate',
         isDirty && !isInvalid && 'bg-yellow-50',
         isInvalid && 'ring-1 ring-inset ring-red-400 bg-red-50',
         isInRange && !isInvalid && 'bg-blue-100',
-        isSelected && !isInvalid && 'ring-2 ring-inset ring-blue-400',
+        isSelected && 'ring-2 ring-inset ring-blue-400',
         readOnly ? 'cursor-default opacity-80' : 'cursor-default'
       )}
       title={errorMessage ?? undefined}
-      onClick={() => {
-        setCursor({ rowId, colKey: col.key, tableName })
-        focusContainer()
-      }}
+      onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
       onDoubleClick={() => {
         if (!readOnly) startEdit()
       }}

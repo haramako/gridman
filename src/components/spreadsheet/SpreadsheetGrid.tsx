@@ -1,20 +1,12 @@
-import { applySort } from '@/domain/filter';
-import { useProjectStore } from '@/stores/project.store';
-import { useSelectionStore } from '@/stores/selection.store';
-import type { SelectionBounds } from '@/stores/selection.store';
-import type { Row } from '@/types/row';
-import type { ColumnDef, TableSchema } from '@/types/schema';
-import type { SortDef } from '@/types/view';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import DataRow from './DataRow';
+import { createContext, useContext, useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { useProjectStore } from '@/stores/project.store'
+import { useSelectionStore } from '@/stores/selection.store'
+import { applySort } from '@/domain/filter'
+import DataRow from './DataRow'
+import type { TableSchema, ColumnDef } from '@/types/schema'
+import type { Row } from '@/types/row'
+import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
+import type { SortDef } from '@/types/view'
 
 const TYPE_ICON: Record<string, string> = {
   string: '🔤',
@@ -52,13 +44,14 @@ const OVERSCAN = 5;
 // ---------------------------------------------------------------------------
 
 type GridContextValue = {
-  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void;
-  selectionBounds: SelectionBounds | null;
-  focusContainer: () => void;
-  filteredRows: Row[];
-  columns: ColumnDef[];
-  readOnly: boolean;
-};
+  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void
+  selectionBounds: SelectionBounds | null
+  focusContainer: () => void
+  filteredRows: Row[]
+  columns: ColumnDef[]
+  readOnly: boolean
+  onCellMouseDown: (e: React.MouseEvent, pos: CellPosition) => void
+}
 
 const GridContext = createContext<GridContextValue>({
   navigate: () => {},
@@ -67,7 +60,8 @@ const GridContext = createContext<GridContextValue>({
   filteredRows: [],
   columns: [],
   readOnly: false,
-});
+  onCellMouseDown: () => {},
+})
 
 export const useGridContext = () => useContext(GridContext);
 
@@ -106,9 +100,26 @@ export default function SpreadsheetGrid({
   const { cursor, anchorCell, setCursor, extendCursor, setEditing, startEditWithInput } =
     useSelectionStore();
 
+  const colWidthMapRef = useRef<Record<string, number>>(
+    Object.fromEntries(schema.columns.map((col) => [col.key, DEFAULT_COL_WIDTH[col.type] ?? 150]))
+  )
+
   const [colWidths, setColWidths] = useState<number[]>(() =>
     schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
   );
+
+  // Sync colWidths when schema columns change (e.g., after adding/removing columns in the schema editor)
+  useEffect(() => {
+    setColWidths(
+      schema.columns.map((col) => {
+        const existing = colWidthMapRef.current[col.key]
+        if (existing !== undefined) return existing
+        const def = DEFAULT_COL_WIDTH[col.type] ?? 150
+        colWidthMapRef.current[col.key] = def
+        return def
+      })
+    )
+  }, [schema.columns])
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -125,10 +136,11 @@ export default function SpreadsheetGrid({
   }, []);
 
   const dragState = useRef<{
-    colIndex: number;
-    startX: number;
-    startWidth: number;
-  } | null>(null);
+    colIndex: number
+    colKey: string
+    startX: number
+    startWidth: number
+  } | null>(null)
 
   // Row drag selection state
   const dragStartRowIndex = useRef<number | null>(null);
@@ -140,6 +152,7 @@ export default function SpreadsheetGrid({
       e.stopPropagation();
       dragState.current = {
         colIndex,
+        colKey: schema.columns[colIndex]?.key ?? '',
         startX: e.clientX,
         startWidth: colWidths[colIndex],
       };
@@ -147,18 +160,17 @@ export default function SpreadsheetGrid({
       document.body.style.cursor = 'col-resize';
 
       const onMouseMove = (ev: MouseEvent) => {
-        if (!dragState.current) return;
-        const delta = ev.clientX - dragState.current.startX;
-        const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta);
+        if (!dragState.current) return
+        const delta = ev.clientX - dragState.current.startX
+        const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta)
+        const { colIndex: idx, colKey: key } = dragState.current
         setColWidths((prev) => {
-          const next = [...prev];
-          const colIndex = dragState.current?.colIndex;
-          if (colIndex !== undefined) {
-            next[colIndex] = newWidth;
-          }
-          return next;
-        });
-      };
+          const next = [...prev]
+          next[idx] = newWidth
+          if (key) colWidthMapRef.current[key] = newWidth
+          return next
+        })
+      }
 
       const onMouseUp = () => {
         dragState.current = null;
@@ -171,8 +183,8 @@ export default function SpreadsheetGrid({
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
     },
-    [colWidths]
-  );
+    [colWidths, schema.columns]
+  )
 
   // Virtual scroll
   const containerRef = useRef<HTMLDivElement>(null);
@@ -435,6 +447,39 @@ export default function SpreadsheetGrid({
     containerRef.current?.focus();
   }, []);
 
+  const handleCellMouseDown = useCallback(
+    (e: React.MouseEvent, pos: CellPosition) => {
+      if (e.button !== 0) return
+      if (e.shiftKey) {
+        extendCursor(pos)
+      } else {
+        setCursor(pos)
+      }
+      focusContainer()
+      document.body.style.userSelect = 'none'
+
+      const onMouseMove = (ev: MouseEvent) => {
+        const el = document.elementFromPoint(ev.clientX, ev.clientY)
+        const td = el?.closest('[data-row-id]') as HTMLElement | null
+        if (!td) return
+        const rowId = td.getAttribute('data-row-id')
+        const colKey = td.getAttribute('data-col-key')
+        if (!rowId || !colKey) return
+        extendCursor({ rowId, colKey, tableName: pos.tableName })
+      }
+
+      const onMouseUp = () => {
+        document.body.style.userSelect = ''
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+      }
+
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [setCursor, extendCursor, focusContainer]
+  )
+
   const navigate = useCallback(
     (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
       if (filteredRows.length === 0) return;
@@ -526,23 +571,17 @@ export default function SpreadsheetGrid({
     }
   }, [displayRows, schema.columns]);
 
-  const handlePaste = useCallback(async () => {
-    const { cursor: cur } = useSelectionStore.getState();
-    if (!cur) return;
+  const applyPastedText = useCallback((text: string) => {
+    if (readOnly) return
+    const { cursor: cur } = useSelectionStore.getState()
+    if (!cur) return
 
     const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
     const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
     if (cursorRowIdx === -1 || cursorColIdx === -1) return;
 
-    let text: string;
-    try {
-      text = await navigator.clipboard.readText();
-    } catch {
-      return;
-    }
-
-    const lines = text.split('\n');
-    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+    const lines = text.split('\n')
+    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
 
     for (let ri = 0; ri < lines.length; ri++) {
       const rowIdx = cursorRowIdx + ri;
@@ -560,7 +599,42 @@ export default function SpreadsheetGrid({
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci]);
       }
     }
-  }, [displayRows, schema.columns, tableName, updateCell]);
+  }, [readOnly, displayRows, schema.columns, tableName, updateCell])
+
+// Global paste listener — fires even when focus is not on the grid container,
+// and uses clipboardData (no HTTPS/permission required unlike clipboard.readText).
+useEffect(() => {
+  const onDocumentPaste = (e: ClipboardEvent) => {
+    const { cursor: cur, editingCell } = useSelectionStore.getState()
+    if (!cur || editingCell) return
+    // Don't intercept pastes into other editable elements on the page.
+    const activeEl = document.activeElement
+    if (
+      activeEl &&
+      activeEl !== document.body &&
+      activeEl !== containerRef.current &&
+      (activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.tagName === 'SELECT' ||
+        (activeEl as HTMLElement).isContentEditable)
+    ) return
+    e.preventDefault()
+    const text = e.clipboardData?.getData('text/plain') ?? ''
+    if (text) applyPastedText(text)
+  }
+  document.addEventListener('paste', onDocumentPaste)
+  return () => document.removeEventListener('paste', onDocumentPaste)
+}, [applyPastedText])
+
+const handlePaste = useCallback(async () => {
+  let text: string
+  try {
+    text = await navigator.clipboard.readText()
+  } catch {
+    return
+  }
+  applyPastedText(text)
+}, [applyPastedText])
 
   // ---------------------------------------------------------------------------
   // Cut
@@ -780,6 +854,36 @@ export default function SpreadsheetGrid({
         }
       }
 
+      // Ctrl+A: select all cells
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'a') {
+        e.preventDefault()
+
+        // Select all rows visually
+        const allRowIds = filteredRows.map((row) => row._id as string)
+        onSelectRows(allRowIds)
+
+        // Set cell selection range from first to last cell
+        if (filteredRows.length > 0 && schema.columns.length > 0) {
+          const firstRow = filteredRows[0]
+          const lastRow = filteredRows[filteredRows.length - 1]
+          const firstCol = schema.columns[0]
+          const lastCol = schema.columns[schema.columns.length - 1]
+
+          setCursor({
+            rowId: firstRow._id as string,
+            colKey: firstCol.key,
+            tableName: tableName,
+          })
+          extendCursor({
+            rowId: lastRow._id as string,
+            colKey: lastCol.key,
+            tableName: tableName,
+          })
+        }
+
+        return
+      }
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
@@ -832,6 +936,16 @@ export default function SpreadsheetGrid({
             navigate(cur.rowId, cur.colKey, 0, 1);
           }
           break;
+
+        case 'PageUp':
+          e.preventDefault()
+          navigate(cur.rowId, cur.colKey, -Math.floor(containerHeight / ROW_HEIGHT), 0)
+          break
+
+        case 'PageDown':
+          e.preventDefault()
+          navigate(cur.rowId, cur.colKey, Math.floor(containerHeight / ROW_HEIGHT), 0)
+          break
 
         case 'Home':
           e.preventDefault();
@@ -917,23 +1031,8 @@ export default function SpreadsheetGrid({
           }
       }
     },
-    [
-      filteredRows,
-      schema.columns,
-      tableName,
-      navigate,
-      setCursor,
-      extendCursor,
-      setEditing,
-      startEditWithInput,
-      updateCell,
-      handleCopy,
-      handlePaste,
-      handleCut,
-      findDataEdgeRow,
-      findDataEdgeCol,
-    ]
-  );
+    [filteredRows, schema.columns, tableName, containerHeight, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
+  )
 
   // ---------------------------------------------------------------------------
   // Selection bounds for range highlighting
@@ -963,16 +1062,9 @@ export default function SpreadsheetGrid({
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({
-      navigate,
-      selectionBounds,
-      focusContainer,
-      filteredRows,
-      columns: schema.columns,
-      readOnly: readOnly ?? false,
-    }),
-    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly]
-  );
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false, onCellMouseDown: handleCellMouseDown }),
+    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly, handleCellMouseDown]
+  )
 
   // ---------------------------------------------------------------------------
   // Render

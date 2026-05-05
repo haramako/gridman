@@ -9,8 +9,8 @@ yarn-debug.log*
 # 開発用サンプルデータはgit管理外
 /var
 
-# Claude設定
-/.claude
+# Claude設定（個人設定のみ除外）
+/.claude/settings.local.json
 
 # Playwright
 /test-results

@@ -1,3 +1,4 @@
+import { exportToCsv, exportToJson } from '@/domain/exportData';
 import { useProjectStore } from '@/stores/project.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
@@ -34,6 +35,28 @@ export default function SpreadsheetView({
 
   const viewQuery =
     activeView?.query.type === 'filter' ? (activeView.query as FilterViewQuery) : undefined;
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const baseName = schema.displayName ?? tableName;
+
+  const handleExportJson = () => {
+    const data = exportToJson([...rows.values()], schema);
+    downloadFile(data, `${baseName}.json`, 'application/json');
+  };
+
+  const handleExportCsv = () => {
+    const data = exportToCsv([...rows.values()], schema);
+    downloadFile(data, `${baseName}.csv`, 'text/csv');
+  };
 
   const isUnionView = activeView?.query.type === 'union';
   const isLookupView = activeView?.query.type === 'lookup';
