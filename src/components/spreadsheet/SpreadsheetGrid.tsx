@@ -75,6 +75,7 @@ interface Props {
   rows: Map<string, Row>;
   filter: string;
   sortDefs?: SortDef[];
+  visibleColumnKeys?: string[] | null;
   selectedRowIds: Set<string>;
   onSelectRow: (id: string) => void;
   onSelectRows: (ids: string[]) => void;
@@ -89,6 +90,7 @@ export default function SpreadsheetGrid({
   rows,
   filter,
   sortDefs,
+  visibleColumnKeys,
   selectedRowIds,
   onSelectRow,
   onSelectRows,
@@ -104,22 +106,20 @@ export default function SpreadsheetGrid({
     Object.fromEntries(schema.columns.map((col) => [col.key, DEFAULT_COL_WIDTH[col.type] ?? 150]))
   )
 
-  const [colWidths, setColWidths] = useState<number[]>(() =>
-    schema.columns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
-  );
+  // Compute visible columns based on visibleColumnKeys
+  const visibleColumns = useMemo(() => {
+    if (!visibleColumnKeys) return schema.columns
+    return schema.columns.filter((col) => visibleColumnKeys.includes(col.key))
+  }, [schema.columns, visibleColumnKeys])
 
-  // Sync colWidths when schema columns change (e.g., after adding/removing columns in the schema editor)
+  const [colWidths, setColWidths] = useState<number[]>(() =>
+    visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
+  )
+
+  // Reset column widths when visible columns change
   useEffect(() => {
-    setColWidths(
-      schema.columns.map((col) => {
-        const existing = colWidthMapRef.current[col.key]
-        if (existing !== undefined) return existing
-        const def = DEFAULT_COL_WIDTH[col.type] ?? 150
-        colWidthMapRef.current[col.key] = def
-        return def
-      })
-    )
-  }, [schema.columns])
+    setColWidths(visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150))
+  }, [visibleColumns])
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -380,9 +380,9 @@ export default function SpreadsheetGrid({
 
   const findDataEdgeCol = useCallback(
     (row: Row, startColKey: string, direction: 'left' | 'right'): string => {
-      const cols = schema.columns;
-      const startIdx = cols.findIndex((c) => c.key === startColKey);
-      if (startIdx === -1) return startColKey;
+      const cols = visibleColumns
+      const startIdx = cols.findIndex((c) => c.key === startColKey)
+      if (startIdx === -1) return startColKey
 
       const step = direction === 'left' ? -1 : 1;
       let idx = startIdx + step;
@@ -436,8 +436,8 @@ export default function SpreadsheetGrid({
 
       return lastDataKey;
     },
-    [schema.columns]
-  );
+    [visibleColumns]
+  )
 
   // ---------------------------------------------------------------------------
   // Navigation
@@ -482,16 +482,16 @@ export default function SpreadsheetGrid({
 
   const navigate = useCallback(
     (fromRowId: string, fromColKey: string, dr: number, dc: number) => {
-      if (filteredRows.length === 0) return;
-      const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId);
-      const colIdx = schema.columns.findIndex((c) => c.key === fromColKey);
+      if (filteredRows.length === 0) return
+      const rowIdx = filteredRows.findIndex((r) => (r._id as string) === fromRowId)
+      const colIdx = visibleColumns.findIndex((c) => c.key === fromColKey)
 
-      const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr));
-      const newColIdx = Math.max(0, Math.min(schema.columns.length - 1, colIdx + dc));
+      const newRowIdx = Math.max(0, Math.min(filteredRows.length - 1, rowIdx + dr))
+      const newColIdx = Math.max(0, Math.min(visibleColumns.length - 1, colIdx + dc))
 
-      const newRow = filteredRows[newRowIdx];
-      const newCol = schema.columns[newColIdx];
-      const navSources = newRow._sources as Record<string, unknown> | undefined;
+      const newRow = filteredRows[newRowIdx]
+      const newCol = visibleColumns[newColIdx]
+      const navSources = newRow._sources as Record<string, unknown> | undefined
       const rowTableName =
         (newRow._source as string) ??
         (navSources ? Object.keys(navSources)[0] : undefined) ??
@@ -501,8 +501,8 @@ export default function SpreadsheetGrid({
       setEditing(null);
       containerRef.current?.focus();
     },
-    [filteredRows, schema.columns, tableName, setCursor, setEditing]
-  );
+    [filteredRows, visibleColumns, tableName, setCursor, setEditing]
+  )
 
   // Scroll to keep cursor row visible after navigation
   useEffect(() => {
@@ -532,9 +532,9 @@ export default function SpreadsheetGrid({
     const { cursor: cur, anchorCell } = useSelectionStore.getState();
     if (!cur) return;
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     let minRow = cursorRowIdx;
     let maxRow = cursorRowIdx;
@@ -542,8 +542,8 @@ export default function SpreadsheetGrid({
     let maxCol = cursorColIdx;
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
-      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+      const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
         minRow = Math.min(cursorRowIdx, anchorRowIdx);
         maxRow = Math.max(cursorRowIdx, anchorRowIdx);
@@ -557,9 +557,10 @@ export default function SpreadsheetGrid({
       const row = displayRows[ri];
       const cells: string[] = [];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci];
-        const rawVal = row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key];
-        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal));
+        const col = visibleColumns[ci]
+        const rawVal =
+          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
       }
       lines.push(cells.join('\t'));
     }
@@ -569,16 +570,16 @@ export default function SpreadsheetGrid({
     } catch {
       // clipboard access denied
     }
-  }, [displayRows, schema.columns]);
+  }, [displayRows, visibleColumns])
 
   const applyPastedText = useCallback((text: string) => {
     if (readOnly) return
     const { cursor: cur } = useSelectionStore.getState()
     if (!cur) return
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     const lines = text.split('\n')
     if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
@@ -590,51 +591,51 @@ export default function SpreadsheetGrid({
       const row = displayRows[rowIdx];
       const cells = lines[ri].split('\t');
       for (let ci = 0; ci < cells.length; ci++) {
-        const colIdx = cursorColIdx + ci;
-        if (colIdx >= schema.columns.length) break;
+        const colIdx = cursorColIdx + ci
+        if (colIdx >= visibleColumns.length) break
 
-        const col = schema.columns[colIdx];
-        if (col.type === 'json' || col.type === 'text') continue;
+        const col = visibleColumns[colIdx]
+        if (col.type === 'json' || col.type === 'text') continue
 
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci]);
       }
     }
-  }, [readOnly, displayRows, schema.columns, tableName, updateCell])
+  }, [readOnly, displayRows, visibleColumns, tableName, updateCell])
 
-// Global paste listener — fires even when focus is not on the grid container,
-// and uses clipboardData (no HTTPS/permission required unlike clipboard.readText).
-useEffect(() => {
-  const onDocumentPaste = (e: ClipboardEvent) => {
-    const { cursor: cur, editingCell } = useSelectionStore.getState()
-    if (!cur || editingCell) return
-    // Don't intercept pastes into other editable elements on the page.
-    const activeEl = document.activeElement
-    if (
-      activeEl &&
-      activeEl !== document.body &&
-      activeEl !== containerRef.current &&
-      (activeEl.tagName === 'INPUT' ||
-        activeEl.tagName === 'TEXTAREA' ||
-        activeEl.tagName === 'SELECT' ||
-        (activeEl as HTMLElement).isContentEditable)
-    ) return
-    e.preventDefault()
-    const text = e.clipboardData?.getData('text/plain') ?? ''
-    if (text) applyPastedText(text)
-  }
-  document.addEventListener('paste', onDocumentPaste)
-  return () => document.removeEventListener('paste', onDocumentPaste)
-}, [applyPastedText])
+  // Global paste listener — fires even when focus is not on the grid container,
+  // and uses clipboardData (no HTTPS/permission required unlike clipboard.readText).
+  useEffect(() => {
+    const onDocumentPaste = (e: ClipboardEvent) => {
+      const { cursor: cur, editingCell } = useSelectionStore.getState()
+      if (!cur || editingCell) return
+      // Don't intercept pastes into other editable elements on the page.
+      const activeEl = document.activeElement
+      if (
+        activeEl &&
+        activeEl !== document.body &&
+        activeEl !== containerRef.current &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'SELECT' ||
+          (activeEl as HTMLElement).isContentEditable)
+      ) return
+      e.preventDefault()
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (text) applyPastedText(text)
+    }
+    document.addEventListener('paste', onDocumentPaste)
+    return () => document.removeEventListener('paste', onDocumentPaste)
+  }, [applyPastedText])
 
-const handlePaste = useCallback(async () => {
-  let text: string
-  try {
-    text = await navigator.clipboard.readText()
-  } catch {
-    return
-  }
-  applyPastedText(text)
-}, [applyPastedText])
+  const handlePaste = useCallback(async () => {
+    let text: string
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      return
+    }
+    applyPastedText(text)
+  }, [applyPastedText])
 
   // ---------------------------------------------------------------------------
   // Cut
@@ -646,9 +647,9 @@ const handlePaste = useCallback(async () => {
     const { cursor: cur, anchorCell } = useSelectionStore.getState();
     if (!cur) return;
 
-    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId);
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
-    if (cursorRowIdx === -1 || cursorColIdx === -1) return;
+    const cursorRowIdx = displayRows.findIndex((r) => (r._id as string) === cur.rowId)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+    if (cursorRowIdx === -1 || cursorColIdx === -1) return
 
     let minRow = cursorRowIdx;
     let maxRow = cursorRowIdx;
@@ -656,8 +657,8 @@ const handlePaste = useCallback(async () => {
     let maxCol = cursorColIdx;
 
     if (anchorCell && (anchorCell.rowId !== cur.rowId || anchorCell.colKey !== cur.colKey)) {
-      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
-      const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
+      const anchorRowIdx = displayRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+      const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
       if (anchorRowIdx !== -1 && anchorColIdx !== -1) {
         minRow = Math.min(cursorRowIdx, anchorRowIdx);
         maxRow = Math.max(cursorRowIdx, anchorRowIdx);
@@ -672,9 +673,10 @@ const handlePaste = useCallback(async () => {
       const row = displayRows[ri];
       const cells: string[] = [];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci];
-        const rawVal = row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key];
-        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal));
+        const col = visibleColumns[ci]
+        const rawVal =
+          row._invalid?.[col.key] !== undefined ? row._invalid[col.key] : row[col.key]
+        cells.push(rawVal === null || rawVal === undefined ? '' : String(rawVal))
       }
       lines.push(cells.join('\t'));
     }
@@ -691,7 +693,7 @@ const handlePaste = useCallback(async () => {
     for (let ri = minRow; ri <= maxRow; ri++) {
       const row = displayRows[ri];
       for (let ci = minCol; ci <= maxCol; ci++) {
-        const col = schema.columns[ci];
+        const col = visibleColumns[ci]
         // Skip read-only columns and types that shouldn't be cleared directly
         if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean')
           continue;
@@ -700,7 +702,7 @@ const handlePaste = useCallback(async () => {
         updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal);
       }
     }
-  }, [displayRows, schema.columns, tableName, readOnly, updateCell]);
+  }, [displayRows, visibleColumns, tableName, readOnly, updateCell])
 
   // ---------------------------------------------------------------------------
   // Grid-level keyboard handler (non-edit mode)
@@ -862,12 +864,12 @@ const handlePaste = useCallback(async () => {
         const allRowIds = filteredRows.map((row) => row._id as string)
         onSelectRows(allRowIds)
 
-        // Set cell selection range from first to last cell
-        if (filteredRows.length > 0 && schema.columns.length > 0) {
+        // Set cell selection range from first to last visible cell
+        if (filteredRows.length > 0 && visibleColumns.length > 0) {
           const firstRow = filteredRows[0]
           const lastRow = filteredRows[filteredRows.length - 1]
-          const firstCol = schema.columns[0]
-          const lastCol = schema.columns[schema.columns.length - 1]
+          const firstCol = visibleColumns[0]
+          const lastCol = visibleColumns[visibleColumns.length - 1]
 
           setCursor({
             rowId: firstRow._id as string,
@@ -918,9 +920,9 @@ const handlePaste = useCallback(async () => {
         case 'ArrowLeft':
           e.preventDefault();
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
-            const newColIdx = Math.max(0, colIdx - 1);
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName });
+            const colIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+            const newColIdx = Math.max(0, colIdx - 1)
+            extendCursor({ rowId: cur.rowId, colKey: visibleColumns[newColIdx].key, tableName })
           } else {
             navigate(cur.rowId, cur.colKey, 0, -1);
           }
@@ -929,9 +931,9 @@ const handlePaste = useCallback(async () => {
         case 'ArrowRight':
           e.preventDefault();
           if (e.shiftKey) {
-            const colIdx = schema.columns.findIndex((c) => c.key === cur.colKey);
-            const newColIdx = Math.min(schema.columns.length - 1, colIdx + 1);
-            extendCursor({ rowId: cur.rowId, colKey: schema.columns[newColIdx].key, tableName });
+            const colIdx = visibleColumns.findIndex((c) => c.key === cur.colKey)
+            const newColIdx = Math.min(visibleColumns.length - 1, colIdx + 1)
+            extendCursor({ rowId: cur.rowId, colKey: visibleColumns[newColIdx].key, tableName })
           } else {
             navigate(cur.rowId, cur.colKey, 0, 1);
           }
@@ -948,22 +950,18 @@ const handlePaste = useCallback(async () => {
           break
 
         case 'Home':
-          e.preventDefault();
-          if (schema.columns.length > 0) {
-            setCursor({
-              rowId: cur.rowId,
-              colKey: schema.columns[0].key,
-              tableName: cur.tableName,
-            });
+          e.preventDefault()
+          if (visibleColumns.length > 0) {
+            setCursor({ rowId: cur.rowId, colKey: visibleColumns[0].key, tableName: cur.tableName })
           }
           break;
 
         case 'End':
-          e.preventDefault();
-          if (schema.columns.length > 0) {
+          e.preventDefault()
+          if (visibleColumns.length > 0) {
             setCursor({
               rowId: cur.rowId,
-              colKey: schema.columns[schema.columns.length - 1].key,
+              colKey: visibleColumns[visibleColumns.length - 1].key,
               tableName: cur.tableName,
             });
           }
@@ -971,35 +969,23 @@ const handlePaste = useCallback(async () => {
 
         case 'Delete':
         case 'Backspace': {
-          if (readOnly) break;
-          e.preventDefault();
-          const colDef = schema.columns.find((c) => c.key === cur.colKey);
-          if (
-            colDef &&
-            !colDef.readonly &&
-            colDef.type !== 'json' &&
-            colDef.type !== 'text' &&
-            colDef.type !== 'boolean'
-          ) {
-            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : '';
-            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal);
+          if (readOnly) break
+          e.preventDefault()
+          const colDef = visibleColumns.find((c) => c.key === cur.colKey)
+          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
+            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
           }
           break;
         }
 
         case 'Enter':
         case 'F2': {
-          if (readOnly) break;
-          e.preventDefault();
-          const colDef = schema.columns.find((c) => c.key === cur.colKey);
-          if (
-            colDef &&
-            !colDef.readonly &&
-            colDef.type !== 'json' &&
-            colDef.type !== 'text' &&
-            colDef.type !== 'boolean'
-          ) {
-            setEditing(cur);
+          if (readOnly) break
+          e.preventDefault()
+          const colDef = visibleColumns.find((c) => c.key === cur.colKey)
+          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+            setEditing(cur)
           }
           break;
         }
@@ -1015,7 +1001,7 @@ const handlePaste = useCallback(async () => {
           if (readOnly) break;
           // Printable characters (IME-off / single char): type-to-edit
           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            const colDef = schema.columns.find((c) => c.key === cur.colKey);
+            const colDef = visibleColumns.find((c) => c.key === cur.colKey)
             if (
               colDef &&
               !colDef.readonly &&
@@ -1031,7 +1017,7 @@ const handlePaste = useCallback(async () => {
           }
       }
     },
-    [filteredRows, schema.columns, tableName, containerHeight, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
+    [filteredRows, visibleColumns, tableName, navigate, setCursor, extendCursor, setEditing, startEditWithInput, updateCell, handleCopy, handlePaste, handleCut, findDataEdgeRow, findDataEdgeCol]
   )
 
   // ---------------------------------------------------------------------------
@@ -1042,10 +1028,10 @@ const handlePaste = useCallback(async () => {
     if (!cursor || !anchorCell) return null;
     if (cursor.rowId === anchorCell.rowId && cursor.colKey === anchorCell.colKey) return null;
 
-    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId);
-    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
-    const cursorColIdx = schema.columns.findIndex((c) => c.key === cursor.colKey);
-    const anchorColIdx = schema.columns.findIndex((c) => c.key === anchorCell.colKey);
+    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
+    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cursor.colKey)
+    const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
 
     if (cursorRowIdx === -1 || anchorRowIdx === -1) return null;
 
@@ -1054,21 +1040,27 @@ const handlePaste = useCallback(async () => {
       maxRow: Math.max(cursorRowIdx, anchorRowIdx),
       minCol: Math.min(cursorColIdx, anchorColIdx),
       maxCol: Math.max(cursorColIdx, anchorColIdx),
-    };
-  }, [cursor, anchorCell, filteredRows, schema.columns]);
+    }
+  }, [cursor, anchorCell, filteredRows, visibleColumns])
 
   // ---------------------------------------------------------------------------
   // Context value
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: schema.columns, readOnly: readOnly ?? false, onCellMouseDown: handleCellMouseDown }),
-    [navigate, selectionBounds, focusContainer, filteredRows, schema.columns, readOnly, handleCellMouseDown]
+    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: visibleColumns, readOnly: readOnly ?? false, onCellMouseDown: handleCellMouseDown }),
+    [navigate, selectionBounds, focusContainer, filteredRows, visibleColumns, readOnly, handleCellMouseDown]
   )
 
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  // Create a filtered schema with only visible columns for DataRow
+  const visibleSchema = useMemo(() => ({
+    ...schema,
+    columns: visibleColumns,
+  }), [schema, visibleColumns])
 
   return (
     <GridContext.Provider value={gridContextValue}>
@@ -1085,7 +1077,7 @@ const handlePaste = useCallback(async () => {
         >
           <colgroup>
             <col style={{ width: ROW_NUM_WIDTH }} />
-            {schema.columns.map((col, i) => (
+            {visibleColumns.map((col, i) => (
               <col key={col.key} style={{ width: colWidths[i] }} />
             ))}
           </colgroup>
@@ -1094,7 +1086,7 @@ const handlePaste = useCallback(async () => {
               <th className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground text-center select-none overflow-hidden">
                 #
               </th>
-              {schema.columns.map((col, i) => (
+              {visibleColumns.map((col, i) => (
                 <th
                   key={col.key}
                   className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative cursor-pointer hover:bg-accent/50"
@@ -1119,7 +1111,7 @@ const handlePaste = useCallback(async () => {
           <tbody>
             {topPad > 0 && (
               <tr style={{ height: topPad }}>
-                <td colSpan={schema.columns.length + 1} />
+                <td colSpan={visibleColumns.length + 1} />
               </tr>
             )}
             {visibleRows.length > 0 ? (
@@ -1130,7 +1122,7 @@ const handlePaste = useCallback(async () => {
                   rowIndex={startIndex + i + 1}
                   gridRowIndex={startIndex + i}
                   tableName={tableName}
-                  schema={schema}
+                  schema={visibleSchema}
                   schemas={schemas}
                   tables={tables}
                   project={project}
@@ -1153,7 +1145,7 @@ const handlePaste = useCallback(async () => {
             ) : (
               <tr>
                 <td
-                  colSpan={schema.columns.length + 1}
+                  colSpan={visibleColumns.length + 1}
                   className="px-4 py-8 text-center text-muted-foreground text-sm"
                 >
                   {filter ? 'フィルター結果なし' : '行がありません'}
@@ -1162,7 +1154,7 @@ const handlePaste = useCallback(async () => {
             )}
             {bottomPad > 0 && (
               <tr style={{ height: bottomPad }}>
-                <td colSpan={schema.columns.length + 1} />
+                <td colSpan={visibleColumns.length + 1} />
               </tr>
             )}
           </tbody>

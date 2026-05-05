@@ -63,6 +63,8 @@ export default function SpreadsheetView({
 
   const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍';
 
+  const visibleColumnKeys = viewQuery?.columns ?? null
+
   const handleRowContextMenu = useCallback((e: React.MouseEvent, rowId: string) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, rowId });
@@ -213,6 +215,7 @@ export default function SpreadsheetView({
         rows={rows}
         filter={filter}
         sortDefs={viewQuery?.sort}
+        visibleColumnKeys={visibleColumnKeys}
         selectedRowIds={selectedRowIds}
         onSelectRow={(id: string) => setSelectedRowIds(new Set([id]))}
         onSelectRows={(ids: string[]) => setSelectedRowIds(new Set(ids))}
