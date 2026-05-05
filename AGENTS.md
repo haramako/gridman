@@ -66,6 +66,7 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 
 ## Git Rules
 
+- コミットメッセージは**日本語**で書く
 - コミットメッセージの先頭に `[AI]` を付ける（例: `[AI] フィルター条件の保存を修正`）
 
 ---
