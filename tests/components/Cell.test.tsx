@@ -23,6 +23,7 @@ const mockSetEditing = vi.fn()
 const mockUpdateCell = vi.fn()
 const mockClearEditInitialValue = vi.fn()
 const mockSetJsonPanelCell = vi.fn()
+const mockOnCellMouseDown = vi.fn()
 
 const baseSelectionState = {
   cursor: null,
@@ -44,6 +45,7 @@ const baseGridContext = {
   navigate: mockNavigate,
   selectionBounds: null,
   focusContainer: mockFocusContainer,
+  onCellMouseDown: mockOnCellMouseDown,
   filteredRows: [],
   columns: [],
   readOnly: false,
@@ -143,18 +145,14 @@ describe('Cell', () => {
   })
 
   describe('クリック操作', () => {
-    it('クリックで setCursor が呼ばれる', async () => {
+    it('クリックで onCellMouseDown が呼ばれる', async () => {
       const user = userEvent.setup()
       renderCell()
       await user.click(screen.getByRole('cell'))
-      expect(mockSetCursor).toHaveBeenCalledWith({ rowId: 'r1', colKey: 'name', tableName: 'enemy' })
-    })
-
-    it('クリックで focusContainer が呼ばれる', async () => {
-      const user = userEvent.setup()
-      renderCell()
-      await user.click(screen.getByRole('cell'))
-      expect(mockFocusContainer).toHaveBeenCalled()
+      expect(mockOnCellMouseDown).toHaveBeenCalledWith(
+        expect.any(Object),
+        { rowId: 'r1', colKey: 'name', tableName: 'enemy' }
+      )
     })
 
     it('ダブルクリックで setEditing が呼ばれ input が表示される', async () => {

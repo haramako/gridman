@@ -55,6 +55,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   const resolvedEnumValues = resolveEnumValues(col, project)
   const { navigate, selectionBounds, focusContainer, onCellMouseDown } = useGridContext()
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
+  const committedRef = useRef(false)
 
   const rowId = row._id as string
   const isSelected = cursor?.rowId === rowId && cursor?.colKey === col.key
@@ -82,6 +83,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
 
   useEffect(() => {
     if (isEditing) {
+      committedRef.current = false
       if (editInitialValue !== null) {
         setEditValue(editInitialValue)
         clearEditInitialValue()
@@ -107,6 +109,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     : null
 
   const commitEdit = (val: string) => {
+    if (committedRef.current) return
+    committedRef.current = true
     updateCell(tableName, rowId, col.key, val)
     setEditing(null)
   }
