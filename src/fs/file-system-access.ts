@@ -31,7 +31,7 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
       .map((line) => JSON.parse(line));
   }
 
-  async patchTable(_projectPath: string, tableName: string, rows: Row[]): Promise<void> {
+  async patchTable(_projectPath: string, tableName: string, rows: Row[], deletedIds: string[]): Promise<void> {
     const fileHandle = await this.dirHandle.getFileHandle(`${tableName}.jsonl`);
     const file = await fileHandle.getFile();
     const text = await file.text();
@@ -42,6 +42,9 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
     }
     for (const row of rows) {
       existingRows.set(row._id as string, row);
+    }
+    for (const id of deletedIds) {
+      existingRows.delete(id);
     }
     const writable = await fileHandle.createWritable();
     for (const row of existingRows.values()) {
