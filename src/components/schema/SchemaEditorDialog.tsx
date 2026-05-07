@@ -1,5 +1,5 @@
 import type { ColumnDef, ColumnType, TableSchema, ValidationRule } from '@/types/schema';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const COLUMN_TYPES: { value: ColumnType; label: string }[] = [
   { value: 'string', label: 'string' },
@@ -77,6 +77,14 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
     );
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const canSave =
     displayName.trim() !== '' &&
     columns.every((c) => c.key.trim() !== '' && c.displayName.trim() !== '');
@@ -98,13 +106,7 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-        e.stopPropagation();
-      }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-background rounded-lg border shadow-lg w-[680px] max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="font-semibold text-sm">スキーマ編集 — {tableName}</span>
