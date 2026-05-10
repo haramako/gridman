@@ -45,6 +45,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - Stores.md
 - Domain_Logic.md
 - Component_Structure.md
+- FileSystem_Adapters.md
 
 ### concepts/data-model/
 - index.md
@@ -59,6 +60,11 @@ summaries/        ← doc/ 各ファイルのサマリー
 - Input_Behavior.md
 
 ### concepts/
+- Page_View.md
+- View_Dialogs.md
+- Schema_Editor.md
+- Json_Editor.md
+- Search.md
 - Auto_Save_and_Draft.md
 - Undo_Redo.md
 - Testing.md
@@ -75,14 +81,19 @@ summaries/        ← doc/ 各ファイルのサマリー
 - doc-data-model.md
 - doc-testing.md
 - doc-input-behavior.md
+- src-fs-adapters.md
+- src-page-view.md
+- src-view-dialogs.md
+- src-schema-editor.md
+- src-json-editor-search.md
 
 ---
 
 ## オープンな調査課題
 
 - LIN-71〜LIN-78: GitHub Issues で管理中のバグ/機能改善
-- `FileSystem Access API` 対応 (628fef9): サーバーなし・Chrome/Edge 直接ファイルアクセス対応の詳細
-- ページビュー (`PageView`) のアーキテクチャがまだ wiki に書かれていない
+- ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
+- ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
 
 ---

@@ -8,6 +8,7 @@ Gridman は **React SPA (フロントエンド) + Hono (バックエンド)** �
 - [[Stores]] — 3 つの Zustand ストア
 - [[Domain_Logic]] — ビュー変換ロジック・バリデーション・コマンドパターン
 - [[Component_Structure]] — コンポーネント階層と GridContext
+- [[FileSystem_Adapters]] — LocalServer / FileSystemAccessAPI / DbServer の戦略パターン
 
 ## 関連
 
