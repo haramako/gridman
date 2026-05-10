@@ -1,7 +1,6 @@
 # GRIDMAN — AI Agent ガイド
 
 ゲーム開発用データをスプレッドシート形式で編集する Web アプリ。
-詳細なドキュメントは `doc/` フォルダを参照。
 
 ## 注意事項
 
@@ -80,11 +79,8 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 
 ## 設計ドキュメント
 
+コードベースの詳細な知識は `wiki/wiki/index.md` を起点とする llm-wiki を参照すること（アーキテクチャ・データモデル・入力挙動・Undo/Redo など全概念を網羅）。
+
 | ドキュメント | 内容 |
 |---|---|
-| `doc/index.md` | 目次・クイックスタート |
-| `doc/overview.md` | ディレクトリ構成・npm スクリプト一覧 |
-| `doc/architecture.md` | システム構成・ストア・データフロー |
-| `doc/data-model.md` | ファイル形式・型定義・ビュークエリ |
-| `doc/testing.md` | テストの書き方・環境の分離 |
 | `plan/mvp.md` | フェーズ別スコープ定義（現在 Phase 2・3 完了、Phase 4 未着手） |
