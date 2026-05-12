@@ -17,7 +17,10 @@
       "Bash(python -c ' *)",
       "Edit(/.claude/skills/workflow-insight/**)",
       "Skill(workflow-insight)",
-      "Skill(workflow-insight:*)"
+      "Skill(workflow-insight:*)",
+      "Edit(/.claude/skills/multica/**)",
+      "Bash(python .claude/skills/multica/scripts/multica_sync.py sync --full)",
+      "Bash(python .claude/skills/multica/scripts/multica_sync.py status)"
     ],
     "ask": [
       "Bash(python -c *)"

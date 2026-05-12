@@ -1,6 +1,7 @@
 {
   "_derived": {
     "has_failures": true,
+    "has_real_failures": true,
     "run_count": 1,
     "total_duration_seconds": 581
   },

@@ -188,10 +188,46 @@ def shape_usage(raw):
     }
 
 
+_QUOTA_KEYWORDS = ["ping", "いかがです", "how are you", "作業できますか"]
+
+
+def compute_has_real_failures(runs):
+    """Return True if any failed run is a genuine implementation failure.
+
+    Excludes:
+    - platform-artifact: latest failed run with null trigger after a completed run
+    - duplicate-trigger: failed run whose trigger matches the adjacent run
+    - quota-recovery: failed run followed by a quota-recovery re-trigger
+    """
+    for i, run in enumerate(runs):  # runs is newest-first
+        if run["status"] != "failed":
+            continue
+        prev = runs[i + 1] if i + 1 < len(runs) else None
+        newer = runs[i - 1] if i > 0 else None
+        trigger = run.get("trigger_summary")
+
+        # platform-artifact: null trigger, immediately after a completed run
+        if trigger is None and prev and prev["status"] == "completed":
+            continue
+        # duplicate-trigger: a newer run with the same trigger already completed
+        # (the failed run is the stale older duplicate, not the one that succeeded)
+        if trigger is not None and newer and trigger == newer.get("trigger_summary") and newer["status"] == "completed":
+            continue
+        # quota-recovery: the next (newer) run was a quota-recovery check
+        if newer:
+            next_trigger = newer.get("trigger_summary") or ""
+            if any(kw in next_trigger for kw in _QUOTA_KEYWORDS):
+                continue
+
+        return True
+    return False
+
+
 def build_issue_doc(detail, runs_raw, usage_raw):
     runs             = [shape_run(r) for r in runs_raw]
     total_duration   = sum(r["duration_seconds"] for r in runs if r["duration_seconds"])
     has_failures     = any(r["status"] == "failed" for r in runs)
+    has_real_failures = compute_has_real_failures(runs)
 
     return {
         "id":              detail["id"],
@@ -213,6 +249,7 @@ def build_issue_doc(detail, runs_raw, usage_raw):
             "run_count":              len(runs),
             "total_duration_seconds": total_duration,
             "has_failures":           has_failures,
+            "has_real_failures":      has_real_failures,
         },
     }
 
@@ -234,6 +271,7 @@ def build_index_entry(doc):
         "total_duration_seconds": d.get("total_duration_seconds", 0),
         "total_tokens":           usage.get("total_tokens", 0),
         "has_failures":           d.get("has_failures", False),
+        "has_real_failures":      d.get("has_real_failures", False),
     }
 
 
@@ -346,7 +384,7 @@ def cmd_query(args):
     if args.status:
         results = [r for r in results if r["status"] == args.status]
     if args.has_failures:
-        results = [r for r in results if r.get("has_failures")]
+        results = [r for r in results if r.get("has_real_failures")]
 
     sort_key = {
         "duration": lambda x: x.get("total_duration_seconds", 0),
