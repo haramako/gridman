@@ -1,0 +1,20 @@
+{
+  "3bc09c51-3698-40d2-9954-ce52490ba238": {
+    "created_at": "2026-05-03T05:10:31Z",
+    "id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+    "model": null,
+    "name": "kanade-opencode"
+  },
+  "f890a92a-be29-4e72-a584-5519e22d0df0": {
+    "created_at": "2026-05-02T09:10:55Z",
+    "id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "model": null,
+    "name": "kanade-claude"
+  },
+  "fdec13b8-2096-42d1-b0c9-388114d931e5": {
+    "created_at": "2026-05-01T00:04:01Z",
+    "id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+    "model": null,
+    "name": "Claude"
+  }
+}

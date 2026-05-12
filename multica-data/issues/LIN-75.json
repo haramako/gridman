@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 461
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:01:52Z",
+  "description": "マウスのドラッグ操作でセル範囲を矩形選択できるようにする。\n\n現在は行番号のドラッグによる複数行選択（LIN-64）は実装済み。セル本体のドラッグによる矩形範囲選択は未実装。\n\n実装方針: mousedown でアンカーを設定し、mousemove でカーソルを更新、mouseup で確定する。selection.store.ts の anchorCell / cursor を活用できる。\n\n完了条件: セルをドラッグして複数セルが選択された状態になること。Shift+クリックによる範囲選択と同等の結果になること。",
+  "id": "d7f64450-44fa-4908-8ebe-94b2bb1f9f6e",
+  "identifier": "LIN-75",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T19:01:01Z",
+      "duration_seconds": 21,
+      "error": null,
+      "failure_reason": null,
+      "id": "279253af-248c-4245-8a25-078ea0e4834a",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR を作成しました: https://github.com/haramako/gridman/pull/25",
+      "started_at": "2026-05-04T19:00:40Z",
+      "status": "completed",
+      "trigger_summary": "PR作成して"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:28:22Z",
+      "duration_seconds": 440,
+      "error": null,
+      "failure_reason": null,
+      "id": "3c1e97b9-e71e-47b1-82dd-05bea6c42838",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Implementation complete. Here's a summary of what was done:\n\n**Changes to `SpreadsheetGrid.tsx`:**\n- Added `onCellMouseDown` to `GridContextValue` interface\n- Implemented `handleCellMouseDown`: on `mousedown` sets anchor via `setCursor` (or `extendCursor` if Shift), then attaches document-level `mousemove` listener that finds cells by `data-row-id`/`data-col-key` attributes and calls `extendCursor` to extend the selection; cleans up on `mouseup`\n\n**Changes to `Cell.tsx`:**\n- Added `data-row-id` and `data-col-key` attributes to all `<td>` elements (enables `elementFromPoint` lookup during drag)\n- Added `onMouseDown` calling `onCellMouseDown` to boolean, json/text/readonly, and regular cells\n- Moved cursor management for regular cells from `onClick` to `onMouseDown` (prevents selection reset after drag)\n- Shift+click range selection also works as a bonus improvement",
+      "started_at": "2026-05-04T18:21:02Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[Feature] マウスドラッグによる矩形選択",
+  "updated_at": "2026-05-04T19:01:41Z",
+  "usage": {
+    "cache_read_tokens": 3617411,
+    "cache_write_tokens": 361688,
+    "input_tokens": 82,
+    "output_tokens": 1554,
+    "total_tokens": 3980735
+  }
+}

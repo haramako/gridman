@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T21:33:35Z",
+  "description": "## 概要\n\nCSS `transition` プロパティと `@keyframes` アニメーションをTMLに実装する。\nUnityの `Coroutine` または `DOTween` をバックエンドとして使い、UIに動きをつける。\n\n---\n\n## 目標\n\n- `transition: opacity 0.3s ease` のようなCSSトランジションを宣言できる\n- `@keyframes` でアニメーションを定義し `animation` プロパティで適用できる\n- `:hover` 擬似クラスとの連携でマウスオーバーアニメーションが実現できる\n- Unityの再生・停止ライフサイクルに正しく追従する\n\n---\n\n## 構文仕様（案）\n\n```css\n/* トランジション */\n.button {\n  background-color: #336;\n  transition: background-color 0.2s ease, opacity 0.15s linear;\n}\n.button:hover {\n  background-color: #558;\n  opacity: 0.8;\n}\n\n/* @keyframes アニメーション */\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to   { opacity: 1; }\n}\n\n.panel {\n  animation: fadeIn 0.3s ease-out;\n}\n\n@keyframes bounce {\n  0%   { top: 0; }\n  50%  { top: -10; }\n  100% { top: 0; }\n}\n```\n\n---\n\n## 実装計画\n\n### Phase 1: `:hover` 擬似クラスの実装\n\nアニメーション以前に `:hover` 状態のスタイル切り替えが必要。\n\n1. `StyleSheet.cs` に擬似クラス対応のルールを追加\n   - `.button:hover { ... }` をパースして「通常スタイル」と「ホバースタイル」を分けて保持\n2. `TMLView.cs` の既存ホバーイベント（`OnPointerEnter`/`OnPointerExit`）と連携\n   - ホバー状態が変わったら対象要素のスタイルを切り替えて再レンダリング\n\n### Phase 2: `transition` の実装\n\n3. `StyleParser.cs` で `transition` プロパティをパース\n   - `transition: <property> <duration> <easing> [<delay>]` 形式\n   - 複数トランジション（カンマ区切り）に対応\n4. `TMLTransitionController.cs` を新規作成\n   - スタイル変化を検出し、プロパティの現在値→目標値をアニメーション補間\n   - バックエンド実装の選択:\n     - **Option A**: `Coroutine` — 外部依存なし、Unityのみで完結\n     - **Option B**: `DOTween` (有料/無料あり) — より豊富なイージング関数\n   - まずはCoroutineで実装し、DOTween対応をオプションとして用意\n5. 補間対象プロパティ（初期実装）:\n   - `opacity` → CanvasGroup.alpha\n   - `background-color` → Image.color\n   - `color` → Text.color\n   - `top`/`left`/`width`/`height` → RectTransform\n\n### Phase 3: `@keyframes` + `animation` の実装\n\n6. `StyleParser.cs` で `@keyframes` ブロックをパース\n   - キーフレーム名 → (パーセント → Style) のマッピングとして保持\n7. `animation` プロパティのパース\n   - `animation: <name> <duration> <easing> [<delay>] [<iteration-count>] [<fill-mode>]`\n8. `TMLAnimationController.cs` を新規作成\n   - 再生開始時にキーフレームリストを補間してCoroutine実行\n   - `animation-iteration-count: infinite` 対応\n   - `animation-fill-mode: forwards` (終了後に最終フレームを保持) 対応\n\n### Phase 4: パフォーマンス最適化\n\n9. 一度に動く要素が多い場合の最適化\n   - 同一フレームの複数Coroutineをバッチ更新\n   - スタイル計算のキャッシュ\n\n---\n\n## 技術的考慮点\n\n- 現在TMLは「一度レンダリングしたら再計算しない」設計。アニメーションは継続的な再レンダリングが前提なので、TMLView側にダーティフラグと更新ループが必要\n- `transition` は擬似クラスや状態変化のタイミングで発火するため、状態管理の仕組みが必要\n- Unityの `OnDisable` でCoroutineが止まる挙動を正しく扱う必要がある\n\n---\n\n## 受け入れ条件\n\n- [ ] `:hover` でスタイルが切り替わる\n- [ ] `transition` でスムーズにスタイルが変化する\n- [ ] `@keyframes` + `animation` でキーフレームアニメーションが動く\n- [ ] `animation-iteration-count: infinite` で無限ループができる\n- [ ] GameObjectが非アクティブになったときにアニメーションが止まる",
+  "id": "a523c816-15d7-4775-960c-4558c82e7202",
+  "identifier": "LIN-32",
+  "labels": [],
+  "parent_issue_id": "76cb5a29-01b8-431f-91a0-c2fe5f5aea40",
+  "priority": "low",
+  "runs": [],
+  "status": "todo",
+  "title": "[TML] CSSアニメーション / トランジションの実装",
+  "updated_at": "2026-05-08T13:02:54Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

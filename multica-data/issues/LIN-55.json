@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 146
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-03T19:39:27Z",
+  "description": "mvp.mdや、input-behaviour.md の内容から、multicaでタスクを作成してください。ステータスは全部 “Backlog” でお願いします。",
+  "id": "f6c36d25-0de3-4a4c-8a0d-c47f8d5ee524",
+  "identifier": "LIN-55",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T19:41:56Z",
+      "duration_seconds": 146,
+      "error": null,
+      "failure_reason": null,
+      "id": "000c8796-820d-4267-8250-e2bd71183434",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "完了しました。`mvp.md` と `input-behavior.md` の内容から計15件のバックログタスク（LIN-56〜LIN-70）を作成しました。\n\n- **mvp.md から6件**: Phase 3の Undo/Redo 統合と Phase 4 の5項目\n- **input-behavior.md から9件**: 優先度マトリックスの6項目 + 比較表の未実装差異3項目（Ctrl+Arrow系、右クリックメニュー）",
+      "started_at": "2026-05-03T19:39:30Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "TODOの作成",
+  "updated_at": "2026-05-03T19:45:42Z",
+  "usage": {
+    "cache_read_tokens": 1133693,
+    "cache_write_tokens": 99430,
+    "input_tokens": 48,
+    "output_tokens": 614,
+    "total_tokens": 1233785
+  }
+}

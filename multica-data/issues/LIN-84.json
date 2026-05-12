@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 349
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:57:11Z",
+  "description": "## 概要\n\n`npm run test` を実行すると、3つのコンポーネントテストファイルが `ERR_REQUIRE_ESM` エラーで起動できない。テストスイート自体は89件通過するが、これら3ファイルの内容が全て未検証になっている。\n\n## エラー\n\n```\nError: require() of ES Module .../node_modules/@exodus/bytes/encoding-lite.js from\n.../node_modules/html-encoding-sniffer/lib/html-encoding-sniffer.js not supported.\n```\n\n## 影響ファイル\n\n- `tests/components/FilterViewDialog.test.tsx`\n- `tests/components/Cell.test.tsx`\n- `tests/components/SchemaEditorDialog.test.tsx`\n\n## 原因\n\nNode.js v18.19.1 環境で `jsdom` v29 を使用した際の依存チェーン問題。\n\n`jsdom` → `html-encoding-sniffer` (CommonJS) → `@exodus/bytes/encoding-lite.js` (ES Module)\n\nCommonJS から ES Module を `require()` できないため、`// @vitest-environment jsdom` を指定したテストファイルが全てクラッシュする。\n\n## 修正案\n\n以下のいずれかで対応：\n1. Node.js を v20 以上にアップグレードする（推奨）\n2. `jsdom` をダウングレードする（例: v26 以下）\n3. `package.json` の engines フィールドで Node.js バージョン要件を明示する",
+  "id": "a7c76840-599b-4205-992f-7d0ca72bd109",
+  "identifier": "LIN-84",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T15:08:41Z",
+      "duration_seconds": 349,
+      "error": null,
+      "failure_reason": null,
+      "id": "752c4653-861b-4ac8-b993-a21a2e64fd43",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Task complete. Here's a summary of what I did:\n\n**Root cause**: `jsdom` v29 introduced a dependency chain (`html-encoding-sniffer` → `@exodus/bytes/encoding-lite.js`) where a CJS module tries to `require()` an ES Module, which Node.js v18 doesn't support.\n\n**Fix 1** — Downgraded `jsdom` from `^29.1.1` to `^26.0.0` in `package.json`. This version is compatible with Node.js v18 and doesn't have the ESM dependency issue, allowing all 3 component test files to load.\n\n**Fix 2** — After the downgrade, one test in `SchemaEditorDialog` still failed: pressing Escape without anything focused inside the dialog didn't trigger `onClose`. The component had `onKeyDown` on an inner div, but keyboard events dispatched to `document.body` bubble *up* (toward ancestors), not down into children. Switched to `useEffect` + `document.addEventListener('keydown', ...)` which catches Escape regardless of focus state — also better for accessibility.\n\n**Result**: 8 test files, 137 tests, 0 errors.",
+      "started_at": "2026-05-07T15:02:52Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "コンポーネントテスト3件が Node.js v18 + jsdom v29 の非互換で実行不能",
+  "updated_at": "2026-05-07T15:08:32Z",
+  "usage": {
+    "cache_read_tokens": 1581454,
+    "cache_write_tokens": 101477,
+    "input_tokens": 55,
+    "output_tokens": 1053,
+    "total_tokens": 1684039
+  }
+}

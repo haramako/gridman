@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 305
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:01:33Z",
+  "description": "Ctrl+V を押してもセルにペーストされない。\n\nhandlePaste は SpreadsheetGrid.tsx:520 に実装済みで、navigator.clipboard.readText() を呼び出している。keyboard イベントのハンドラも line 649 に登録済み。\n\n想定される原因: グリッドコンテナのフォーカスが外れているタイミングで Ctrl+V を押すとイベントが発火しない可能性。または Clipboard API のセキュリティコンテキスト（HTTPS/localhost 以外では動作しない）の問題。\n\n完了条件: コピー後にセルを選択し Ctrl+V でペーストできること。",
+  "id": "742f1116-6793-49ba-831e-d6dbea3f519d",
+  "identifier": "LIN-71",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:59:33Z",
+      "duration_seconds": 30,
+      "error": null,
+      "failure_reason": null,
+      "id": "2b5e3b86-1f2c-4c5a-8064-a7ec63a85e1b",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR を作成しました: https://github.com/haramako/gridman/pull/24",
+      "started_at": "2026-05-04T18:59:03Z",
+      "status": "completed",
+      "trigger_summary": "PR作成して"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:20:33Z",
+      "duration_seconds": 275,
+      "error": null,
+      "failure_reason": null,
+      "id": "842392de-8b19-4e35-80d6-80a944b47780",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Fixed. The root causes were:\n\n1. **Clipboard API security requirement**: `navigator.clipboard.readText()` requires HTTPS or an explicit `clipboard-read` permission — it silently fails in non-secure contexts.\n2. **Focus dependency**: The Ctrl+V `keydown` handler only fires when the grid container div is focused.\n\n**The fix** (`SpreadsheetGrid.tsx`):\n- Extracted the paste core logic into `applyPastedText(text: string)` (synchronous, no clipboard API)\n- Added a `document`-level `paste` event listener via `useEffect` that uses `e.clipboardData.getData('text/plain')` — no HTTPS or permission needed, fires regardless of which element holds focus\n- The listener skips when a cell is in edit mode (so the cell's `<input>` handles its own paste) and skips when another editable element on the page is focused",
+      "started_at": "2026-05-04T18:15:58Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[BUG] Ctrl+V ペーストが動作しない",
+  "updated_at": "2026-05-04T19:01:20Z",
+  "usage": {
+    "cache_read_tokens": 1629921,
+    "cache_write_tokens": 213351,
+    "input_tokens": 49,
+    "output_tokens": 953,
+    "total_tokens": 1844274
+  }
+}

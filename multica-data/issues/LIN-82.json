@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 221
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:56:42Z",
+  "description": "## 概要\n\n行を削除した後にオートセーブ（ドラフト）が保存されても、プロジェクト再読み込み時にドラフトを復元すると削除した行が復活してしまう。\n\n## 再現手順\n\n1. プロジェクトを開く\n2. 行を削除する（オートセーブが走る）\n3. ページをリロードする（ドラフト復元のダイアログが出る場合、または自動適用される）\n\n## 期待動作\n\nドラフトを復元した後も、削除した行は表示されない。\n\n## 実際の動作\n\nドラフトを復元した際、削除行がファイルから再ロードされてしまい、削除が失われる。\n\n## 原因\n\n`src/stores/project.store.ts` の `loadProject` でドラフトを適用するロジックは、ドラフトの行を既存テーブルに「追加/上書き」するのみで、ドラフトに存在しない行（削除された行）を除去しない。\n\n```ts\n// ドラフトの行をマージするが、削除は考慮していない\nfor (const [rowId, draftRow] of draftTable.entries()) {\n  existing.set(rowId, draftRow);\n}\n```\n\nファイルから読み込まれた削除行は `existing` に残り続ける。\n\n## 修正案\n\n- ドラフトにテーブルの全行スナップショットが含まれる場合、ファイルから読んだ行のうちドラフトに存在しないものを削除する\n- または削除された行の ID リストをドラフトに記録し、復元時に除去する",
+  "id": "d4f72cbb-0c09-4e31-95bb-465c0a91cb8b",
+  "identifier": "LIN-82",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T13:06:15Z",
+      "duration_seconds": 221,
+      "error": null,
+      "failure_reason": null,
+      "id": "4fc10324-8830-46a2-ac94-328a9b74b68c",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Fixed. The bug was in `loadProject` (`src/stores/project.store.ts:122-130`): when restoring a draft, it was only merging draft rows on top of file rows, never removing rows that had been deleted. Since `saveDraft` always saves the complete table state, the fix simply replaces each table with the draft table wholesale — 5 lines down to 3, all tests green.",
+      "started_at": "2026-05-07T13:02:34Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "ドラフト復元時に行削除が反映されない",
+  "updated_at": "2026-05-07T13:06:10Z",
+  "usage": {
+    "cache_read_tokens": 958552,
+    "cache_write_tokens": 72652,
+    "input_tokens": 36,
+    "output_tokens": 663,
+    "total_tokens": 1031903
+  }
+}

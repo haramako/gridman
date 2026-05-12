@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 307
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-09T13:13:24Z",
+  "description": "## 概要\n\n`plan/mvp.md` Phase 4 の「ファイルエクスポート（JSON / CSV）」を実装する。\n\n## 目的\n\n現在は `*.jsonl` + `*.schema.json` の専用形式で保存されているが、他のツールとのデータ連携のために汎用的な形式で出力できるようにする。\n\n## 仕様検討事項\n\n1. **出力形式**\n   - JSON（1テーブルを配列形式またはオブジェクト形式で）\n   - CSV（TSV もオプションで）\n\n2. **出力範囲**\n   - 現在表示中のテーブルのみ\n   - プロジェクト全体（複数ファイルを ZIP 化するなど）\n\n3. **UI**\n   - メニューバーまたは右クリックメニューに「エクスポート」を追加\n   - エクスポートダイアログで形式と範囲を選択\n\n## 完了条件\n\n- 表示中のテーブルを JSON 形式でファイル保存できる\n- 表示中のテーブルを CSV 形式でファイル保存できる\n- 型に応じた適切な文字列変換（boolean や number の CSV 出力など）",
+  "id": "b1b1bf3b-a7d9-4228-bc64-4c4f89a7d77a",
+  "identifier": "LIN-137",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-09T13:18:31Z",
+      "duration_seconds": 307,
+      "error": null,
+      "failure_reason": null,
+      "id": "1f1b6e5c-38a4-45cb-a9a9-b6e39e0a13dc",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Let me explore the editor page and spreadsheet components to understand the UI patterns.Let me check an existing dialog for patterns and also look at the domain functions available.Now let me create the export dialog component and integrate it into the SpreadsheetView toolbar.Now let me run type check and tests.Let me fix the lint issues in my new file.Let me add `type=\"button\"` to my buttons to be consistent with good practice, and verify the final state.Let me verify the final state of the modified SpreadsheetView.実装完了しました。以下の変更を行いました：\n\n**新規ファイル:**\n- `src/components/export/ExportDialog.tsx` — 形式選択（JSON/CSV）とダウンロードを行うダイアログ\n\n**修正ファイル:**\n- `src/components/spreadsheet/SpreadsheetView.tsx` — ツールバーに「エクスポート」ボタンを追加\n\n**既存の流用:**\n- `src/domain/exportData.ts` — `exportToJson()` / `exportToCsv()` は既存実装をそのまま利用\n\nツールバーの「エクスポート」ボタン → ダイアログで JSON/CSV 選択 → ブラウザダウンロード、の流れで動作します。表示中のテーブルのみ出力対象で、型に応じた適切な文字列変換（boolean/number のCSV出力含む）は既存の `exportToCsv` が対応済みです。",
+      "started_at": "2026-05-09T13:13:24Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "Phase4: ファイルエクスポート（JSON / CSV）",
+  "updated_at": "2026-05-09T13:18:25Z",
+  "usage": {
+    "cache_read_tokens": 1405440,
+    "cache_write_tokens": 0,
+    "input_tokens": 68878,
+    "output_tokens": 7714,
+    "total_tokens": 1482032
+  }
+}

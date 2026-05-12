@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 345
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-03T05:52:12Z",
+  "description": "“ビュー経由での編集（フィルター・ユニオン）”を実装してください",
+  "id": "5ceead53-5bd1-4f5d-a636-cb9cf3df4bad",
+  "identifier": "LIN-47",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T14:45:19Z",
+      "duration_seconds": 345,
+      "error": null,
+      "failure_reason": null,
+      "id": "ca9e2ed6-3fdd-4fdf-b5bc-6b06ed9e9cf2",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Implementation complete. Here's a summary of what was done:\n\n**Problem**: Editing through filter/union/lookup views wasn't routing writes back to the correct source tables.\n\n**Root cause**: `DataRow.tsx` only handled union rows (`row._source`) but not lookup rows (`row._sources`). Also, keyboard navigation in `SpreadsheetGrid.tsx` reset the cursor's `tableName` to the view-level synthetic name (`__union__`/`__lookup__`) instead of the actual per-row table.\n\n**Fixes** (2 files, 15 lines changed):\n\n1. **`DataRow.tsx`**: Extended `effectiveTableName` to also resolve lookup rows — reads the first key of `row._sources` (always the `from` table per `applyLookup`'s insertion order).\n\n2. **`SpreadsheetGrid.tsx`**: Fixed `navigate()` to compute per-row table name when setting cursor position; fixed `Home`/`End` to preserve `cur.tableName` rather than overwriting with the grid-level synthetic name.\n\nFilter views already worked (their `currentTable` is already the base table). Union view cell edits + paste already worked; keyboard nav now also correct. Lookup view editing now works for base-table columns; lookup-expanded columns remain readonly.",
+      "started_at": "2026-05-03T14:39:34Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "ビュー経由での編集（フィルター・ユニオン）",
+  "updated_at": "2026-05-03T19:39:49Z",
+  "usage": {
+    "cache_read_tokens": 3836735,
+    "cache_write_tokens": 322500,
+    "input_tokens": 206,
+    "output_tokens": 1293,
+    "total_tokens": 4160734
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 3,
+    "total_duration_seconds": 154
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-02T16:43:38Z",
+  "description": "セルのエディット状態でEnterを押したときに、下のセルに移動するのはあっているのですが、その際にエディット状態になってしまいます。Excelと同様に非エディット状態になるようにしてください。",
+  "id": "6a70d9b2-2fb0-4232-8e52-fab6b37cff1c",
+  "identifier": "LIN-42",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T01:44:35Z",
+      "duration_seconds": 131,
+      "error": null,
+      "failure_reason": null,
+      "id": "5677304e-b1ad-413b-a4fc-9fac97acd508",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "バグを修正してコメントを投稿しました。\n\n**根本原因**: `Cell.tsx` でEnterキーのイベントが `e.stopPropagation()` されずに `SpreadsheetGrid` の `handleContainerKeyDown` にバブルアップし、そこで `setEditing(cur)` が呼ばれて次のセルがエディット状態になっていました。\n\n**修正**: `Cell.tsx` の3箇所（text input、enum select、ref select）のEnterキーハンドラーに `e.stopPropagation()` を追加しました。",
+      "started_at": "2026-05-03T01:42:24Z",
+      "status": "completed",
+      "trigger_summary": "いかがです？"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T01:38:55Z",
+      "duration_seconds": 18,
+      "error": null,
+      "failure_reason": null,
+      "id": "e8d2c13f-c97b-4ea6-a327-28f3bd6adbf0",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Replied to the greeting and offered to proceed with the bug fix when ready.",
+      "started_at": "2026-05-03T01:38:37Z",
+      "status": "completed",
+      "trigger_summary": "how are you?"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-02T16:43:44Z",
+      "duration_seconds": 5,
+      "error": "You're out of extra usage · resets 8:50pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "71fcc53d-211b-4e9a-99b3-c088209d1e42",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-02T16:43:39Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[BUG]セルでEnterを押したときにエディット状態のままになってしまう",
+  "updated_at": "2026-05-03T02:18:39Z",
+  "usage": {
+    "cache_read_tokens": 955655,
+    "cache_write_tokens": 147186,
+    "input_tokens": 90,
+    "output_tokens": 533,
+    "total_tokens": 1103464
+  }
+}

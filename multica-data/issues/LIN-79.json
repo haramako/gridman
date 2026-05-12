@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 589
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:44:58Z",
+  "description": "現行のコードベースを動かし、バグをリストアップして、multicaのBacklogチケットとして作成して。",
+  "id": "44b03b22-7ae9-47eb-b901-7d85a166e12b",
+  "identifier": "LIN-79",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T11:58:20Z",
+      "duration_seconds": 589,
+      "error": null,
+      "failure_reason": null,
+      "id": "8d0aebba-ddff-4336-9c92-0d26a3de4341",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "完了しました。GRIDMANのコードベースを調査してバグ6件をBacklogチケットとして登録しました。\n\n## 作成したチケット\n\n| ID | 重要度 | 内容 |\n|---|---|---|\n| LIN-81 | HIGH | 行削除がファイルに保存されない（PATCHエンドポイントが削除を無視） |\n| LIN-82 | HIGH | ドラフト復元時に行削除が反映されない（マージが追加のみ） |\n| LIN-83 | HIGH | PageTemplateDialog: セクション内フィールド編集が誤ったアイテムを変更する |\n| LIN-84 | MEDIUM | コンポーネントテスト3件がNode.js v18 + jsdom v29非互換で実行不能 |\n| LIN-85 | MEDIUM | `syncDraftFromTab`が`_order`（ソート順）でドラフト新旧を判定している |\n| LIN-86 | LOW | Delete/Backspaceで数値セルがnullではなく0になる |",
+      "started_at": "2026-05-07T11:48:31Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "バグのリストアップ",
+  "updated_at": "2026-05-10T22:43:26Z",
+  "usage": {
+    "cache_read_tokens": 5033841,
+    "cache_write_tokens": 261527,
+    "input_tokens": 99,
+    "output_tokens": 1794,
+    "total_tokens": 5297261
+  }
+}

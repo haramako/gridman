@@ -1,0 +1,73 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 3,
+    "total_duration_seconds": 633
+  },
+  "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:27:55Z",
+  "description": "以下の箇所でコードの可読性・保守性の改善が必要:\n\n- **TMLParser.cs:77-104**: タグ・属性登録がハードコード → 設定ベースや宣言的な方式に変更\n- **StyleParser.cs:142-212**: 巨大な switch/case → 分割またはディクショナリベースに変更\n- **Layouter.cs:74-130**: 複雑な状態機械 → 整理・リファクタリング\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: Medium)",
+  "id": "6f02d8d1-00f3-46c9-aedb-12a5b08d6b8b",
+  "identifier": "LIN-20",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T13:32:59Z",
+      "duration_seconds": 94,
+      "error": null,
+      "failure_reason": null,
+      "id": "aee4d83d-d394-4fea-a337-676fa249c6fd",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "完了しました。`TMLParser.cs` と `StyleParser.cs` を元の形式に戻し（全80テスト通過）、`Layouter.cs` の二重 switch マージのみ維持した状態でプッシュしました。",
+      "started_at": "2026-05-01T13:31:25Z",
+      "status": "completed",
+      "trigger_summary": "では、それでおねがいします。"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T13:29:48Z",
+      "duration_seconds": 47,
+      "error": null,
+      "failure_reason": null,
+      "id": "0ecdcb34-d554-4d41-8b88-6f815c837d81",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "ユーザーの指摘に同意する形で回答しました。\n\n両方のリファクタに正直な評価を返しました：タグ/属性登録の宣言的化は間接性を増やすだけで可読性が下がっており、ディクショナリ化も `subs[0]` のインデックス参照で意図が不明瞭になっているという点です。どちらも YAGNI で、リバートを提案しています。Layouter の switch マージは明確な改善なので残すべきと伝えました。",
+      "started_at": "2026-05-01T13:29:01Z",
+      "status": "completed",
+      "trigger_summary": "- switch/case のディクショナリ化 - タグ・属性登録の宣言的化  このリファクタは、それほど可読性向上につながっていないと思いますが、どう考えますか？"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T00:47:34Z",
+      "duration_seconds": 492,
+      "error": null,
+      "failure_reason": null,
+      "id": "f1aa1851-17fa-4f5d-a723-f0865cba8516",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. All three refactorings are complete with all 80 tests passing:\n\n1. **TMLParser.cs** — replaced hardcoded `registerTags`/`registerAttributes` calls with `static readonly` arrays + `foreach` loops (declarative config tables)\n2. **StyleParser.cs** — replaced the duplicated `margin`/`padding` switch cases with a `ShorthandFields` dictionary driving shared expansion logic\n3. **Layouter.cs** — merged the two sequential `switch` statements in `reflowElement` into a single switch where each case handles both mode-setting and dispatch",
+      "started_at": "2026-05-01T00:39:22Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] コード品質改善",
+  "updated_at": "2026-05-01T13:48:48Z",
+  "usage": {
+    "cache_read_tokens": 6776523,
+    "cache_write_tokens": 656957,
+    "input_tokens": 307,
+    "output_tokens": 2710,
+    "total_tokens": 7436497
+  }
+}

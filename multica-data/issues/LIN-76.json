@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 321
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:01:57Z",
+  "description": "Ctrl+矢印キーでデータ端へジャンプする際、途中の空セルで止まってしまう。gridman はスキーマで列定義があり無限拡張がないため、Excel と異なり空セルで止まらず端まで一気にジャンプすべき。\n\nSpreadsheetGrid.tsx の findDataEdgeRow / findDataEdgeCol が Excel 互換の「空セルで止まる」ロジックになっているため。\n\n完了条件: Ctrl+↓ で現在行から最終行まで一気に移動すること。途中に空セルがあっても止まらないこと。",
+  "id": "3b8ae858-20b9-4eae-8271-c6f506bcccb0",
+  "identifier": "LIN-76",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T19:03:06Z",
+      "duration_seconds": 62,
+      "error": null,
+      "failure_reason": null,
+      "id": "9b801553-bcc5-497d-91bb-618f3f4c2287",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR作成しました: https://github.com/haramako/gridman/pull/27",
+      "started_at": "2026-05-04T19:02:04Z",
+      "status": "completed",
+      "trigger_summary": "PR作成して"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:07:56Z",
+      "duration_seconds": 259,
+      "error": null,
+      "failure_reason": null,
+      "id": "47cab1ce-80b7-418d-b55a-7135395d945c",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The issue is that `findDataEdgeRow` and `findDataEdgeCol` mimic Excel's behavior of stopping at empty cells. In gridman, with a fixed schema, they should jump directly to the edge. Let me fix both functions.Now let me run type check and tests.Fixing the unused parameter type error.Type check passes. Now run E2E tests.All tests pass. Let me update the issue status and post the result.Now posting the result comment.Done. The fix simplifies `findDataEdgeRow` and `findDataEdgeCol` in `SpreadsheetGrid.tsx:299-417` to jump directly to the schema edges instead of stopping at empty cells. All type checks, unit tests (89), and E2E tests (11) pass.",
+      "started_at": "2026-05-04T18:03:37Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[BUG] Ctrl+↑↓←→ のデータ端ジャンプで空セルに止まる",
+  "updated_at": "2026-05-04T19:03:42Z",
+  "usage": {
+    "cache_read_tokens": 401344,
+    "cache_write_tokens": 0,
+    "input_tokens": 113106,
+    "output_tokens": 6444,
+    "total_tokens": 520894
+  }
+}

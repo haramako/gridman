@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 624
+  },
+  "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:27:41Z",
+  "description": "**Style.cs:24-25** にてクラス組み合わせをキーとしたキャッシュにクリア機能がない。\n\n長時間動作・モバイル環境でメモリ問題になり得るため、キャッシュに上限や LRU などのクリア機能を追加する。\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: Medium)",
+  "id": "ac46c2dc-2b96-4562-b68b-88c581802dda",
+  "identifier": "LIN-18",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T00:49:50Z",
+      "duration_seconds": 624,
+      "error": null,
+      "failure_reason": null,
+      "id": "a5f5b953-7fad-42a7-8452-a6642cc5ca1a",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. Here's a summary of what was done:\n\n**Problem:** `StyleSheet.cache` in `Style.cs:24-25` was an unbounded `Dictionary` that grew without limit as unique tag+class combinations were encountered.\n\n**Fix (`Style.cs`):**\n1. Added `CacheMaxSize = 256` constant\n2. In `GetStyle`: clears the cache when it reaches the limit before adding a new entry\n3. In `FindOrCreateStyle`: clears the cache when a new style definition is added to `dict` (prevents stale cache entries after style changes)\n\n**Tests (`StyleSheetTests.cs`, 5 new tests):** All 85 tests pass, including verifying that the cache doesn't grow past 256 entries and that cache invalidation works correctly when styles are modified.",
+      "started_at": "2026-05-01T00:39:26Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] StyleSheet キャッシュが無制限に増加",
+  "updated_at": "2026-05-01T13:29:13Z",
+  "usage": {
+    "cache_read_tokens": 5256453,
+    "cache_write_tokens": 161094,
+    "input_tokens": 185,
+    "output_tokens": 1852,
+    "total_tokens": 5419584
+  }
+}

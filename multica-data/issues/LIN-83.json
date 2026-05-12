@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 247
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:56:57Z",
+  "description": "## 概要\n\nページテンプレートダイアログで、セクション（グループ）内に追加したフィールドを編集・削除しようとすると、正しいフィールドではなくトップレベルの別アイテムが変更されてしまう。\n\n## 再現手順\n\n1. ページテンプレートダイアログを開く\n2. 「+ セクションを追加」をクリック\n3. セクション内の「+ フィールドを追加」をクリック\n4. セクション内のフィールドのカラムやウィジェットを変更しようとする\n\n## 期待動作\n\nセクション内のフィールドのみが変更される。\n\n## 実際の動作\n\nセクション内フィールドのインデックスがトップレベルの `layout` 配列のインデックスとして使われるため、意図しないトップレベルアイテムが変更される。\n\n## 原因\n\n`src/components/page/PageTemplateDialog.tsx` の `renderItemEditor` が再帰的に呼ばれる際、子フィールドのインデックス `ci`（セクション内の位置）をそのまま `updateItem(ci, ...)` に渡している。しかし `updateItem` はトップレベルの `layout` 配列を操作するため、インデックスがずれる。\n\n```tsx\n// 問題のあるコード\n{(item.children ?? []).map((child, ci) => renderItemEditor(child, ci))}\n// ↑ ci はセクション内の子インデックス\n\n// renderItemEditor 内部\n<select onChange={(e) => updateFieldKey(index, e.target.value)}>\n// ↑ updateItem(index, ...) がトップレベル layout[ci] を変更してしまう\n```\n\n## 修正案\n\n- `renderItemEditor` にコールバック関数（`onUpdate`, `onRemove`）を引数として渡し、セクション内の子更新時はネストされた `children` 配列を更新する形に変更する\n- または `renderSectionChildEditor` のような専用関数を作成し、セクションの親インデックスと子インデックスの両方を管理する",
+  "id": "6b34e0ad-409e-4599-82fb-d499a372b387",
+  "identifier": "LIN-83",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T12:07:08Z",
+      "duration_seconds": 247,
+      "error": null,
+      "failure_reason": null,
+      "id": "038711fa-8ca4-468e-a1f8-89765d83f41e",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Bug fixed and pushed. The root cause was that `renderItemEditor` passed the child index `ci` directly to `updateItem`/`removeItem`, which both operate on the top-level `layout` array — so editing a section's field would mutate the wrong element.\n\nThe fix refactors `renderItemEditor` to accept `onUpdate`/`onRemove` callbacks instead. Top-level calls pass lambdas that call `updateItem`/`removeItem` on `layout`; recursive calls for section children pass lambdas that immutably update the `children` array and propagate up via `onUpdate`. TypeScript type-check and all 89 tests pass.",
+      "started_at": "2026-05-07T12:03:01Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "PageTemplateDialog: セクション内フィールドの編集・削除が正常に動作しない",
+  "updated_at": "2026-05-07T12:07:02Z",
+  "usage": {
+    "cache_read_tokens": 1250875,
+    "cache_write_tokens": 83476,
+    "input_tokens": 47,
+    "output_tokens": 890,
+    "total_tokens": 1335288
+  }
+}

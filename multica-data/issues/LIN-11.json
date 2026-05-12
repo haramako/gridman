@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 175
+  },
+  "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:19:40Z",
+  "description": "Tools/Lib/TODO.md のTODOのうち終わっていないものからmulticaのタスクを作成して。まだタスクの実行はしないように",
+  "id": "d9d83b5d-c446-49be-8128-6323884b9287",
+  "identifier": "LIN-11",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T00:28:51Z",
+      "duration_seconds": 175,
+      "error": null,
+      "failure_reason": null,
+      "id": "ddc2c2a6-9a05-4efa-b3a2-80782279c437",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "`Tools/Lib/TODO.md` から未完了の TODO を13件抽出し、LIN-12〜LIN-24 としてすべて `backlog` ステータスで Multica タスクを作成しました。優先度は TODO.md の記載 (High/Medium/Low) に対応させています。タスクの実行はしていません。",
+      "started_at": "2026-05-01T00:25:56Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "TMLのTODOからタスクを作成",
+  "updated_at": "2026-05-01T00:40:34Z",
+  "usage": {
+    "cache_read_tokens": 806646,
+    "cache_write_tokens": 57802,
+    "input_tokens": 31,
+    "output_tokens": 957,
+    "total_tokens": 865436
+  }
+}

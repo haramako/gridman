@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 2,
+    "total_duration_seconds": 192
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-02T16:37:31Z",
+  "description": "今回指示した内容の用語や、設計した内容をドキュメントに追加してください",
+  "id": "817bccf6-edae-49aa-a8b8-b54d82f8ffe2",
+  "identifier": "LIN-40",
+  "labels": [],
+  "parent_issue_id": "1e4df7df-1d3b-456f-835a-acb256b1101a",
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T02:21:01Z",
+      "duration_seconds": 128,
+      "error": null,
+      "failure_reason": null,
+      "id": "bf85198f-f397-4f1d-9807-9df53ac873d3",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "完了しました。前回の実行が使用量上限で中断されていたため、今回改めて作業を仕上げました。\n\n3つのドキュメントを更新してコミット・プッシュ済みです（ブランチ: `agent/kanade/2738b758`）：\n\n- **`plan/architecture.md`** — `SelectionStore` の実際の型定義に更新、`GridContext` とコマンドパターン（`CommandHistory` / `EditCellCommand`）のセクションを新設\n- **`plan/ui-layout.md`** — キーボードショートカット表を3区分に整理拡充、エディット状態遷移・タイプ編集・矩形選択の仕様セクションを新設\n- **`plan/index.md`** — 決定事項サマリーに今回の設計内容を追記",
+      "started_at": "2026-05-03T02:18:53Z",
+      "status": "completed",
+      "trigger_summary": "いかがです？"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-02T16:38:35Z",
+      "duration_seconds": 64,
+      "error": "You're out of extra usage · resets 8:50pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "2738b758-976a-4d66-a52e-0291f99a79fb",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-02T16:37:31Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "ドキュメントに追加",
+  "updated_at": "2026-05-03T02:20:41Z",
+  "usage": {
+    "cache_read_tokens": 1995595,
+    "cache_write_tokens": 225577,
+    "input_tokens": 65,
+    "output_tokens": 1088,
+    "total_tokens": 2222325
+  }
+}

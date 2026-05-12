@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 511
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:02:09Z",
+  "description": "E2Eテストを実行する前にローカルサーバーを手動で起動しておく必要があり、CI や初回セットアップで失敗しやすい。LIN-52（キャンセル済み）とは別の観点。\n\ne2e/global-setup.ts は npm run e2e:reset のみ実行しており、サーバー起動は含まれていない。LocalServerAdapter を使うテストはサーバーが必要。\n\n対応案: global-setup.ts でサーバーを起動し global-teardown.ts で停止する、またはモックアダプターをテスト用に用意する。\n\n完了条件: サーバーを手動起動せずに npm run e2e でテストが全通すること。",
+  "id": "91f1d1c1-d006-4033-889a-1dcf4713e4b0",
+  "identifier": "LIN-78",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T19:00:17Z",
+      "duration_seconds": 13,
+      "error": null,
+      "failure_reason": null,
+      "id": "28a8a0d4-bacc-4090-9e6f-2c849413cffa",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR #22 is already merged and the issue is already `done`. Both are completed.",
+      "started_at": "2026-05-04T19:00:04Z",
+      "status": "completed",
+      "trigger_summary": "PRマージして、タスクをDONEにして"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:11:59Z",
+      "duration_seconds": 498,
+      "error": null,
+      "failure_reason": null,
+      "id": "828f480f-e07a-4707-9562-569967c9ade6",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The task is complete. Here's a summary:\n\n**Issue LIN-78**: E2Eテストがローカルサーバー起動なしで実行できない\n\n**Findings**: The existing `playwright.config.ts` already had a `webServer` config that auto-starts both the backend (port 8080) and Vite dev server (port 5173), so tests already passed without manual server startup.\n\n**Changes made**:\n1. Added `e2e/global-teardown.ts` — removes `var/e2e-test` after tests complete\n2. Updated `playwright.config.ts` — added `globalTeardown` reference\n\nAll 11 E2E tests pass without manual server startup. PR: https://github.com/haramako/gridman/pull/22",
+      "started_at": "2026-05-04T18:03:41Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[Test] E2Eテストがローカルサーバー起動なしで実行できない",
+  "updated_at": "2026-05-04T18:59:39Z",
+  "usage": {
+    "cache_read_tokens": 2876095,
+    "cache_write_tokens": 242702,
+    "input_tokens": 85,
+    "output_tokens": 1673,
+    "total_tokens": 3120555
+  }
+}

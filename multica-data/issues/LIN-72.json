@@ -1,0 +1,73 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 3,
+    "total_duration_seconds": 266
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:01:34Z",
+  "description": "Ctrl+S を押して saveAll() が実行されても isDirty フラグが true のままになるケースがある。\n\nEditorPage.tsx:114 で Ctrl+S → saveAll() を呼び出している。project.store.ts:205 の saveAll 実装では、保存後に dirtyRowIds を再集計して isDirty を更新している（lines 229-234）。\n\n想定される原因: saveTable が非同期で完了する前に isDirty チェックが走る、または dirtyRowIds のクリア処理が一部テーブルで漏れている可能性。\n\n完了条件: Ctrl+S を1回押した後、タイトルバーの * が消え保存済み状態になること。",
+  "id": "d59f8865-8a26-4741-925e-0dc3b5ac13e9",
+  "identifier": "LIN-72",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-05T07:33:20Z",
+      "duration_seconds": 56,
+      "error": null,
+      "failure_reason": null,
+      "id": "b9c9ddb9-d0dd-4d78-a996-dd02bc4f41d4",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "修正ブランチ `agent/kanade-claude/6a83d464` はすでに `main` にマージされていました（コミット `7a85798`）。PRを作成するまでもなく変更は既に本番ブランチに反映済みです。",
+      "started_at": "2026-05-05T07:32:24Z",
+      "status": "completed",
+      "trigger_summary": "PR作成して"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T19:01:30Z",
+      "duration_seconds": 7,
+      "error": "You're out of extra usage · resets 10:40pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "a91df605-d496-43ca-a9f6-725b95f3a161",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-04T19:01:23Z",
+      "status": "failed",
+      "trigger_summary": "PR作成して"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:15:49Z",
+      "duration_seconds": 203,
+      "error": null,
+      "failure_reason": null,
+      "id": "6a83d464-34a7-4a75-83e8-a47f9912aeeb",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The bug is fixed. \n\n**Root cause**: In `saveTable` (`project.store.ts:216`), each call captured `dirtyRowIds` as a stale snapshot before the `await`. When `saveAll` runs multiple `saveTable` calls in parallel via `Promise.all`, each finishes and calls `set()` with a new `dirtyRowIds` that only cleared its own table — the last `set()` call overwrote the others, restoring previously-cleared dirty rows. With 2+ dirty tables, `isDirty` always remained `true`.\n\n**Fix**: Changed the `set()` call after the `await` to use Zustand's functional update form `set(state => ...)`, which reads the latest state atomically at call time rather than using a stale closure. This ensures each parallel `saveTable` correctly accumulates its cleanup on top of the others'.",
+      "started_at": "2026-05-04T18:12:26Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "[BUG] Ctrl+S を1回押しても未保存状態が解消されない",
+  "updated_at": "2026-05-04T18:15:43Z",
+  "usage": {
+    "cache_read_tokens": 1507363,
+    "cache_write_tokens": 268841,
+    "input_tokens": 57,
+    "output_tokens": 996,
+    "total_tokens": 1777257
+  }
+}

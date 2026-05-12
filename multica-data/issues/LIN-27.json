@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T16:22:37Z",
+  "description": "まず、セットアップができてるか確認するために、civxレポジトリをチェックアウトして、テストを実行してください。",
+  "id": "8495f7fd-d9a6-4f9a-aa2e-ccc2cd1270f0",
+  "identifier": "LIN-27",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [],
+  "status": "done",
+  "title": "セットアップ確認",
+  "updated_at": "2026-05-01T18:48:28Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

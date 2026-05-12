@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-02T09:14:31Z",
+  "description": "開発の計画を立案してください。",
+  "id": "f1d66ab5-beb0-4874-a507-4a92608a71c5",
+  "identifier": "LIN-34",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [],
+  "status": "done",
+  "title": "計画立案",
+  "updated_at": "2026-05-02T17:24:51Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

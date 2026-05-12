@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 97
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-10T21:13:08Z",
+  "description": "/llm-wiki lint",
+  "id": "7f4ace55-56af-46c1-9dbb-b5f0f3addbf3",
+  "identifier": "LIN-168",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-10T21:14:45Z",
+      "duration_seconds": 97,
+      "error": null,
+      "failure_reason": null,
+      "id": "17a31266-fbee-47e2-80ae-ed44058290d0",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Lint pass complete. The wiki is fully healthy — no dead wikilinks, no orphan pages, all pages registered in `index.md`, and log shape is correct. The only fix needed was creating the missing `audit/` and `audit/resolved/` directories, which are now committed and pushed.",
+      "started_at": "2026-05-10T21:13:08Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "Lint wiki",
+  "updated_at": "2026-05-10T22:43:16Z",
+  "usage": {
+    "cache_read_tokens": 821513,
+    "cache_write_tokens": 66492,
+    "input_tokens": 46,
+    "output_tokens": 715,
+    "total_tokens": 888766
+  }
+}

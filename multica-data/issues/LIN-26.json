@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 431
+  },
+  "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T13:54:08Z",
+  "description": "不正な入力に対するエラーハンドリングのテストケースを追加する。\n\n対象:\n- 不正XML（malformed XML）\n- 閉じられていない括弧\n- CSS未終了文字列\n- 無効な属性値\n\n各ケースでパーサーが適切にエラーを報告するか、クラッシュしないかを確認すること。\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: Low)",
+  "id": "dea5db83-3c9c-4086-a57c-fc4387c8f885",
+  "identifier": "LIN-26",
+  "labels": [],
+  "parent_issue_id": "d2fa8412-eea1-4c0d-8eab-e08327191c57",
+  "priority": "low",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T14:44:57Z",
+      "duration_seconds": 27,
+      "error": null,
+      "failure_reason": null,
+      "id": "5f873ebe-8cc3-4bce-a027-19d2881a1551",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "pushが完了しました。ブランチ `agent/claude/2f8157a9` にコミット `a21de94` をpushし、PRリンクも案内しました。",
+      "started_at": "2026-05-01T14:44:30Z",
+      "status": "completed",
+      "trigger_summary": "pushされてますか？"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T14:41:50Z",
+      "duration_seconds": 404,
+      "error": null,
+      "failure_reason": null,
+      "id": "2f8157a9-1919-4c8e-be77-fc5fd7264130",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Added 10 new error handling tests across `TMLParserTests.cs` and `StyleParserTests.cs`, covering all four categories from the issue:\n\n- **不正XML**: mismatched/extra close tags (`<div></p>`, `</div>`) and unclosed tag definition (`<div`) → `XmlException`\n- **閉じられていない括弧**: unclosed `[` keyword bracket doesn't crash, remaining text is treated as plain text\n- **CSS未終了文字列**: unclosed single-quoted and double-quoted strings in both `ParseStyle` and `ParseStyleSheet` → `StyleParseException`\n- **無効な属性値**: non-numeric value for int attribute (silently skips), invalid CSS value count or missing value in style attribute → `StyleParseException`\n\nAll 103 tests pass (93 pre-existing + 10 new).",
+      "started_at": "2026-05-01T14:35:06Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] 不正入力に対するエラーハンドリングテスト追加",
+  "updated_at": "2026-05-01T14:43:07Z",
+  "usage": {
+    "cache_read_tokens": 4141289,
+    "cache_write_tokens": 398437,
+    "input_tokens": 270,
+    "output_tokens": 1997,
+    "total_tokens": 4541993
+  }
+}

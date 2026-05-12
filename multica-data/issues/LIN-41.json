@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 2,
+    "total_duration_seconds": 137
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-02T16:40:54Z",
+  "description": "セルのエディット状態でTABを押すと、そのセルの二つ右のセルに移動してしまいます。\n\nこれはExcelの挙動と違うため、一つ右のセルに移動し、非エディット状態になるようにしてください。",
+  "id": "9fea0196-4812-4fe3-8b35-1cc64e7b55ba",
+  "identifier": "LIN-41",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T01:44:58Z",
+      "duration_seconds": 134,
+      "error": null,
+      "failure_reason": null,
+      "id": "ec4ed833-6d16-417d-b50f-f49be659b3c1",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "バグを修正しました。`Cell.tsx` の全3箇所のTABハンドラに `e.stopPropagation()` を追加し、`commitEdit()` 後にイベントが `SpreadsheetGrid.tsx` まで伝播して二重に `navigate()` が呼ばれる問題を解消しました。PRブランチ `agent/kanade/ec4ed833` にプッシュ済みです。",
+      "started_at": "2026-05-03T01:42:44Z",
+      "status": "completed",
+      "trigger_summary": "いかがです？"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-02T16:41:02Z",
+      "duration_seconds": 3,
+      "error": "You're out of extra usage · resets 8:50pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "a5b29be9-f4e4-401f-8619-1889be3a5154",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-02T16:40:59Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[BUG]エディット状態でTABを押したときに二つ右のセルに移動してしまう",
+  "updated_at": "2026-05-03T02:18:41Z",
+  "usage": {
+    "cache_read_tokens": 779038,
+    "cache_write_tokens": 94759,
+    "input_tokens": 78,
+    "output_tokens": 579,
+    "total_tokens": 874454
+  }
+}

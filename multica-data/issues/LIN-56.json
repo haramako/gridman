@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 2,
+    "total_duration_seconds": 155
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-03T19:40:36Z",
+  "description": "Phase 3の未完タスク。Undo/Redoのインフラとctrl+Z/Yショートカットは実装済みだが、updateCellとの統合が未完。",
+  "id": "263e8dce-31c2-44b4-a06e-a3b3024986dd",
+  "identifier": "LIN-56",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T04:35:41Z",
+      "duration_seconds": 153,
+      "error": null,
+      "failure_reason": null,
+      "id": "9dadb9fb-0218-4f08-93d7-6a088aa02ca5",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The task was already complete from a previous run. Commit `aaf6579` had integrated `commandHistory` with `updateCell`/`addRow`/`deleteRow` in `project.store.ts`, and wired Ctrl+Z/Ctrl+Y shortcuts in `EditorPage.tsx`. I confirmed all 76 tests pass, marked the issue as done, and posted a summary comment.",
+      "started_at": "2026-05-04T04:33:08Z",
+      "status": "completed",
+      "trigger_summary": "おねがい"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T19:53:18Z",
+      "duration_seconds": 2,
+      "error": "You're out of extra usage · resets 11:10pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "5af7b28b-f2d7-4c14-8792-86fb7660da4a",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-03T19:53:16Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "Undo/Redo: updateCell統合の完了",
+  "updated_at": "2026-05-04T04:35:30Z",
+  "usage": {
+    "cache_read_tokens": 1985508,
+    "cache_write_tokens": 121140,
+    "input_tokens": 61,
+    "output_tokens": 1547,
+    "total_tokens": 2108256
+  }
+}

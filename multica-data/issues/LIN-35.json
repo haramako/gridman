@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-02T09:46:29Z",
+  "description": "git等の環境の確認のために、gridmanレポジトリをcloneして内容を確認してください。",
+  "id": "bdf5c4a6-9999-4632-95f6-c29d0b70649f",
+  "identifier": "LIN-35",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [],
+  "status": "done",
+  "title": "環境の確認",
+  "updated_at": "2026-05-02T10:55:46Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

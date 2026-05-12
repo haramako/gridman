@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 264
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-03T19:40:59Z",
+  "description": "入力挙動改善（高優先度）。現在はEnterで編集モード開始だが、編集確定後のEnterで下のセルへ移動する挙動を追加検討。Excelとの一貫性改善と編集ワークフローの向上が目的。",
+  "id": "2136fe11-af78-4c8e-a603-f390fb7099fa",
+  "identifier": "LIN-62",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T19:46:21Z",
+      "duration_seconds": 264,
+      "error": null,
+      "failure_reason": null,
+      "id": "ec3d713d-1111-4fc9-a888-e10a2f7de210",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The issue was already fully implemented. The \"Enter確定後のセル移動\" feature exists in `Cell.tsx` — pressing Enter while editing commits the cell value and calls `navigate(rowId, col.key, 1, 0)` to move the cursor down, covering all editable cell types (text input, enum, ref). Both a unit test and an E2E test cover this behavior. I posted a comment with the details and moved the issue to `in_review`.",
+      "started_at": "2026-05-03T19:41:57Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "Enter確定後のセル移動",
+  "updated_at": "2026-05-04T04:21:09Z",
+  "usage": {
+    "cache_read_tokens": 2297025,
+    "cache_write_tokens": 298479,
+    "input_tokens": 196,
+    "output_tokens": 1008,
+    "total_tokens": 2596708
+  }
+}

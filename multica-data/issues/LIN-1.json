@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd59271-fef0-4f46-84f1-aad6983dd6b8",
+  "assignee_type": "member",
+  "created_at": "2026-04-30T23:58:56Z",
+  "description": "**Why this first**: no runtime = no agents can execute. Everything below Tier 1 waits on this.\n\nA **runtime** is a small background process that runs on your machine. It connects your workspace to AI coding tools (Claude Code, Codex, …) and executes the tasks your agents pick up.\n\n**Option A — Desktop app (macOS, recommended if you're on a Mac)**:\n1. Go to [github.com/multica-ai/multica/releases/latest](https://github.com/multica-ai/multica/releases/latest) and download the `.dmg` for macOS\n2. Install and open the app\n3. Sign in with the same account — the runtime is built in, you're done\n\n**Option B — CLI (macOS, Linux, or Windows via WSL)**:\n1. In a terminal, install the CLI:\n   ```\n   curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash\n   ```\n2. Then run setup (signs you in and starts a background daemon):\n   ```\n   multica setup\n   ```\n   The daemon keeps running after you close the terminal — you don't have to leave anything open.\n\n**Verify**: sidebar → bottom **Configure** section → **Runtimes** → you should see at least one connected runtime.\n\n[Learn about runtimes →](https://multica.ai/docs/daemon-runtimes)",
+  "id": "10012f85-326b-4fe0-a904-dc7ff767c0cd",
+  "identifier": "LIN-1",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [],
+  "status": "done",
+  "title": "1. Install a runtime (Desktop app or CLI)",
+  "updated_at": "2026-05-01T00:02:53Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

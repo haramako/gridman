@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "run_count": 2,
+    "total_duration_seconds": 438
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-03T05:49:48Z",
+  "description": "mvp.mdの中から上記を実装してください。よく計画してから実装してください。",
+  "id": "5c25a865-f447-4260-a0d4-31e5fa120e36",
+  "identifier": "LIN-45",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T06:45:26Z",
+      "duration_seconds": 435,
+      "error": null,
+      "failure_reason": null,
+      "id": "bd641ebd-e5be-4b83-a2f2-835b60fae6e5",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "ユニオンビューの実装が完了しました。主な変更点:\n\n- **`src/domain/union.ts`**: `applyUnion()` 関数で複数テーブルを縦結合し、各行に `_source` フィールドを付与\n- **`src/components/union/UnionViewDialog.tsx`**: ビュー作成・編集ダイアログ（テーブル追加・カラム選択対応）\n- **`EditorPage.tsx`**: サイドバーに「+ ユニオン」ボタン追加、ユニオンビュー用のスキーマ/行計算\n- **`SpreadsheetView.tsx`**: 行削除を `_source` テーブルに正しくルーティング\n- **`DataRow.tsx` / `SpreadsheetGrid.tsx`**: セル編集・ペーストを元テーブルに書き戻し\n\nビルドは成功し、ブランチ `agent/kanade/bd641ebd` にプッシュ済みです。",
+      "started_at": "2026-05-03T06:38:11Z",
+      "status": "completed",
+      "trigger_summary": "よろしく"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-03T05:49:51Z",
+      "duration_seconds": 3,
+      "error": "You're out of extra usage · resets 6:30am (UTC)",
+      "failure_reason": "agent_error",
+      "id": "be55dd4d-ccd1-4396-a7ac-991d68885ff8",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-03T05:49:48Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "ユニオンビュー（複数テーブルを縦結合）の実装",
+  "updated_at": "2026-05-03T07:14:45Z",
+  "usage": {
+    "cache_read_tokens": 5002767,
+    "cache_write_tokens": 174268,
+    "input_tokens": 96,
+    "output_tokens": 2358,
+    "total_tokens": 5179489
+  }
+}

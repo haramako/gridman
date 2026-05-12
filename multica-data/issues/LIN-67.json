@@ -1,0 +1,27 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-03T19:41:11Z",
+  "description": "入力挙動改善（低優先度）。Excelのフィルハンドルに相当する、セル範囲の値やパターンを自動入力する機能。コスト高・優先度低。",
+  "id": "d208e4a1-806a-4e67-9934-d629b9095c8e",
+  "identifier": "LIN-67",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [],
+  "status": "cancelled",
+  "title": "オートフィル（フィルハンドル）",
+  "updated_at": "2026-05-03T19:43:54Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

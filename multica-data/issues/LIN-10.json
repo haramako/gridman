@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 707
+  },
+  "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:05:24Z",
+  "description": "ユーザーのリクエスト: レポジトリの中身を３行程度で要約して\n\n対象リポジトリ: https://github.com/haramako/civx.git\n\ncivx リポジトリをチェックアウトし、コードベースの概要・主な機能・技術スタックを3行程度で要約すること。",
+  "id": "68c7e58a-76ae-4261-bca2-80dc271ab337",
+  "identifier": "LIN-10",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T00:16:55Z",
+      "duration_seconds": 690,
+      "error": null,
+      "failure_reason": null,
+      "id": "a18dd487-67d1-4057-8003-90147496a00d",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "タスク完了。civx リポジトリを調査し、以下の3行要約をイシューにコメントしました:\n\n> civx は Unity (C#) で開発中の Civilization 風ターン制ストラテジーゲームです。都市・ユニット・ヘックスマップ・技術ツリーといった Civ 定番の要素を持ち、データは Excel/YAML で管理されています。ビルドパイプラインには Ruby/Rake を採用し、カスタム UI フレームワーク (TML) と UniTask を組み合わせた構成になっています。",
+      "started_at": "2026-05-01T00:05:25Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-01T00:05:28Z",
+      "duration_seconds": 17,
+      "error": null,
+      "failure_reason": null,
+      "id": "e7cecd27-f4dd-498e-b425-6813b288c2dd",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Created MUL-10: civx レポジトリの内容を3行程度で要約する",
+      "started_at": "2026-05-01T00:05:11Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "civx レポジトリの内容を3行程度で要約する",
+  "updated_at": "2026-05-01T00:40:36Z",
+  "usage": {
+    "cache_read_tokens": 1100854,
+    "cache_write_tokens": 72363,
+    "input_tokens": 53,
+    "output_tokens": 1209,
+    "total_tokens": 1174479
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 188
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:57:27Z",
+  "description": "## 概要\n\n複数タブ間でドラフトを同期する `syncDraftFromTab` のマージ条件で、`_order`（行の表示順序）を使って「ドラフトが新しいか」を判断している。`_order` は更新タイムスタンプではなくソート位置であるため、判定が間違った結果になる場合がある。\n\n## 問題のあるコード\n\n`src/stores/project.store.ts`:\n\n```ts\nif (!currentRow || (currentRow._order as number) <= (draftRow._order as number)) {\n  mergedTable.set(rowId, draftRow);\n  dirtyIds.add(rowId);\n}\n```\n\n## 問題のシナリオ\n\n- 行の `_order` が小さい（テーブルの先頭近く）ほど、ドラフトが適用されにくくなる\n- たとえば `_order: 0` の行は、ドラフトの `_order` が `0` 以上でないと適用されない（`<=` 条件が成立しない）\n- 行を並び替えた後に別タブのドラフトを同期しようとすると、意図せずドラフトが無視される\n\n## 期待動作\n\nドラフトの内容は常にマージ対象となるべき。もしくは `savedAt` タイムスタンプを使って新旧を判断する。\n\n## 修正案\n\n- `DraftData.savedAt` タイムスタンプを行ごとに記録し、更新時刻ベースでマージする\n- または単純に、ドラフトの行は常に現在の行を上書きするようにする（同一タブのドラフトを自タブが上書きしないよう注意）",
+  "id": "06686b3d-7536-480a-906e-47cce58e302a",
+  "identifier": "LIN-85",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T19:06:07Z",
+      "duration_seconds": 188,
+      "error": null,
+      "failure_reason": null,
+      "id": "92a7e605-a3d9-482b-a09e-7b345386887e",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Now I understand the bug. The `syncDraftFromTab` function at `project.store.ts:662` uses `_order` (a sort position field) to decide whether a draft is \"newer\" than the current row. This is incorrect — `_order` represents display order, not recency. The fix is to always accept draft rows from other tabs (since localStorage `storage` events only fire for other tabs, there's no self-overwrite risk).Now let me run the type check and tests as required.TypeScript type check passed (no errors). All 89 tests pass (the 3 errors are pre-existing jsdom/Node.js compatibility issues unrelated to the change).\n\nLet me verify the final state of the fix:Now let me post the results and set the status.Done. The fix removes the `_order`-based comparison in `syncDraftFromTab` (`project.store.ts:660`), always accepting draft rows from other tabs. The `storage` event only fires for other tabs' writes, so there's no risk of self-overwrite. TypeScript type check passes and all 89 tests pass.",
+      "started_at": "2026-05-07T19:02:59Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "syncDraftFromTab が _order（ソート順）でドラフトの新旧を判定している",
+  "updated_at": "2026-05-07T19:06:03Z",
+  "usage": {
+    "cache_read_tokens": 307712,
+    "cache_write_tokens": 0,
+    "input_tokens": 25825,
+    "output_tokens": 3334,
+    "total_tokens": 336871
+  }
+}

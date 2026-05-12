@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 160
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:57:38Z",
+  "description": "## 概要\n\nスプレッドシートで `integer` または `number` 型のセルにフォーカスし、Delete または Backspace キーを押すと、セルの値が `null`（空）ではなく `0` に設定される。\n\n## 再現手順\n\n1. integer/number 型カラムに値（例: 42）が入ったセルを選択する\n2. Delete または Backspace キーを押す\n\n## 期待動作\n\nセルの値が空（null）になり、空白または未入力として表示される。\n\n## 実際の動作\n\nセルの値が `0` になる。\n\n## 原因\n\n`src/components/spreadsheet/SpreadsheetGrid.tsx` の Delete/Backspace キーハンドラー:\n\n```ts\ncase 'Delete':\ncase 'Backspace': {\n  const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''\n  updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)\n```\n\n数値型の「空」を `0` としているが、`null` が正しい空値。\n\n## 修正案\n\n```ts\nconst emptyVal = null\nupdateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)\n```",
+  "id": "ff4ed7e0-7007-4032-aca0-52892edc44fe",
+  "identifier": "LIN-86",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T20:05:05Z",
+      "duration_seconds": 160,
+      "error": null,
+      "failure_reason": null,
+      "id": "f97fce9f-2ea1-41f6-88d8-dd1e36a8f430",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "All 89 tests pass and type checking is clean. Let me update the issue.修正完了。2箇所の `emptyVal` を `null` に変更し、型チェック・全テスト通過を確認しました。",
+      "started_at": "2026-05-07T20:02:25Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "Delete/Backspace キーで数値セルが null でなく 0 になる",
+  "updated_at": "2026-05-07T20:05:03Z",
+  "usage": {
+    "cache_read_tokens": 240384,
+    "cache_write_tokens": 0,
+    "input_tokens": 22369,
+    "output_tokens": 2532,
+    "total_tokens": 265285
+  }
+}

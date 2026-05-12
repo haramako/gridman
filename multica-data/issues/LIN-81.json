@@ -1,0 +1,43 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 303
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-07T11:56:29Z",
+  "description": "## 概要\n\nUIで行を削除して保存 (Ctrl+S) しても、`.jsonl` ファイルから該当行が削除されない。プロジェクトを再読み込みすると、削除した行が復活してしまう。\n\n## 再現手順\n\n1. プロジェクトを開き、テーブルを表示する\n2. 行を選択して右クリックメニューから「行を削除」を実行する\n3. Ctrl+S で保存する\n4. ページをリロードしてプロジェクトを再読み込みする\n\n## 期待動作\n\n削除した行が再読み込み後も表示されない。\n\n## 実際の動作\n\n削除した行が再読み込み後に復活する。\n\n## 原因\n\n`server/index.ts` の `PATCH /api/tables/:name` エンドポイントは、受信した行の更新・追加しか行わず、削除は処理しない。\n\n```ts\n// 既存行を更新、新規行を追加するのみ。削除は考慮されていない。\nconst merged = existing.map((r) => updatedMap.get(r._id as string) ?? r);\nfor (const row of updated) {\n  if (!existingIds.has(row._id as string)) merged.push(row);\n}\n```\n\n`saveTable` は dirty な行（更新・追加）のみを PATCH で送信するため、削除された行の ID がサーバーに伝わらない。\n\n## 修正案\n\n- PATCH リクエストに削除された行の ID リスト (`deletedIds`) を含めるよう変更する\n- または、保存時に PUT を使って全行を一括置き換えする\n- `deleteRow` 実行時に `dirtyRowIds` とは別の `deletedRowIds` を追跡し、保存時にサーバーへ伝える",
+  "id": "7f16acbb-a6e6-4175-9fcd-c1b7a2cb7a5d",
+  "identifier": "LIN-81",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-07T14:07:29Z",
+      "duration_seconds": 303,
+      "error": null,
+      "failure_reason": null,
+      "id": "28948b6d-86f3-49e0-bbfd-98c981727ad5",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The fix is complete. Here's a summary of what was changed:\n\n**Root cause**: `deleteRow` removed rows from in-memory state but never tracked the deleted IDs. The `saveTable` method only sent updated/added rows (`dirtyRowIds`) via PATCH, so the server had no way to know a row was deleted and kept it in the file.\n\n**Fix** — 5 files changed:\n- `project.store.ts`: Added `deletedRowIds` state; `deleteRow` now records deleted IDs there (and removes them from `dirtyRowIds`); undo restores IDs correctly; `saveTable` passes `deletedIds` to the adapter and clears them after save\n- `src/fs/adapter.ts`: Added `deletedIds: string[]` to `patchTable` signature\n- `src/fs/local-server.ts`: PATCH body is now `{ rows, deletedIds }`\n- `src/fs/file-system-access.ts`: Deletes the specified IDs from the row map before writing\n- `server/index.ts`: PATCH handler parses `{ rows, deletedIds }` and filters out deleted rows before writing (backward-compatible with the old array format)",
+      "started_at": "2026-05-07T14:02:26Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "行削除がファイルに保存されない",
+  "updated_at": "2026-05-07T14:07:22Z",
+  "usage": {
+    "cache_read_tokens": 2166812,
+    "cache_write_tokens": 144701,
+    "input_tokens": 57,
+    "output_tokens": 1191,
+    "total_tokens": 2312761
+  }
+}

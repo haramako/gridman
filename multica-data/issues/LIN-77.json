@@ -1,0 +1,58 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 862
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-04T18:02:04Z",
+  "description": "スキーマ編集でカラムを追加した後、グリッドに新しい列がすぐに表示されない。\n\nproject.store.ts の updateSchema でスキーマを更新しているが、ビューコンポーネント側の再レンダリングが起きないか、スキーマのキャッシュが更新されないことが原因と思われる。\n\n完了条件: スキーマ編集ダイアログでカラムを追加・保存した直後に、グリッドに新しい列が表示されること。",
+  "id": "3b683d00-2136-4612-a998-7bb974ce95f6",
+  "identifier": "LIN-77",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:58:49Z",
+      "duration_seconds": 275,
+      "error": null,
+      "failure_reason": null,
+      "id": "c2e888de-c6e7-4ba2-b003-bfa5e5aa204b",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The fix is complete. The root cause was that `colWidths` in `SpreadsheetGrid.tsx` was initialized via `useState` lazy initializer (runs only on mount), so when the schema changed after a schema editor save, the new column had no width entry and wasn't displayed.\n\nThe fix adds:\n1. `colWidthMapRef` — a stable `Record<string, number>` keyed by column key to persist widths across schema changes\n2. A `useEffect` that rebuilds `colWidths` from the map whenever `schema.columns` changes, inserting default widths for new columns\n3. Updated resize handler to also sync `colWidthMapRef`, so manually-resized widths survive subsequent schema edits",
+      "started_at": "2026-05-04T18:54:14Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-04T18:13:33Z",
+      "duration_seconds": 587,
+      "error": null,
+      "failure_reason": null,
+      "id": "ba38a778-d92c-4131-9208-d506d75a9c5b",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Now I need to understand how the grid component uses the schema. Let me search for the grid/table components that render the data.Let me look at the spreadsheet components and the schema editor dialog to understand how columns are rendered and how schema updates are handled.Let me find where `SchemaEditorDialog` is used and how the schema is passed to the grid.Let me look at the EditorPage to understand how schema updates flow to the grid.Let me examine the SpreadsheetGrid component to understand how it renders columns.I'll fix the root cause: `script.js` crashes on legal pages because it tries to access DOM elements that don\nI found the bug. In `SpreadsheetGrid.tsx`, the `colWidths` state is initialized only on mount, so when `updateSchema` updates the schema in the store, the column widths state doesn't update. The grid header renders `schema.columns` directly, but `colWidths` gets out of sync (length mismatch), causing the new column to not display properly.\n\nLet me fix this by syncing `colWidths` when the schema changes.",
+      "started_at": "2026-05-04T18:03:46Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[BUG] カラムを追加してもグリッドに即時反映されない",
+  "updated_at": "2026-05-04T19:02:41Z",
+  "usage": {
+    "cache_read_tokens": 1205326,
+    "cache_write_tokens": 176886,
+    "input_tokens": 164229,
+    "output_tokens": 15037,
+    "total_tokens": 1561478
+  }
+}
