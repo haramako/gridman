@@ -70,6 +70,15 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 
 ---
 
+## コーディング方針
+
+`karpathy-guidelines` スキルに基づいて行動すること。特に以下を徹底する：
+
+- 過度な抽象化・汎化をしない（頼まれた変更だけを行う）
+- 外科的な変更に留める（関係ない箇所を触らない）
+- 暗黙の前提は明示する
+- 変更前に検証可能な成功基準を定める
+
 ## コード規約
 
 - Lint / Format: `npm run lint`（Biome）
