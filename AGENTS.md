@@ -99,7 +99,7 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 
 ---
 
-## コーディング方針
+## コーディング方針・規約
 
 `karpathy-guidelines` スキルに基づいて行動すること。特に以下を徹底する：
 
@@ -108,10 +108,8 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 - 暗黙の前提は明示する
 - 変更前に検証可能な成功基準を定める
 
-## コード規約
-
-- Lint / Format: `npm run lint`（Biome）
-- shadcn/ui コンポーネントの追加: `npx shadcn@latest add <component>`
+Lint / Format: `npm run lint`（Biome）  
+shadcn/ui コンポーネントの追加: `npx shadcn@latest add <component>`
 
 ---
 
