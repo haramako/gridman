@@ -1,5 +1,6 @@
 import { commandHistory, CompositeCommand } from '@/domain/commands';
 import type { Command } from '@/domain/commands';
+import { useCommandHistoryStore } from '@/stores/commandHistoryStore';
 import { coerceToType, validateCell } from '@/domain/validator';
 import { FileSystemAccessAPIAdapter } from '@/fs/file-system-access';
 import { LocalServerAdapter } from '@/fs/local-server';
@@ -65,8 +66,6 @@ interface ProjectState {
   addRowAfter: (tableName: string, afterRowId: string) => void;
   addRowBefore: (tableName: string, beforeRowId: string) => void;
   deleteRow: (tableName: string, rowId: string) => void;
-  undo: () => void;
-  redo: () => void;
   clearDraftState: () => void;
   syncDraftFromTab: (msg: SyncMessage) => void;
   releaseLock: () => void;
@@ -149,6 +148,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
 
     commandHistory.clear();
+    useCommandHistoryStore.getState().sync();
 
     set({
       projectPath: path,
@@ -321,6 +321,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
      };
 
      commandHistory.execute(cmd);
+     useCommandHistoryStore.getState().sync();
    },
 
    updateCells: (updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[]) => {
@@ -386,6 +387,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
      }
      if (cmds.length > 0) {
        commandHistory.execute(new CompositeCommand(cmds, '複数セルの編集'));
+       useCommandHistoryStore.getState().sync();
      }
    },
 
@@ -440,6 +442,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     };
 
     commandHistory.execute(cmd);
+    useCommandHistoryStore.getState().sync();
   },
 
   addRowAfter: (tableName, afterRowId) => {
@@ -501,6 +504,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         doDelete();
       },
     });
+    useCommandHistoryStore.getState().sync();
   },
 
   addRowBefore: (tableName, beforeRowId) => {
@@ -562,6 +566,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         doDelete();
       },
     });
+    useCommandHistoryStore.getState().sync();
   },
 
   deleteRow: (tableName, rowId) => {
@@ -612,14 +617,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     };
 
     commandHistory.execute(cmd);
-  },
-
-  undo: () => {
-    commandHistory.undo();
-  },
-
-  redo: () => {
-    commandHistory.redo();
+    useCommandHistoryStore.getState().sync();
   },
 
   clearDraftState: () => {

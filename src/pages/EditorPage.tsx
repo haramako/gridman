@@ -9,6 +9,7 @@ import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
 import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
+import { useCommandHistoryStore } from '@/stores/commandHistoryStore';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
@@ -40,13 +41,12 @@ export default function EditorPage() {
     updateView,
     deleteView,
     updateSchema,
-    undo,
-    redo,
     // clearDraftState, // TEMP: ドラフト確認ダイアログ無効化中
     syncDraftFromTab,
     releaseLock,
     stealLock,
   } = useProjectStore();
+  const { undo, redo } = useCommandHistoryStore();
   const { activeViewId, setActiveViewId } = useViewStore();
 
   const [schemaEditorTable, setSchemaEditorTable] = useState<string | null>(null);
