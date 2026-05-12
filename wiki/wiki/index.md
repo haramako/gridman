@@ -29,6 +29,13 @@
     - [[concepts/spreadsheet/Cell_Editing]] — セル編集フロー・dirty 追跡・commitEdit
     - [[concepts/spreadsheet/Input_Behavior]] — キーボード・マウス入力仕様と Excel との差異
 
+### AIエージェントパターン
+- [[concepts/agent-patterns/index|Agent Patterns]] — Multica issue ログから帰納したワークフローパターン
+    - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（最多パターン）
+    - [[concepts/agent-patterns/Platform_Artifacts]] — stale failed run・重複トリガー（メトリクス歪み）
+    - [[concepts/agent-patterns/Spec_Quality]] — 仕様不完全による再設計
+    - [[concepts/agent-patterns/Regression_and_Testing]] — リグレッションと E2E 検証（対策済み）
+
 ### 横断的概念
 - [[concepts/Page_View]] — カード型ビュー・テンプレート定義・ウィジェット
 - [[concepts/View_Dialogs]] — フィルター / ユニオン / ルックアップ ビュー作成ダイアログ
@@ -62,12 +69,11 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
+- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（8件・12パターン）
 
 ---
 
 ## Open Questions
 
-- Q1: FileSystem Access API 対応（サーバーなし版）のアーキテクチャ詳細は？
-- Q2: `PageView` コンポーネントの設計と `*.page.json` テンプレートの詳細は？
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
 - Q4: LIN-73 (Ctrl+X Undo 粒度) の修正方針は？

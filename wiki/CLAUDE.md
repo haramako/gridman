@@ -59,6 +59,13 @@ summaries/        ← doc/ 各ファイルのサマリー
 - Cell_Editing.md
 - Input_Behavior.md
 
+### concepts/agent-patterns/
+- index.md
+- Environment_Issues.md
+- Platform_Artifacts.md
+- Spec_Quality.md
+- Regression_and_Testing.md
+
 ### concepts/
 - Page_View.md
 - View_Dialogs.md
@@ -86,6 +93,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - src-view-dialogs.md
 - src-schema-editor.md
 - src-json-editor-search.md
+- issue-insights.md
 
 ---
 
