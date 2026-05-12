@@ -15,3 +15,7 @@ yarn-debug.log*
 # Playwright
 /test-results
 /playwright-report
+
+# Python
+__pycache__/
+*.pyc
