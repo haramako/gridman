@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": ["env-github-token"],
   "patterns": ["env-github-token"],
+  "countermeasure": "one-time",
   "written_at": "2026-05-12"
 }
 ```

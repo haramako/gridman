@@ -99,10 +99,11 @@ summaries/        ← doc/ 各ファイルのサマリー
 
 ## オープンな調査課題
 
-- LIN-71〜LIN-78: GitHub Issues で管理中のバグ/機能改善
+- ~~LIN-71〜LIN-78~~: insight 作成済み（2026-05-13）
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
+- LIN-22, LIN-46: `countermeasure: none` — issue テンプレート整備で対策予定（Multica 側対応）
 
 ---
 

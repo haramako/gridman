@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": [],
   "patterns": ["platform-artifact"],
+  "countermeasure": "one-time",
   "written_at": "2026-05-12"
 }
 ```

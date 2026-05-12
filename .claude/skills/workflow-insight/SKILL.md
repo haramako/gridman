@@ -52,6 +52,7 @@ LIN-XX | タイトル(30字) | status | runs=N fail=Y/N | tok=N,NNN,NNN
 ```
 
 既に `multica-data/issue-insights/<id>.md` が存在するものは `(done)` を付ける。
+`countermeasure == "none"` のものは `[要対策]` を付けて強調する。
 
 ### `<id>`（例: `LIN-36`）— 単体生成・更新
 
@@ -81,6 +82,7 @@ done または cancelled の全 issue に対して、未作成のものを順に
   "failure_cause": null,
   "rerun_causes": ["taxonomy-code", ...],
   "patterns": ["taxonomy-code", ...],
+  "countermeasure": "none",
   "written_at": "YYYY-MM-DD"
 }
 ```
@@ -118,7 +120,17 @@ done または cancelled の全 issue に対して、未作成のものを順に
 | `failure_cause` | string\|null | 失敗した原因の短い説明（なければ null）|
 | `rerun_causes` | string[] | 再実行が必要になった理由の taxonomy コード |
 | `patterns` | string[] | 観察されたパターンの taxonomy コード |
+| `countermeasure` | string | 対策状況（値は下記） |
 | `written_at` | string | insight を書いた日（YYYY-MM-DD）|
+
+**`countermeasure` の値：**
+
+| 値 | 意味 |
+|----|------|
+| `none` | 未対策。改善提案・AGENTS.md 更新などが必要 |
+| `one-time` | 一度限りの環境問題・操作ミス。構造的な改善は不要 |
+| `in-agents-md` | AGENTS.md に対策が記載済み |
+| `platform-fix` | プラットフォーム（Multica 設定・インフラ）側で修正済み |
 
 ---
 
@@ -140,6 +152,7 @@ done または cancelled の全 issue に対して、未作成のものを順に
 | `duplicate-trigger` | 同じトリガーが重複送信された |
 | `infra-improvement` | ワークフロー問題自体を修正したタスク（後続への学び）|
 | `context-overload` | 高トークン消費・コンテキスト肥大化が問題になった |
+| `quota-recovery` | 使用量上限回復後の手動再開チェック（"いかがです？" / "ping" など）|
 
 複数該当する場合はすべて列挙する。
 
@@ -184,6 +197,7 @@ total_tokens = usage.get("total_tokens", 0)
 | 同じトリガーが連続している | `duplicate-trigger` |
 | 設計を変えて / インターフェース / コールバック | `spec-design-change` |
 | 〜も追加して / インクリメンタル | `spec-feature-addition` |
+| いかがです？ / how are you? / ping | `quota-recovery` |
 
 ### Step 4: patterns の決定
 
@@ -194,6 +208,17 @@ total_tokens = usage.get("total_tokens", 0)
 - total_tokens > 10,000,000 → `context-overload`
 - このタスク自体がインフラ/ワークフロー改善 → `infra-improvement`
 - `platform-artifact` の run がある → `platform-artifact` を patterns にも含める
+
+### Step 5: countermeasure の決定
+
+以下の基準で `countermeasure` を設定する：
+
+- `patterns` のすべてが `platform-artifact` / `duplicate-trigger` のみ → `one-time`
+- `patterns` に `env-*` のみが含まれ、すでに環境が整備済みと判断できる → `one-time`
+- `patterns` に `e2e-not-verified` があり AGENTS.md に記載済み → `in-agents-md`
+- `patterns` に `env-e2e` があり LIN-78 で修正済み → `platform-fix`
+- `patterns` に `spec-*` / `regression-broad-change` / `context-overload` が含まれ未対策 → `none`
+- 判断できない場合は `none`（保守的に）
 
 ### Step 5: markdown 本文の記述
 

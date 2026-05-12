@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": ["regression-broad-change", "e2e-not-verified"],
   "patterns": ["regression-broad-change", "e2e-not-verified"],
+  "countermeasure": "in-agents-md",
   "written_at": "2026-05-12"
 }
 ```

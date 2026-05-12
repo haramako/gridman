@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": ["env-git-auth", "duplicate-trigger"],
   "patterns": ["env-git-auth", "duplicate-trigger", "context-overload"],
+  "countermeasure": "one-time",
   "written_at": "2026-05-12"
 }
 ```

@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": ["spec-feature-addition", "e2e-not-verified"],
   "patterns": ["spec-feature-addition", "e2e-not-verified"],
+  "countermeasure": "none",
   "written_at": "2026-05-12"
 }
 ```

@@ -24,6 +24,7 @@ AIエージェントタスクで繰り返し発生するパターンとその対
 | `spec-feature-addition` | 仕様 | 実装後に機能追加依頼 |
 | `e2e-not-verified` | テスト | E2E 未確認で PR 作成 |
 | `regression-broad-change` | テスト | 横断的変更で既存機能が壊れた |
+| `quota-recovery` | アーティファクト | 使用量上限回復後の手動再開チェック（`ping` など） |
 | `infra-improvement` | 改善 | ワークフロー問題自体を修正したタスク |
 | `context-overload` | コスト | 高トークン消費・コンテキスト肥大化 |
 

@@ -11,14 +11,16 @@
       "Bash(npm run*)",
       "Bash(git stash *)",
       "Bash(git push *)",
-      "Bash(node -e \"const p = require\\('./node_modules/@testing-library/jest-dom/package.json'\\); console.log\\(JSON.stringify\\({types: p.types, exports: p.exports?.['./vitest']}, null, 2\\)\\)\")",
-      "Bash(Get-ChildItem -Path \"c:\\\\Work\\\\gridman\\\\multica-data\\\\\" -ErrorAction SilentlyContinue | Select-Object FullName, PSIsContainer)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Work\\\\gridman\\\\multica-data\\\\issues\\\\\" | ForEach-Object { $_.Name })",
-      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); issues=[i for i in data if i.get\\('run_count',1\\)>1 or i.get\\('has_failures',False\\)]; print\\(json.dumps\\(issues[:20], ensure_ascii=False, indent=2\\)\\)\")",
-      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); candidates=[i for i in data if i.get\\('run_count',1\\)>2 or i.get\\('has_failures',False\\)]; candidates.sort\\(key=lambda x: x.get\\('total_tokens',0\\), reverse=True\\); print\\(json.dumps\\([\\(i['identifier'],i['title'],i['status'],i.get\\('run_count',1\\),i.get\\('has_failures',False\\),i.get\\('total_tokens',0\\)\\) for i in candidates[:20]], ensure_ascii=False, indent=2\\)\\)\")"
+      "Bash(python .claude/skills/multica/scripts/multica_api.py *)",
+      "Bash(mkdir -p *)",
+      "Edit(/.claude/skills/**)",
+      "Bash(python -c ' *)",
+      "Edit(/.claude/skills/workflow-insight/**)",
+      "Skill(workflow-insight)",
+      "Skill(workflow-insight:*)"
     ],
-    "additionalDirectories": [
-      "c:\\Work\\gridman\\doc"
+    "ask": [
+      "Bash(python -c *)"
     ]
   }
 }

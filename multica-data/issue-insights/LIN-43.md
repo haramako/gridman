@@ -9,6 +9,7 @@
   "failure_cause": "E2Eテスト実行環境が未整備で Run1 が失敗、Run2 がキャンセル",
   "rerun_causes": ["env-e2e"],
   "patterns": ["env-e2e"],
+  "countermeasure": "platform-fix",
   "written_at": "2026-05-12"
 }
 ```

@@ -9,6 +9,7 @@
   "failure_cause": null,
   "rerun_causes": ["spec-design-change", "env-url-config"],
   "patterns": ["spec-design-change", "env-url-config"],
+  "countermeasure": "none",
   "written_at": "2026-05-12"
 }
 ```

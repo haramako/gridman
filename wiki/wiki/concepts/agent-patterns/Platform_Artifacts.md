@@ -7,7 +7,7 @@
 実際の AI 実装の失敗ではなく、プラットフォームの状態管理や操作ミスによって生じる
 「見かけ上の失敗 run」。`has_failures: true` になるため metrics を歪める。
 
-**該当 taxonomy**: `platform-artifact`, `duplicate-trigger`
+**該当 taxonomy**: `platform-artifact`, `duplicate-trigger`, `quota-recovery`
 
 ## バリエーション
 
@@ -32,6 +32,16 @@ issue が完了した後、トリガーなしで failed run が残留するパ�
 ユーザーによる誤ったダブルクリックや、同一メッセージの再送が原因。
 
 **特徴**: 2つの run の `trigger_summary` が完全一致し、開始時刻が近い。
+
+### `quota-recovery` — 使用量上限回復後の手動再開チェック
+
+**事例**: LIN-38, LIN-40, LIN-41, LIN-42
+
+エージェントの使用量が上限に達して実行が中断した後、使用量が回復したタイミングでタスクが自動再起動しないよう、ユーザーが手動で送る確認メッセージ。"いかがです？" / "how are you?" / "作業できますか？" などが使われてきたが、通常の指示と区別がつかないため誤分類されやすい。
+
+**専用キーワード**: `ping`（機械的に `trigger_summary == "ping"` で検出可能）
+
+**特徴**: 初回 run が failed（quota 切れ）、次の run が quota-recovery トリガーで completed になるパターン。
 
 ## メトリクスへの影響
 

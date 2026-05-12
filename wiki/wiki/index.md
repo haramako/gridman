@@ -69,11 +69,10 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（8件・12パターン）
+- 2026-05-13 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（22件・quota-recovery 追加）
 
 ---
 
 ## Open Questions
 
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
-- Q4: LIN-73 (Ctrl+X Undo 粒度) の修正方針は？
