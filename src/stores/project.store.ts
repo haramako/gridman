@@ -46,6 +46,7 @@ interface ProjectState {
   writeMode: boolean;
   lockHolderTabId: string | null;
   dirtyRowIds: Map<string, Set<string>>;
+  deletedRowIds: Map<string, Set<string>>;
   dirtyCellIds: Map<string, Map<string, Set<string>>>;
   adapterType: 'server' | 'file-system-access';
 
@@ -95,6 +96,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   writeMode: false,
   lockHolderTabId: null,
   dirtyRowIds: new Map(),
+  deletedRowIds: new Map(),
   dirtyCellIds: new Map(),
   adapterType: 'server',
 
@@ -160,6 +162,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       writeMode,
       lockHolderTabId,
       dirtyRowIds: new Map(),
+      deletedRowIds: new Map(),
       dirtyCellIds: new Map(),
     });
   },
@@ -225,27 +228,32 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   saveTable: async (name) => {
-    const { projectPath, tables, dirtyRowIds } = get();
+    const { projectPath, tables, dirtyRowIds, deletedRowIds } = get();
     if (!projectPath) return;
     const table = tables.get(name);
     const dirty = dirtyRowIds.get(name);
-    if (!table || !dirty || dirty.size === 0) return;
+    const deleted = deletedRowIds.get(name);
+    if (!table || ((!dirty || dirty.size === 0) && (!deleted || deleted.size === 0))) return;
 
-    const rows = [...dirty].map((id) => table.get(id)).filter((r): r is Row => r !== undefined);
+    const rows = [...(dirty ?? [])].map((id) => table.get(id)).filter((r): r is Row => r !== undefined);
+    const deletedIds = [...(deleted ?? [])];
 
-    await adapter.patchTable(projectPath, name, rows);
+    await adapter.patchTable(projectPath, name, rows, deletedIds);
 
     set((state) => {
       const newDirtyRowIds = new Map(state.dirtyRowIds);
       newDirtyRowIds.set(name, new Set());
       const newDirtyCellIds = new Map(state.dirtyCellIds);
       newDirtyCellIds.delete(name);
-      const isDirty = [...newDirtyRowIds.values()].some((s) => s.size > 0);
+      const newDeletedRowIds = new Map(state.deletedRowIds);
+      newDeletedRowIds.set(name, new Set());
+      const isDirty = [...newDirtyRowIds.values()].some((s) => s.size > 0) ||
+                      [...newDeletedRowIds.values()].some((s) => s.size > 0);
       if (!isDirty) {
         if (state.projectPath) clearDraft(state.projectPath);
-        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: false, hasDraft: false };
+        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, deletedRowIds: newDeletedRowIds, isDirty: false, hasDraft: false };
       } else {
-        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, isDirty: true };
+        return { dirtyRowIds: newDirtyRowIds, dirtyCellIds: newDirtyCellIds, deletedRowIds: newDeletedRowIds, isDirty: true };
       }
     });
   },
@@ -584,7 +592,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         newTable.delete(rowId);
         const newTables = new Map(s.tables);
         newTables.set(tableName, newTable);
-        return { tables: newTables, isDirty: true, hasDraft: true };
+        const newDeletedRowIds = new Map(s.deletedRowIds);
+        const deleted = new Set(newDeletedRowIds.get(tableName) ?? []);
+        deleted.add(rowId);
+        newDeletedRowIds.set(tableName, deleted);
+        const newDirtyRowIds = new Map(s.dirtyRowIds);
+        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
+        dirty.delete(rowId);
+        newDirtyRowIds.set(tableName, dirty);
+        return { tables: newTables, deletedRowIds: newDeletedRowIds, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
       });
       scheduleAutoSave();
     };
@@ -601,7 +617,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
         dirty.add(rowId);
         newDirtyRowIds.set(tableName, dirty);
-        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
+        const newDeletedRowIds = new Map(s.deletedRowIds);
+        const deleted = new Set(newDeletedRowIds.get(tableName) ?? []);
+        deleted.delete(rowId);
+        newDeletedRowIds.set(tableName, deleted);
+        return { tables: newTables, dirtyRowIds: newDirtyRowIds, deletedRowIds: newDeletedRowIds, isDirty: true, hasDraft: true };
       });
       scheduleAutoSave();
     };

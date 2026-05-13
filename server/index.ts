@@ -129,7 +129,9 @@ app.patch('/api/tables/:name', async (c) => {
   if (!projectPath) return c.json({ error: 'project required' }, 400);
   const name = c.req.param('name');
   const filePath = join(projectPath, `${name}.jsonl`);
-  const updated: Record<string, unknown>[] = await c.req.json();
+  const body = await c.req.json();
+  const updated: Record<string, unknown>[] = Array.isArray(body) ? body : (body.rows ?? []);
+  const deletedIds = new Set<string>(Array.isArray(body) ? [] : (body.deletedIds ?? []));
 
   let existing: Record<string, unknown>[] = [];
   try {
@@ -145,13 +147,15 @@ app.patch('/api/tables/:name', async (c) => {
   const updatedMap = new Map(updated.map((r) => [r._id as string, r]));
   const existingIds = new Set(existing.map((r) => r._id as string));
 
-  const merged = existing.map((r) => updatedMap.get(r._id as string) ?? r);
+  const merged = existing
+    .filter((r) => !deletedIds.has(r._id as string))
+    .map((r) => updatedMap.get(r._id as string) ?? r);
   for (const row of updated) {
     if (!existingIds.has(row._id as string)) merged.push(row);
   }
   merged.sort((a, b) => (a._order as number) - (b._order as number));
 
-   const content = `${merged.map((r) => JSON.stringify(r)).join('\n')}\n`;
+  const content = `${merged.map((r) => JSON.stringify(r)).join('\n')}\n`;
   await writeFile(filePath, content, 'utf-8');
   return c.json({ ok: true });
 });
