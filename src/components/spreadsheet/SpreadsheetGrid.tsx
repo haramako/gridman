@@ -3,6 +3,7 @@ import { useProjectStore } from '@/stores/project.store'
 import { useSelectionStore } from '@/stores/selection.store'
 import { applySort } from '@/domain/filter'
 import DataRow from './DataRow'
+import { useColumnResize } from './useColumnResize'
 import type { TableSchema, ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
 import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
@@ -21,22 +22,8 @@ const TYPE_ICON: Record<string, string> = {
   date: '📅',
 };
 
-const DEFAULT_COL_WIDTH: Record<string, number> = {
-  boolean: 60,
-  integer: 100,
-  number: 100,
-  enum: 120,
-  ref: 160,
-  'ref[]': 160,
-  json: 80,
-  text: 200,
-  date: 120,
-  string: 150,
-};
-
 const ROW_HEIGHT = 28;
 const ROW_NUM_WIDTH = 40;
-const MIN_COL_WIDTH = 40;
 const OVERSCAN = 5;
 
 // ---------------------------------------------------------------------------
@@ -102,24 +89,13 @@ export default function SpreadsheetGrid({
   const { cursor, anchorCell, setCursor, extendCursor, setEditing, startEditWithInput } =
     useSelectionStore();
 
-  const colWidthMapRef = useRef<Record<string, number>>(
-    Object.fromEntries(schema.columns.map((col) => [col.key, DEFAULT_COL_WIDTH[col.type] ?? 150]))
-  )
-
   // Compute visible columns based on visibleColumnKeys
   const visibleColumns = useMemo(() => {
     if (!visibleColumnKeys) return schema.columns
     return schema.columns.filter((col) => visibleColumnKeys.includes(col.key))
   }, [schema.columns, visibleColumnKeys])
 
-  const [colWidths, setColWidths] = useState<number[]>(() =>
-    visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
-  )
-
-  // Reset column widths when visible columns change
-  useEffect(() => {
-    setColWidths(visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150))
-  }, [visibleColumns])
+  const { colWidths, handleResizeMouseDown } = useColumnResize(visibleColumns, schema.columns)
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -135,56 +111,9 @@ export default function SpreadsheetGrid({
     });
   }, []);
 
-  const dragState = useRef<{
-    colIndex: number
-    colKey: string
-    startX: number
-    startWidth: number
-  } | null>(null)
-
   // Row drag selection state
   const dragStartRowIndex = useRef<number | null>(null);
   const dragCurrentRowIndex = useRef<number | null>(null);
-
-  const handleResizeMouseDown = useCallback(
-    (e: React.MouseEvent, colIndex: number) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragState.current = {
-        colIndex,
-        colKey: schema.columns[colIndex]?.key ?? '',
-        startX: e.clientX,
-        startWidth: colWidths[colIndex],
-      };
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'col-resize';
-
-      const onMouseMove = (ev: MouseEvent) => {
-        if (!dragState.current) return
-        const delta = ev.clientX - dragState.current.startX
-        const newWidth = Math.max(MIN_COL_WIDTH, dragState.current.startWidth + delta)
-        const { colIndex: idx, colKey: key } = dragState.current
-        setColWidths((prev) => {
-          const next = [...prev]
-          next[idx] = newWidth
-          if (key) colWidthMapRef.current[key] = newWidth
-          return next
-        })
-      }
-
-      const onMouseUp = () => {
-        dragState.current = null;
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    },
-    [colWidths, schema.columns]
-  )
 
   // Virtual scroll
   const containerRef = useRef<HTMLDivElement>(null);
