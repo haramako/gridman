@@ -54,7 +54,6 @@ export default function DataRow({
       <td
         data-row-index={gridRowIndex}
         className="border-b border-r px-2 py-0.5 text-center text-muted-foreground text-xs select-none cursor-pointer w-10"
-        onClick={onSelect}
         onMouseDown={(e) => onRowNumberMouseDown?.(e, gridRowIndex)}
       >
         {rowIndex}

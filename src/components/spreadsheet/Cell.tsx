@@ -120,6 +120,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   const cancelEdit = () => {
+    committedRef.current = true  // prevent onBlur from committing
     setEditing(null)
     focusContainer()
   }
