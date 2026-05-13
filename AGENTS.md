@@ -48,6 +48,39 @@ Playwright がサーバーを自動起動する。`reuseExistingServer: true` �
 
 ---
 
+## テスト分類指針
+
+| テスト種別 | 対象 | コマンド |
+|---|---|---|
+| **E2E テスト** | UI との統合が必要なもの（画面操作・レンダリング・ブラウザ挙動） | `npm run test:e2e` |
+| **ユニットテスト** | 純粋なロジック（関数・クラス・ストア計算） | `npm run test` |
+
+UIを介さずに検証できる純粋なロジック（例: バリデーション関数・データ変換・ストア計算）は **ユニットテスト** で書く。
+ブラウザでの描画・操作・ルーティングなど UI との統合が必要なものは **E2E テスト** で書く。
+
+---
+
+## E2E テストデータの変更ルール
+
+E2E テストは `var/e2e-test/` のデータを使用する（`npm run e2e:reset` で `fixtures/sample/` からコピーされる）。
+多数のテストがこのデータのスキーマ（カラム名・型）に依存しているため、変更は慎重に行うこと。
+
+### 既存スキーマを変更する場合
+
+1. `fixtures/sample/*.schema.json` を編集する（`var/e2e-test/` を直接編集しない）
+2. 変更によって壊れる既存の E2E テストを洗い出し、合わせて修正する
+3. `npm run e2e:reset && npm run test:e2e` で全テストが通ることを確認する
+
+### 新しいカラム型のテストを追加する場合
+
+既存テーブル（enemy / item / skill）に新しい型のカラムを追加するより、新しいテーブルを `fixtures/sample/` に追加する方が影響範囲が小さい。
+新テーブルを追加する際は:
+1. `fixtures/sample/<table>.schema.json` と `fixtures/sample/<table>.jsonl` を作成する
+2. `fixtures/sample/project.json` のテーブル一覧に追記する
+3. `npm run e2e:reset` でリセット後、テストを実行して動作確認する
+
+---
+
 ## Pull Request
 
 コミットを行った場合は、必ず gh コマンドで Pull Request を作成すること。
