@@ -1,18 +1,6 @@
 import type { ColumnDef, ColumnType, TableSchema, ValidationRule } from '@/types/schema';
 import { useState, useEffect } from 'react';
-
-const COLUMN_TYPES: { value: ColumnType; label: string }[] = [
-  { value: 'string', label: 'string' },
-  { value: 'integer', label: 'integer' },
-  { value: 'number', label: 'number' },
-  { value: 'boolean', label: 'boolean' },
-  { value: 'enum', label: 'enum' },
-  { value: 'ref', label: 'ref' },
-  { value: 'ref[]', label: 'ref[]' },
-  { value: 'json', label: 'json' },
-  { value: 'text', label: 'text' },
-  { value: 'date', label: 'date' },
-];
+import { COLUMN_TYPE_CONFIG, COLUMN_TYPE_OPTIONS } from '@/lib/columnTypeConfig';
 
 function makeId() {
   return Math.random().toString(36).slice(2, 8);
@@ -92,11 +80,11 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
   const handleSave = () => {
     const cols: ColumnDef[] = columns.map(({ _tempId: _t, ...rest }) => {
       const col = { ...rest };
-      if (col.type !== 'enum') {
+      if (!COLUMN_TYPE_CONFIG[col.type].hasEnumValues) {
         col.enumValues = undefined;
         col.enumRef = undefined;
       }
-      if (col.type !== 'ref' && col.type !== 'ref[]') {
+      if (!COLUMN_TYPE_CONFIG[col.type].hasRefTable) {
         col.refTable = undefined;
       }
       return col;
@@ -260,7 +248,7 @@ function ColumnEditor({
           title="型"
           aria-label="型"
         >
-          {COLUMN_TYPES.map((t) => (
+          {COLUMN_TYPE_OPTIONS.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
             </option>
@@ -306,7 +294,7 @@ function ColumnEditor({
             </label>
           </div>
 
-          {col.type === 'enum' && (
+          {COLUMN_TYPE_CONFIG[col.type].hasEnumValues && (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <label
@@ -349,7 +337,7 @@ function ColumnEditor({
             </div>
           )}
 
-          {(col.type === 'ref' || col.type === 'ref[]') && (
+          {COLUMN_TYPE_CONFIG[col.type].hasRefTable && (
             <div className="flex items-center gap-2">
               <label
                 htmlFor={`ref-table-${col._tempId}`}
@@ -384,7 +372,7 @@ function ColumnEditor({
                 />
                 必須
               </label>
-              {(col.type === 'integer' || col.type === 'number') && (
+              {COLUMN_TYPE_CONFIG[col.type].validationGroup === 'number' && (
                 <>
                   <label className="flex items-center gap-1">
                     <span className="text-muted-foreground">min</span>
@@ -414,7 +402,7 @@ function ColumnEditor({
                   </label>
                 </>
               )}
-              {(col.type === 'string' || col.type === 'text') && (
+              {COLUMN_TYPE_CONFIG[col.type].validationGroup === 'string' && (
                 <label className="flex items-center gap-1">
                   <span className="text-muted-foreground">maxLength</span>
                   <input

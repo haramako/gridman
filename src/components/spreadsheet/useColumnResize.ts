@@ -1,32 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { ColumnDef } from '@/types/schema'
-
-export const DEFAULT_COL_WIDTH: Record<string, number> = {
-  boolean: 60,
-  integer: 100,
-  number: 100,
-  enum: 120,
-  ref: 160,
-  'ref[]': 160,
-  json: 80,
-  text: 200,
-  date: 120,
-  string: 150,
-}
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
 
 const MIN_COL_WIDTH = 40
 
 export function useColumnResize(visibleColumns: ColumnDef[], allColumns: ColumnDef[]) {
   const colWidthMapRef = useRef<Record<string, number>>(
-    Object.fromEntries(allColumns.map((col) => [col.key, DEFAULT_COL_WIDTH[col.type] ?? 150]))
+    Object.fromEntries(allColumns.map((col) => [col.key, COLUMN_TYPE_CONFIG[col.type].defaultWidth]))
   )
 
   const [colWidths, setColWidths] = useState<number[]>(() =>
-    visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150)
+    visibleColumns.map((col) => COLUMN_TYPE_CONFIG[col.type].defaultWidth)
   )
 
   useEffect(() => {
-    setColWidths(visibleColumns.map((col) => DEFAULT_COL_WIDTH[col.type] ?? 150))
+    setColWidths(visibleColumns.map((col) => COLUMN_TYPE_CONFIG[col.type].defaultWidth))
   }, [visibleColumns])
 
   const handleResizeMouseDown = useCallback(

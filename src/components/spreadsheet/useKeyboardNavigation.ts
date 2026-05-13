@@ -4,6 +4,7 @@ import type { ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
 import type { CellPosition } from '@/stores/selection.store'
 import { ROW_HEIGHT } from './useVirtualScroll'
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
 
 interface KeyboardNavigationProps {
   filteredRows: Row[]
@@ -303,7 +304,7 @@ export function useKeyboardNavigation({
           if (colIdx >= visibleColumns.length) break
 
           const col = visibleColumns[colIdx]
-          if (col.type === 'json' || col.type === 'text') continue
+          if (COLUMN_TYPE_CONFIG[col.type].gridReadonly) continue
 
           updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci])
         }
@@ -383,9 +384,9 @@ export function useKeyboardNavigation({
       const row = displayRows[ri]
       for (let ci = minCol; ci <= maxCol; ci++) {
         const col = visibleColumns[ci]
-        if (col.readonly || col.type === 'json' || col.type === 'text' || col.type === 'boolean') continue
-        const emptyVal = col.type === 'integer' || col.type === 'number' ? 0 : ''
-        updateCell((row._source as string) ?? tableName, row._id as string, col.key, emptyVal)
+        const colCfg = COLUMN_TYPE_CONFIG[col.type]
+        if (col.readonly || !colCfg.supportsKbdEdit) continue
+        updateCell((row._source as string) ?? tableName, row._id as string, col.key, colCfg.emptyValue)
       }
     }
   }, [displayRows, visibleColumns, tableName, readOnly, updateCell])
@@ -603,9 +604,8 @@ export function useKeyboardNavigation({
           if (readOnly) break
           e.preventDefault()
           const colDef = visibleColumns.find((c) => c.key === cur.colKey)
-          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
-            const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''
-            updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)
+          if (colDef && !colDef.readonly && COLUMN_TYPE_CONFIG[colDef.type].supportsKbdEdit) {
+            updateCell(cur.tableName, cur.rowId, cur.colKey, COLUMN_TYPE_CONFIG[colDef.type].emptyValue)
           }
           break
         }
@@ -615,7 +615,7 @@ export function useKeyboardNavigation({
           if (readOnly) break
           e.preventDefault()
           const colDef = visibleColumns.find((c) => c.key === cur.colKey)
-          if (colDef && !colDef.readonly && colDef.type !== 'json' && colDef.type !== 'text' && colDef.type !== 'boolean') {
+          if (colDef && !colDef.readonly && COLUMN_TYPE_CONFIG[colDef.type].supportsKbdEdit) {
             setEditing(cur)
           }
           break
@@ -632,16 +632,7 @@ export function useKeyboardNavigation({
           if (readOnly) break
           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             const colDef = visibleColumns.find((c) => c.key === cur.colKey)
-            if (
-              colDef &&
-              !colDef.readonly &&
-              colDef.type !== 'json' &&
-              colDef.type !== 'text' &&
-              colDef.type !== 'boolean' &&
-              colDef.type !== 'ref' &&
-              colDef.type !== 'ref[]' &&
-              colDef.type !== 'enum'
-            ) {
+            if (colDef && !colDef.readonly && COLUMN_TYPE_CONFIG[colDef.type].supportsTypeToEdit) {
               startEditWithInput(cur, e.key)
             }
           }

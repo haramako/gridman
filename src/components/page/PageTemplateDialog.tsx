@@ -1,6 +1,7 @@
 import type { PageLayoutItem, PageLayoutWidget, PageTemplate } from '@/types/page';
 import type { TableSchema } from '@/types/schema';
 import { useState } from 'react';
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
 
 const WIDGET_OPTIONS: { value: string; label: string }[] = [
   { value: 'text', label: 'テキスト' },
@@ -41,12 +42,7 @@ export default function PageTemplateDialog({
   const addField = () => {
     const col = cols[0];
     if (!col) return;
-    let widget: PageLayoutWidget = 'text';
-    if (col.type === 'boolean') widget = 'checkbox';
-    else if (col.type === 'integer' || col.type === 'number') widget = 'number';
-    else if (col.type === 'enum') widget = 'select';
-    else if (col.type === 'ref[]') widget = 'tag-list';
-    else if (col.type === 'json') widget = 'json';
+    const widget = COLUMN_TYPE_CONFIG[col.type].defaultWidget;
     setLayout([...layout, { type: 'field', key: col.key, label: col.displayName, widget }]);
   };
 
@@ -67,12 +63,7 @@ export default function PageTemplateDialog({
   const resolveFieldUpdate = (key: string): Partial<PageLayoutItem> => {
     const col = cols.find((c) => c.key === key);
     if (!col) return {};
-    let widget: PageLayoutWidget = 'text';
-    if (col.type === 'boolean') widget = 'checkbox';
-    else if (col.type === 'integer' || col.type === 'number') widget = 'number';
-    else if (col.type === 'enum') widget = 'select';
-    else if (col.type === 'ref[]') widget = 'tag-list';
-    else if (col.type === 'json') widget = 'json';
+    const widget = COLUMN_TYPE_CONFIG[col.type].defaultWidget;
     return { key, label: col.displayName, widget };
   };
 
