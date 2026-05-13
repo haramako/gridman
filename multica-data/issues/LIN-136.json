@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "done",
   "title": "LIN-137 Phase4 ファイルエクスポートを作成済み",
-  "updated_at": "2026-05-09T13:14:59Z",
+  "updated_at": "2026-05-13T03:21:50Z",
   "usage": {
     "cache_read_tokens": 703360,
     "cache_write_tokens": 0,

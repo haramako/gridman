@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-13T00:55:48Z",
+  "description": "## 概要\n\n`SpreadsheetGrid.tsx` からキーボード操作・ナビゲーション・コピペロジックを `useKeyboardNavigation.ts` フックに抽出する。\n\n## 対象コード\n\n`SpreadsheetGrid.tsx` の以下のロジック：\n- `navigate` (callback)\n- `findDataEdgeRow` / `findDataEdgeCol` (callback)\n- `handleCopy` / `handleCut` / `applyPastedText` (callback)\n- グローバル paste listener (useEffect)\n- `handleContainerKeyDown` (callback)\n- カーソルスクロール追従 (useEffect)\n\n## 完成イメージ\n\n```ts\n// src/components/spreadsheet/useKeyboardNavigation.ts\nexport function useKeyboardNavigation({ filteredRows, visibleColumns, tableName, containerRef, ... }) {\n  return { navigate, handleContainerKeyDown }\n}\n```\n\n## 完了条件\n\n- `npx tsc --noEmit` が通ること\n- `npm run test` が通ること\n- `SpreadsheetGrid.tsx` のキーボード関連行が削減されること",
+  "id": "ccc08246-6565-4c8f-ba0f-c81109a8a919",
+  "identifier": "LIN-182",
+  "labels": [],
+  "parent_issue_id": "081ea7e5-a8c1-4e75-a228-3b9454f8e60b",
+  "priority": "high",
+  "runs": [],
+  "status": "done",
+  "title": "【リファクタ】useKeyboardNavigation.ts の抽出",
+  "updated_at": "2026-05-13T03:22:22Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

@@ -13,7 +13,7 @@
 
 ### `platform-artifact` — 完了後の stale failed run
 
-**事例**: LIN-45, LIN-38, LIN-40, LIN-41, LIN-42, LIN-56（複数）
+**事例**: LIN-45, LIN-38, LIN-40, LIN-41, LIN-42, LIN-56, LIN-72（類似）
 
 issue が完了した後、トリガーなしで failed run が残留するパターン。
 
@@ -35,13 +35,17 @@ issue が完了した後、トリガーなしで failed run が残留するパ�
 
 ### `quota-recovery` — 使用量上限回復後の手動再開チェック
 
-**事例**: LIN-38, LIN-40, LIN-41, LIN-42
+**事例**: LIN-38, LIN-40, LIN-41, LIN-42, LIN-83, LIN-171
 
-エージェントの使用量が上限に達して実行が中断した後、使用量が回復したタイミングでタスクが自動再起動しないよう、ユーザーが手動で送る確認メッセージ。"いかがです？" / "how are you?" / "作業できますか？" などが使われてきたが、通常の指示と区別がつかないため誤分類されやすい。
+エージェントの使用量が上限に達して実行が中断した後、使用量が回復したタイミングでタスクが自動再起動しないよう、ユーザーが手動で送る確認メッセージ。"いかがです？" / "how are you？" / "作業できますか？" などが使われてきたが、通常の指示と区別がつかないため誤分類されやすい。
 
 **専用キーワード**: `ping`（機械的に `trigger_summary == "ping"` で検出可能）
 
 **特徴**: 初回 run が failed（quota 切れ）、次の run が quota-recovery トリガーで completed になるパターン。
+
+**LIN-83 の例**: `ping` によって triggered された run が `cancelled` で終わり、別途 "mainブランチのrebase+PR" という明確な指示で completed になった。`cancelled` の run は issue 完了に影響しない。
+
+**LIN-171 の例**: context-overload 状態で `ping` を2回受けて2回失敗。大型タスクへの quota-recovery は単純な ping では復帰できないことがある。
 
 ## メトリクスへの影響
 

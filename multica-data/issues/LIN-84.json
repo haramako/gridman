@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "backlog",
   "title": "コンポーネントテスト3件が Node.js v18 + jsdom v29 の非互換で実行不能",
-  "updated_at": "2026-05-07T15:08:32Z",
+  "updated_at": "2026-05-12T20:14:58Z",
   "usage": {
     "cache_read_tokens": 1581454,
     "cache_write_tokens": 101477,

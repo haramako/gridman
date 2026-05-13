@@ -101,10 +101,12 @@ summaries/        ← doc/ 各ファイルのサマリー
 ## オープンな調査課題
 
 - ~~LIN-71〜LIN-79 + 17件~~: insight 作成済み（2026-05-12）、計 39件
+- ~~LIN-57, LIN-72, LIN-83, LIN-136, LIN-169, LIN-171, LIN-172, LIN-175, LIN-180, LIN-181, LIN-182~~: insight 作成済み（2026-05-13）、計 50件
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
-- LIN-22, LIN-46 + LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79: `countermeasure: none` — context-overload 対策（issue 記述ガイドライン整備）が必要
+- LIN-22, LIN-46 + LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, **LIN-171**: `countermeasure: none` — context-overload 対策（issue 記述ガイドライン整備）が必要
+- **PR 省略→再依頼パターン**（LIN-172, LIN-175）: SKILL の PR 作成判断基準の徹底が必要
 
 ---
 

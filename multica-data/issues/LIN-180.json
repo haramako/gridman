@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-13T00:55:30Z",
+  "description": "## 概要\n\n`SpreadsheetGrid.tsx` から列リサイズロジックを `useColumnResize.ts` フックに抽出する。\n\n## 対象コード\n\n`SpreadsheetGrid.tsx` の以下のロジック：\n- `colWidthMapRef` (ref)\n- `colWidths` / `setColWidths` (state)\n- `handleResizeMouseDown` (callback)\n- `visibleColumns` の変化に応じた `useEffect` での幅リセット\n\n## 完成イメージ\n\n```ts\n// src/components/spreadsheet/useColumnResize.ts\nexport function useColumnResize(visibleColumns: ColumnDef[]) {\n  // colWidths state, handleResizeMouseDown などを返す\n  return { colWidths, handleResizeMouseDown }\n}\n```\n\n## 完了条件\n\n- `npx tsc --noEmit` が通ること\n- `npm run test` が通ること\n- `SpreadsheetGrid.tsx` の列リサイズ関連行が削減されること",
+  "id": "a87dceca-926c-4054-a9d5-27b8bf89fbc3",
+  "identifier": "LIN-180",
+  "labels": [],
+  "parent_issue_id": "081ea7e5-a8c1-4e75-a228-3b9454f8e60b",
+  "priority": "high",
+  "runs": [],
+  "status": "done",
+  "title": "【リファクタ】useColumnResize.ts の抽出",
+  "updated_at": "2026-05-13T01:01:02Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

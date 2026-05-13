@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-12T19:24:24Z",
+  "description": "## 背景\n\n`EditorPage.tsx`（587行・20 import）で Filter / Lookup / Union / Page / Schema など8本のダイアログを一箇所で状態管理している。\n各ダイアログが異なる props パターンで呼ばれており、追加・変更が困難。\n\nLIN-79（バグ調査タスク: 5.3M tok）で全体俯瞰コストが高く、この構造が一因。\n\n## 改善案\n\n`useDialogState` hook を抽出し、各ダイアログの open/close 状態と引数を集約する。\n`EditorPage.tsx` 本体はダイアログのレンダリングを hook 経由に委譲し、ロジックとレイアウトを分離する。\n\n## 期待効果\n\n- ダイアログ追加・変更が hook 内だけで完結するようになる\n- `EditorPage.tsx` の行数削減とインポート数の削減\n\n## 関連\n\n- 症状: LIN-79（context-overload, 5.3M tok）\n- 難易度: 中",
+  "id": "13335708-6588-492d-87cf-8744f4c59719",
+  "identifier": "LIN-173",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [],
+  "status": "backlog",
+  "title": "【リファクタ】EditorPage.tsx のダイアログ管理を useDialogState hook に抽出（587行）",
+  "updated_at": "2026-05-12T19:24:24Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

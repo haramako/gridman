@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-13T00:55:39Z",
+  "description": "## 概要\n\n`SpreadsheetGrid.tsx` から仮想スクロールロジックを `useVirtualScroll.ts` フックに抽出する。\n\n## 対象コード\n\n`SpreadsheetGrid.tsx` の以下のロジック：\n- `scrollTop` / `setScrollTop` (state)\n- `containerHeight` / `setContainerHeight` (state)\n- ResizeObserver による `containerHeight` の追跡 (useEffect)\n- `startIndex`, `endIndex`, `visibleRows`, `topPad`, `bottomPad` の計算\n\n## 完成イメージ\n\n```ts\n// src/components/spreadsheet/useVirtualScroll.ts\nexport function useVirtualScroll(rowCount: number) {\n  return { containerRef, scrollTop, containerHeight, startIndex, endIndex, topPad, bottomPad, onScroll }\n}\n```\n\n## 完了条件\n\n- `npx tsc --noEmit` が通ること\n- `npm run test` が通ること\n- `SpreadsheetGrid.tsx` の仮想スクロール関連行が削減されること",
+  "id": "b6cf21f0-eb88-4e09-a015-304210e593b5",
+  "identifier": "LIN-181",
+  "labels": [],
+  "parent_issue_id": "081ea7e5-a8c1-4e75-a228-3b9454f8e60b",
+  "priority": "high",
+  "runs": [],
+  "status": "done",
+  "title": "【リファクタ】useVirtualScroll.ts の抽出",
+  "updated_at": "2026-05-13T01:01:00Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

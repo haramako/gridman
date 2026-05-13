@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": null,
+  "assignee_type": null,
+  "created_at": "2026-05-12T19:24:34Z",
+  "description": "## 背景\n\n以下の4ダイアログが各自で ColumnType 検査と UI マッピングを持っており、DRY 違反が生じている：\n- `FilterViewDialog.tsx`（363行）\n- `LookupViewDialog.tsx`（290行）\n- `SchemaEditorDialog.tsx`（436行）\n- `PageTemplateDialog.tsx`（296行）\n\nさらに、ビュー越し座標変換（`_source`, `_sources`）もそれぞれ独立実装されている。\n\n## 改善案\n\n共通 wrapper パターンを導入する：\n- ColumnType 検査・UI マッピングを共通 hook または util 関数に抽出\n- 座標変換ロジックを `useViewCoordinate` などの共通 hook に集約\n- 各ダイアログから重複ロジックを除去\n\n## 注意事項\n\nLIN-170（ColumnType 集約）完了後に取り組むと重複排除の効果が高い。\n\n## 関連\n\n- 難易度: 中",
+  "id": "059bb122-311e-4d51-8054-6cd94ed00404",
+  "identifier": "LIN-174",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [],
+  "status": "backlog",
+  "title": "【リファクタ】ダイアログ群の DRY 違反解消（共通 wrapper パターン導入）",
+  "updated_at": "2026-05-12T19:24:34Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

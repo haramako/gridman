@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "backlog",
   "title": "Phase4: ファイルエクスポート（JSON / CSV）",
-  "updated_at": "2026-05-09T13:18:25Z",
+  "updated_at": "2026-05-12T20:14:52Z",
   "usage": {
     "cache_read_tokens": 1405440,
     "cache_write_tokens": 0,

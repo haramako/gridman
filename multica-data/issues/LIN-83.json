@@ -2,8 +2,8 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 1,
-    "total_duration_seconds": 247
+    "run_count": 4,
+    "total_duration_seconds": 410
   },
   "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
   "assignee_type": "agent",
@@ -15,6 +15,51 @@
   "parent_issue_id": null,
   "priority": "high",
   "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T04:35:04Z",
+      "duration_seconds": null,
+      "error": null,
+      "failure_reason": null,
+      "id": "26529341-82a7-4e34-9db0-7230c7689396",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": null,
+      "status": "cancelled",
+      "trigger_summary": "PR確認OK"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T03:27:09Z",
+      "duration_seconds": 163,
+      "error": null,
+      "failure_reason": null,
+      "id": "cd0152fe-55ca-42dc-a60a-50a94d95544d",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Rebased on the latest main (b8f599f), confirmed type check and 110 tests pass, and created PR: https://github.com/haramako/gridman/pull/33",
+      "started_at": "2026-05-13T03:24:26Z",
+      "status": "completed",
+      "trigger_summary": "mainブランチの最新にrebaseし、問題ないことを確認してPRお願いします"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T03:14:26Z",
+      "duration_seconds": null,
+      "error": null,
+      "failure_reason": null,
+      "id": "25594acd-75c1-4184-877d-73c3a32c422d",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": null,
+      "status": "cancelled",
+      "trigger_summary": "ping"
+    },
     {
       "attempt": 1,
       "completed_at": "2026-05-07T12:07:08Z",
@@ -31,14 +76,14 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "done",
   "title": "PageTemplateDialog: セクション内フィールドの編集・削除が正常に動作しない",
-  "updated_at": "2026-05-07T12:07:02Z",
+  "updated_at": "2026-05-13T04:35:09Z",
   "usage": {
-    "cache_read_tokens": 1250875,
-    "cache_write_tokens": 83476,
-    "input_tokens": 47,
-    "output_tokens": 890,
-    "total_tokens": 1335288
+    "cache_read_tokens": 1988616,
+    "cache_write_tokens": 209074,
+    "input_tokens": 71,
+    "output_tokens": 1295,
+    "total_tokens": 2199056
   }
 }

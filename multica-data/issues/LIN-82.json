@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "backlog",
   "title": "ドラフト復元時に行削除が反映されない",
-  "updated_at": "2026-05-07T13:06:10Z",
+  "updated_at": "2026-05-12T20:15:31Z",
   "usage": {
     "cache_read_tokens": 958552,
     "cache_write_tokens": 72652,

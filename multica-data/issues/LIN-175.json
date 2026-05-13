@@ -1,0 +1,59 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 314
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-12T19:37:41Z",
+  "description": "unitテストに関して、現時点でのカバレッジや品質を確認してください。そのうえで、追加すべきものがあったら追加してください。",
+  "id": "f5607644-09b5-4f3d-a2b6-f2617ed2f0bf",
+  "identifier": "LIN-175",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-12T20:06:13Z",
+      "duration_seconds": 28,
+      "error": null,
+      "failure_reason": null,
+      "id": "21385bbf-18ae-4a66-95b5-445dd5a2625a",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR を作成しました: https://github.com/haramako/gridman/pull/31",
+      "started_at": "2026-05-12T20:05:45Z",
+      "status": "completed",
+      "trigger_summary": "PR作成してください"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-12T19:42:27Z",
+      "duration_seconds": 286,
+      "error": null,
+      "failure_reason": null,
+      "id": "2aa33706-0d10-4b79-a94c-d28a27589599",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. Added 21 new unit tests across two previously untested modules:\n\n- **`tests/domain/lookup.test.ts`** (14 tests) — covers `applyLookup`: missing schema/table early returns, prefixed column construction with `readonly`, reference resolution, null for missing refs, `_sources` population, filter application, `_order` sorting, and graceful handling of missing ref schemas/tables.\n- **`tests/lib/enum-resolver.test.ts`** (7 tests) — covers `resolveEnumValues`: inline `enumValues` priority over `enumRef`, shared enum lookup, and all null/missing fallback cases.\n\nTotal tests went from 89 → 110, all passing. Branch pushed: `agent/kanade-claude/2aa33706`.",
+      "started_at": "2026-05-12T19:37:41Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "テストの拡充",
+  "updated_at": "2026-05-12T20:11:43Z",
+  "usage": {
+    "cache_read_tokens": 1328075,
+    "cache_write_tokens": 161984,
+    "input_tokens": 1289,
+    "output_tokens": 3812,
+    "total_tokens": 1495160
+  }
+}

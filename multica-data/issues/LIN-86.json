@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "backlog",
   "title": "Delete/Backspace キーで数値セルが null でなく 0 になる",
-  "updated_at": "2026-05-07T20:05:03Z",
+  "updated_at": "2026-05-12T20:14:50Z",
   "usage": {
     "cache_read_tokens": 240384,
     "cache_write_tokens": 0,
