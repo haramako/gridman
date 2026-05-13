@@ -47,14 +47,31 @@ issue が完了した後、トリガーなしで failed run が残留するパ�
 
 **LIN-171 の例**: context-overload 状態で `ping` を2回受けて2回失敗。大型タスクへの quota-recovery は単純な ping では復帰できないことがある。
 
-## メトリクスへの影響
+## メトリクスへの影響と `has_real_failures` ロジック
 
-現在の `has_failures` フラグはこれらのアーティファクトを含むため、**過大評価になる**。
+`has_failures`（1件でも failed run がある）はアーティファクトを含むため**過大評価**になる。
+`multica_sync.py` の `compute_has_real_failures()` が以下の3パターンを除外して計算する:
 
+```python
+# runs は新しい順（最新が先頭）
+def is_platform_artifact(run, prev_older_run):
+    # failed + null trigger + 直前 older run が completed
+    return (run.status == "failed"
+            and run.trigger_summary is None
+            and prev_older_run and prev_older_run.status == "completed")
+
+def is_duplicate_trigger(run, newer_run):
+    # failed + より新しい run が同一 trigger で completed
+    return (run.status == "failed"
+            and newer_run
+            and newer_run.trigger_summary == run.trigger_summary
+            and newer_run.status == "completed")
+
+def is_quota_recovery(run):
+    # failed + trigger が ping / quota-recovery 系キーワード
+    keywords = ["ping", "いかがです", "how are you", "作業できますか"]
+    return (run.status == "failed"
+            and any(k in (run.trigger_summary or "") for k in keywords))
 ```
-真の失敗率 = has_failures == true
-           AND NOT (trigger_summary == null AND 前 run == completed)
-           AND NOT (trigger が直前 run と同一)
-```
 
-分析スクリプトで除外ロジックを入れることを推奨。
+**既知の限界**: 「初回 null 失敗 + 後続 completed」の構造（LIN-45）は `platform-artifact` と区別不能。1件のミスマッチは許容済み。

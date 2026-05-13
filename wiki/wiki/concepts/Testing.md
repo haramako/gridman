@@ -73,7 +73,53 @@ beforeEach(() => {
 
 `tests/tsconfig.json` を作成済み。`@/*` パス解決と `@testing-library/jest-dom` 型が有効になる。TypeScript エラーが出る場合は `Ctrl+Shift+P` → "TypeScript: Restart TS Server"。
 
+## E2E テストの現状カバレッジ（2026-05-13 時点）
+
+現在の E2E テストはキーボード操作に偏っており、コア編集フローが未カバー。
+
+| ファイル | カバー内容 |
+|---------|-----------|
+| `cell-keyboard.spec.ts` | Enter確定後の非自動編集（リグレッション） |
+| `copy-paste.spec.ts` | Ctrl+C/V/X（単体・範囲） |
+| `ctrl-arrow.spec.ts` | Ctrl+矢印ジャンプ（4方向） |
+| `select-all.spec.ts` | Ctrl+A 全選択 |
+| `page-view.spec.ts` | ページビュー作成・表示 |
+
+### 追加すべき E2E テスト（優先度順）
+
+**高: コアフロー（未カバー）**
+
+| ファイル案 | 内容 |
+|-----------|------|
+| `cell-edit.spec.ts` | クリック選択 → Enter/F2 で編集 → Enter 確定・Esc キャンセル |
+| `row-operations.spec.ts` | `+行追加` / `-行削除` ボタン |
+| `save.spec.ts` | 編集 → Ctrl+S → リロード後も値が残っていること |
+| `table-switch.spec.ts` | サイドバーで別テーブルをクリック → グリッドが切り替わる |
+
+**中: カラム型**
+- enum 型セル（セレクトドロップダウン）
+- ref 型セル（参照先テーブルの行名が表示・選択できる）
+- バリデーション違反（必須項目を空にして ⚠ 表示が出る）
+
+**中: ビュー系**
+- フィルタービュー作成・条件設定・結果確認
+- ルックアップビュー作成・参照先列の展開表示
+
+**低**
+- テーブルフィルター（フィルター欄で行が絞られる）
+- 全文検索（SearchPage）
+- Undo/Redo（`commandHistory` シングルトンの E2E 検証）
+
+### E2E テストデータの変更ルール
+
+`var/e2e-test/` のスキーマ構造（カラム・型）に多数のテストが依存している。
+新しいカラム型のテストが必要な場合は `var/e2e-test/` にカラムを追加し、
+`e2e:reset` スクリプトでリセットできることを確認してから追加する。
+
+---
+
 ## 関連
 
 - [[entities/Vitest]] — テストランナー
 - [[entities/Playwright]] — E2E テストフレームワーク
+- [[concepts/Dev_Workflow]] — テスト実行コマンド一覧
