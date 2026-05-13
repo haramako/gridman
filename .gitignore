@@ -19,3 +19,4 @@ yarn-debug.log*
 # Python
 __pycache__/
 *.pyc
+/wiki/wiki/.obsidian
