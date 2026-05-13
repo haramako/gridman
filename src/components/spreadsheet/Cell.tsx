@@ -5,6 +5,7 @@ import { useGridContext } from './SpreadsheetGrid'
 import { validateCell, coerceToType } from '@/domain/validator'
 import { cn } from '@/lib/utils'
 import { resolveEnumValues } from '@/lib/enum-resolver'
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
 import type { ColumnDef } from '@/types/schema'
 import type { ProjectConfig } from '@/types/view'
 import type { TableSchema } from '@/types/schema'
@@ -124,7 +125,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   const startEdit = () => {
-    if (col.type === 'json' || col.type === 'text' || col.readonly) return
+    if (COLUMN_TYPE_CONFIG[col.type].gridReadonly || col.readonly) return
     setCursor({ rowId, colKey: col.key, tableName })
     setEditing({ rowId, colKey: col.key, tableName })
   }
@@ -155,7 +156,8 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
   }
 
   // readonly types (json, text, or explicitly readonly columns e.g. lookup expansions)
-  if (col.type === 'json' || col.type === 'text' || col.readonly) {
+  if (COLUMN_TYPE_CONFIG[col.type].gridReadonly || col.readonly) {
+    const isJsonClickable = col.type === 'json'
     return (
       <td
         data-row-id={rowId}
@@ -164,11 +166,11 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
           'border-b border-r px-2 py-0.5 text-muted-foreground whitespace-nowrap',
           isInRange && 'bg-blue-100',
           isSelected && 'ring-2 ring-inset ring-blue-400',
-          col.type === 'json' && 'cursor-pointer hover:bg-accent'
+          isJsonClickable && 'cursor-pointer hover:bg-accent'
         )}
         onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
         onClick={() => {
-          if (col.type === 'json') {
+          if (isJsonClickable) {
             setJsonPanelCell({ rowId, colKey: col.key, tableName })
           }
         }}

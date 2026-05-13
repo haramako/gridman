@@ -1,23 +1,12 @@
 import { useState } from 'react'
-import type { ColumnDef, TableSchema } from '@/types/schema'
+import type { TableSchema } from '@/types/schema'
 import type { FilterExpr, FilterViewQuery, ViewDefinition, ProjectConfig } from '@/types/view'
 import { resolveEnumValues } from '@/lib/enum-resolver'
-
-const OPS_STRING = ['eq', 'neq', 'contains', 'startsWith', 'isNull', 'isNotNull'] as const
-const OPS_NUMBER = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'isNull', 'isNotNull'] as const
-const OPS_ENUM = ['eq', 'neq', 'isNull', 'isNotNull'] as const
-const OPS_BOOL = ['eq', 'isNull', 'isNotNull'] as const
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
 
 const OP_LABELS: Record<string, string> = {
   eq: '=', neq: '≠', gt: '>', gte: '≥', lt: '<', lte: '≤',
   contains: '含む', startsWith: '始まる', isNull: 'が空', isNotNull: 'が空でない',
-}
-
-function opsForCol(col: ColumnDef): readonly string[] {
-  if (col.type === 'integer' || col.type === 'number') return OPS_NUMBER
-  if (col.type === 'boolean') return OPS_BOOL
-  if (col.type === 'enum') return OPS_ENUM
-  return OPS_STRING
 }
 
 interface CondRow { id: string; column: string; op: string; value: string }
@@ -83,7 +72,7 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
   const addCond = () => {
     const col = cols[0]
     if (!col) return
-    setConds((prev) => [...prev, { id: makeId(), column: col.key, op: opsForCol(col)[0], value: '' }])
+    setConds((prev) => [...prev, { id: makeId(), column: col.key, op: COLUMN_TYPE_CONFIG[col.type].filterOps[0], value: '' }])
   }
 
   const updateCond = (id: string, patch: Partial<CondRow>) =>
@@ -192,7 +181,7 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
             <div className="space-y-1.5">
               {conds.map((cond) => {
                 const colDef = cols.find((c) => c.key === cond.column)
-                const ops = colDef ? opsForCol(colDef) : OPS_STRING
+                const ops = colDef ? COLUMN_TYPE_CONFIG[colDef.type].filterOps : []
                 return (
                   <div key={cond.id} className="flex items-center gap-1.5">
                     {/* Column */}
@@ -201,7 +190,7 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
                       value={cond.column}
                       onChange={(e) => {
                         const newCol = cols.find((c) => c.key === e.target.value)
-                        const newOp = newCol ? opsForCol(newCol)[0] : 'eq'
+                        const newOp = newCol ? COLUMN_TYPE_CONFIG[newCol.type].filterOps[0] : 'eq'
                         updateCond(cond.id, { column: e.target.value, op: newOp, value: '' })
                       }}
                     >
@@ -221,7 +210,7 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
                     </select>
                     {/* Value */}
                     {needsValue(cond.op) && (
-                      colDef?.type === 'enum' ? (
+                      colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'enum' ? (
                         <select
                           className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
                           value={cond.value}
@@ -232,7 +221,7 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
                             <option key={v} value={v}>{v}</option>
                           ))}
                         </select>
-                      ) : colDef?.type === 'boolean' ? (
+                      ) : colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'boolean' ? (
                         <select
                           className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
                           value={cond.value}

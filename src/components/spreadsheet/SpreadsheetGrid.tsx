@@ -6,23 +6,11 @@ import DataRow from './DataRow'
 import { useColumnResize } from './useColumnResize'
 import { useVirtualScroll } from './useVirtualScroll'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
 import type { TableSchema, ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
 import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
 import type { SortDef } from '@/types/view'
-
-const TYPE_ICON: Record<string, string> = {
-  string: '🔤',
-  integer: '🔢',
-  number: '🔢',
-  boolean: '☑',
-  enum: '📋',
-  ref: '🔗',
-  'ref[]': '🔗',
-  json: '{}',
-  text: '📝',
-  date: '📅',
-};
 
 const ROW_NUM_WIDTH = 40;
 
@@ -311,7 +299,7 @@ export default function SpreadsheetGrid({
                   className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative cursor-pointer hover:bg-accent/50"
                   onClick={() => handleHeaderClick(col.key)}
                 >
-                  <span className="mr-1 opacity-60">{TYPE_ICON[col.type] ?? ''}</span>
+                  <span className="mr-1 opacity-60">{COLUMN_TYPE_CONFIG[col.type].icon}</span>
                   <span className="truncate">{col.displayName}</span>
                   {sort.col === col.key && (
                     <span className="ml-1 opacity-80">{sort.dir === 'asc' ? '↑' : '↓'}</span>
