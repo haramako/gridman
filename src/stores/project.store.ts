@@ -123,11 +123,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (draft) {
       const draftTables = deserializeTables(draft.tables);
       for (const [tableName, draftTable] of draftTables.entries()) {
-        const existing = tables.get(tableName);
-        if (existing) {
-          for (const [rowId, draftRow] of draftTable.entries()) {
-            existing.set(rowId, draftRow);
-          }
+        if (tables.has(tableName)) {
+          tables.set(tableName, draftTable);
         }
       }
       hasDraft = true;
