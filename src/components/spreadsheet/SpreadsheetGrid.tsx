@@ -4,6 +4,7 @@ import { useSelectionStore } from '@/stores/selection.store'
 import { applySort } from '@/domain/filter'
 import DataRow from './DataRow'
 import { useColumnResize } from './useColumnResize'
+import { useVirtualScroll, ROW_HEIGHT } from './useVirtualScroll'
 import type { TableSchema, ColumnDef } from '@/types/schema'
 import type { Row } from '@/types/row'
 import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
@@ -22,9 +23,7 @@ const TYPE_ICON: Record<string, string> = {
   date: '📅',
 };
 
-const ROW_HEIGHT = 28;
 const ROW_NUM_WIDTH = 40;
-const OVERSCAN = 5;
 
 // ---------------------------------------------------------------------------
 // Grid context: shared with Cell components for navigation and selection range
@@ -115,22 +114,8 @@ export default function SpreadsheetGrid({
   const dragStartRowIndex = useRef<number | null>(null);
   const dragCurrentRowIndex = useRef<number | null>(null);
 
-  // Virtual scroll
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(600);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      setContainerHeight(entry.contentRect.height);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0);
+
 
   const sortedRows = useMemo(() => {
     const arr = [...rows.values()];
@@ -231,14 +216,9 @@ export default function SpreadsheetGrid({
     });
   }, [filteredRows, sort]);
 
-  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-  const endIndex = Math.min(
-    displayRows.length - 1,
-    Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN
-  );
+  const { containerRef, containerHeight, startIndex, endIndex, topPad, bottomPad, onScroll } =
+    useVirtualScroll(displayRows.length)
   const visibleRows = displayRows.slice(startIndex, endIndex + 1);
-  const topPad = startIndex * ROW_HEIGHT;
-  const bottomPad = Math.max(0, (displayRows.length - 1 - endIndex) * ROW_HEIGHT);
 
   // ---------------------------------------------------------------------------
   // Data edge helpers (Ctrl+Arrow jump)
@@ -986,7 +966,7 @@ export default function SpreadsheetGrid({
         ref={containerRef}
         tabIndex={0}
         className="flex-1 overflow-auto outline-none"
-        onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+        onScroll={onScroll}
         onKeyDown={handleContainerKeyDown}
       >
         <table
