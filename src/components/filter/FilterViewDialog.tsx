@@ -3,6 +3,9 @@ import type { TableSchema } from '@/types/schema'
 import type { FilterExpr, FilterViewQuery, ViewDefinition, ProjectConfig } from '@/types/view'
 import { resolveEnumValues } from '@/lib/enum-resolver'
 import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
+import { makeId } from '@/lib/utils'
+import DialogShell from '@/components/ui/DialogShell'
+import DialogFooter from '@/components/ui/DialogFooter'
 
 const OP_LABELS: Record<string, string> = {
   eq: '=', neq: '≠', gt: '>', gte: '≥', lt: '<', lte: '≤',
@@ -11,8 +14,6 @@ const OP_LABELS: Record<string, string> = {
 
 interface CondRow { id: string; column: string; op: string; value: string }
 interface SortRow { id: string; column: string; order: 'asc' | 'desc' }
-
-function makeId() { return Math.random().toString(36).slice(2, 8) }
 
 function buildFilterExpr(
   mode: 'and' | 'or',
@@ -97,7 +98,6 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
     setVisibleColumns((prev) => {
       const next = new Set(prev)
       if (next.size === 0) {
-        // All columns are visible, so hide this one
         const allCols = cols.map((c) => c.key)
         allCols.forEach((k) => next.add(k))
         next.delete(colKey)
@@ -126,227 +126,202 @@ export default function FilterViewDialog({ schemas, tables, project, editView, o
     onClose()
   }
 
+  const footer = (
+    <DialogFooter
+      onClose={onClose}
+      onSave={handleSave}
+      saveDisabled={!name.trim()}
+      onDelete={editView && onDelete ? () => { onDelete(editView.id); onClose() } : undefined}
+    />
+  )
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); e.stopPropagation(); }}
+    <DialogShell
+      title={editView ? 'ビューを編集' : 'ビューを作成'}
+      width="w-[520px]"
+      onClose={onClose}
+      footer={footer}
     >
-      <div className="bg-background rounded-lg border shadow-lg w-[520px] max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-semibold text-sm">{editView ? 'ビューを編集' : 'ビューを作成'}</span>
-          <button className="text-muted-foreground hover:text-foreground" onClick={onClose}>✕</button>
+      {/* Name */}
+      <div className="flex items-center gap-2">
+        <label className="w-20 text-muted-foreground shrink-0">ビュー名</label>
+        <input
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="例: fire属性の敵"
+          autoFocus
+        />
+      </div>
+
+      {/* Table */}
+      <div className="flex items-center gap-2">
+        <label className="w-20 text-muted-foreground shrink-0">テーブル</label>
+        <select
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={fromTable}
+          onChange={(e) => { setFromTable(e.target.value); setConds([]); setSorts([]) }}
+        >
+          {tables.map((t) => (
+            <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Filter conditions */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-muted-foreground">フィルター</span>
+          <select
+            className="border rounded px-1.5 py-0.5 text-xs focus:outline-none"
+            value={condMode}
+            onChange={(e) => setCondMode(e.target.value as 'and' | 'or')}
+          >
+            <option value="and">AND（すべて）</option>
+            <option value="or">OR（いずれか）</option>
+          </select>
         </div>
+        <div className="space-y-1.5">
+          {conds.map((cond) => {
+            const colDef = cols.find((c) => c.key === cond.column)
+            const ops = colDef ? COLUMN_TYPE_CONFIG[colDef.type].filterOps : []
+            return (
+              <div key={cond.id} className="flex items-center gap-1.5">
+                {/* Column */}
+                <select
+                  className="border rounded px-1.5 py-1 text-xs focus:outline-none w-28"
+                  value={cond.column}
+                  onChange={(e) => {
+                    const newCol = cols.find((c) => c.key === e.target.value)
+                    const newOp = newCol ? COLUMN_TYPE_CONFIG[newCol.type].filterOps[0] : 'eq'
+                    updateCond(cond.id, { column: e.target.value, op: newOp, value: '' })
+                  }}
+                >
+                  {cols.map((c) => (
+                    <option key={c.key} value={c.key}>{c.displayName}</option>
+                  ))}
+                </select>
+                {/* Op */}
+                <select
+                  className="border rounded px-1.5 py-1 text-xs focus:outline-none w-24"
+                  value={cond.op}
+                  onChange={(e) => updateCond(cond.id, { op: e.target.value })}
+                >
+                  {ops.map((op) => (
+                    <option key={op} value={op}>{OP_LABELS[op] ?? op}</option>
+                  ))}
+                </select>
+                {/* Value */}
+                {needsValue(cond.op) && (
+                  colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'enum' ? (
+                    <select
+                      className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
+                      value={cond.value}
+                      onChange={(e) => updateCond(cond.id, { value: e.target.value })}
+                    >
+                      <option value="">-</option>
+                      {(resolveEnumValues(colDef, project) ?? []).map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  ) : colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'boolean' ? (
+                    <select
+                      className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
+                      value={cond.value}
+                      onChange={(e) => updateCond(cond.id, { value: e.target.value })}
+                    >
+                      <option value="true">true</option>
+                      <option value="false">false</option>
+                    </select>
+                  ) : (
+                    <input
+                      className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
+                      value={cond.value}
+                      onChange={(e) => updateCond(cond.id, { value: e.target.value })}
+                      placeholder="値"
+                    />
+                  )
+                )}
+                {!needsValue(cond.op) && <div className="flex-1" />}
+                <button
+                  className="text-muted-foreground hover:text-destructive text-xs px-1"
+                  onClick={() => removeCond(cond.id)}
+                >✕</button>
+              </div>
+            )
+          })}
+        </div>
+        <button
+          className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+          onClick={addCond}
+          disabled={cols.length === 0}
+        >
+          + 条件を追加
+        </button>
+      </div>
 
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">
-          {/* Name */}
-          <div className="flex items-center gap-2">
-            <label className="w-20 text-muted-foreground shrink-0">ビュー名</label>
-            <input
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="例: fire属性の敵"
-              autoFocus
-            />
-          </div>
-
-          {/* Table */}
-          <div className="flex items-center gap-2">
-            <label className="w-20 text-muted-foreground shrink-0">テーブル</label>
-            <select
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={fromTable}
-              onChange={(e) => { setFromTable(e.target.value); setConds([]); setSorts([]) }}
-            >
-              {tables.map((t) => (
-                <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filter conditions */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-muted-foreground">フィルター</span>
+      {/* Sort */}
+      <div>
+        <div className="mb-2 text-muted-foreground">ソート</div>
+        <div className="space-y-1.5">
+          {sorts.map((s) => (
+            <div key={s.id} className="flex items-center gap-1.5">
               <select
-                className="border rounded px-1.5 py-0.5 text-xs focus:outline-none"
-                value={condMode}
-                onChange={(e) => setCondMode(e.target.value as 'and' | 'or')}
+                className="border rounded px-1.5 py-1 text-xs focus:outline-none w-28"
+                value={s.column}
+                onChange={(e) => updateSort(s.id, { column: e.target.value })}
               >
-                <option value="and">AND（すべて）</option>
-                <option value="or">OR（いずれか）</option>
+                {cols.map((c) => (
+                  <option key={c.key} value={c.key}>{c.displayName}</option>
+                ))}
               </select>
-            </div>
-            <div className="space-y-1.5">
-              {conds.map((cond) => {
-                const colDef = cols.find((c) => c.key === cond.column)
-                const ops = colDef ? COLUMN_TYPE_CONFIG[colDef.type].filterOps : []
-                return (
-                  <div key={cond.id} className="flex items-center gap-1.5">
-                    {/* Column */}
-                    <select
-                      className="border rounded px-1.5 py-1 text-xs focus:outline-none w-28"
-                      value={cond.column}
-                      onChange={(e) => {
-                        const newCol = cols.find((c) => c.key === e.target.value)
-                        const newOp = newCol ? COLUMN_TYPE_CONFIG[newCol.type].filterOps[0] : 'eq'
-                        updateCond(cond.id, { column: e.target.value, op: newOp, value: '' })
-                      }}
-                    >
-                      {cols.map((c) => (
-                        <option key={c.key} value={c.key}>{c.displayName}</option>
-                      ))}
-                    </select>
-                    {/* Op */}
-                    <select
-                      className="border rounded px-1.5 py-1 text-xs focus:outline-none w-24"
-                      value={cond.op}
-                      onChange={(e) => updateCond(cond.id, { op: e.target.value })}
-                    >
-                      {ops.map((op) => (
-                        <option key={op} value={op}>{OP_LABELS[op] ?? op}</option>
-                      ))}
-                    </select>
-                    {/* Value */}
-                    {needsValue(cond.op) && (
-                      colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'enum' ? (
-                        <select
-                          className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
-                          value={cond.value}
-                          onChange={(e) => updateCond(cond.id, { value: e.target.value })}
-                        >
-                          <option value="">-</option>
-                          {(resolveEnumValues(colDef, project) ?? []).map((v) => (
-                            <option key={v} value={v}>{v}</option>
-                          ))}
-                        </select>
-                      ) : colDef && COLUMN_TYPE_CONFIG[colDef.type].filterValueWidget === 'boolean' ? (
-                        <select
-                          className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
-                          value={cond.value}
-                          onChange={(e) => updateCond(cond.id, { value: e.target.value })}
-                        >
-                          <option value="true">true</option>
-                          <option value="false">false</option>
-                        </select>
-                      ) : (
-                        <input
-                          className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
-                          value={cond.value}
-                          onChange={(e) => updateCond(cond.id, { value: e.target.value })}
-                          placeholder="値"
-                        />
-                      )
-                    )}
-                    {!needsValue(cond.op) && <div className="flex-1" />}
-                    <button
-                      className="text-muted-foreground hover:text-destructive text-xs px-1"
-                      onClick={() => removeCond(cond.id)}
-                    >✕</button>
-                  </div>
-                )
-              })}
-            </div>
-            <button
-              className="mt-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={addCond}
-              disabled={cols.length === 0}
-            >
-              + 条件を追加
-            </button>
-          </div>
-
-          {/* Sort */}
-          <div>
-            <div className="mb-2 text-muted-foreground">ソート</div>
-            <div className="space-y-1.5">
-              {sorts.map((s) => (
-                <div key={s.id} className="flex items-center gap-1.5">
-                  <select
-                    className="border rounded px-1.5 py-1 text-xs focus:outline-none w-28"
-                    value={s.column}
-                    onChange={(e) => updateSort(s.id, { column: e.target.value })}
-                  >
-                    {cols.map((c) => (
-                      <option key={c.key} value={c.key}>{c.displayName}</option>
-                    ))}
-                  </select>
-                  <select
-                    className="border rounded px-1.5 py-1 text-xs focus:outline-none w-20"
-                    value={s.order}
-                    onChange={(e) => updateSort(s.id, { order: e.target.value as 'asc' | 'desc' })}
-                  >
-                    <option value="asc">昇順 ↑</option>
-                    <option value="desc">降順 ↓</option>
-                  </select>
-                  <button
-                    className="text-muted-foreground hover:text-destructive text-xs px-1"
-                    onClick={() => removeSort(s.id)}
-                  >✕</button>
-                </div>
-              ))}
-            </div>
-            <button
-              className="mt-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={addSort}
-              disabled={cols.length === 0}
-            >
-              + ソートを追加
-            </button>
-          </div>
-
-          {/* Column visibility */}
-          <div>
-            <div className="mb-2 text-muted-foreground">表示列</div>
-            <div className="flex flex-wrap gap-1.5">
-              {cols.map((col) => {
-                const isVisible = visibleColumns.size === 0 || visibleColumns.has(col.key)
-                return (
-                  <button
-                    key={col.key}
-                    type="button"
-                    className={`px-2 py-0.5 rounded text-xs border ${
-                      isVisible
-                        ? 'bg-primary/10 border-primary text-primary'
-                        : 'bg-muted border-muted-foreground/30 text-muted-foreground'
-                    }`}
-                    onClick={() => toggleColumn(col.key)}
-                  >
-                    {isVisible ? '✓ ' : ''}{col.displayName}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t">
-          <div>
-            {editView && onDelete && (
-              <button
-                className="text-sm text-destructive hover:underline"
-                onClick={() => { onDelete(editView.id); onClose() }}
+              <select
+                className="border rounded px-1.5 py-1 text-xs focus:outline-none w-20"
+                value={s.order}
+                onChange={(e) => updateSort(s.id, { order: e.target.value as 'asc' | 'desc' })}
               >
-                削除
+                <option value="asc">昇順 ↑</option>
+                <option value="desc">降順 ↓</option>
+              </select>
+              <button
+                className="text-muted-foreground hover:text-destructive text-xs px-1"
+                onClick={() => removeSort(s.id)}
+              >✕</button>
+            </div>
+          ))}
+        </div>
+        <button
+          className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+          onClick={addSort}
+          disabled={cols.length === 0}
+        >
+          + ソートを追加
+        </button>
+      </div>
+
+      {/* Column visibility */}
+      <div>
+        <div className="mb-2 text-muted-foreground">表示列</div>
+        <div className="flex flex-wrap gap-1.5">
+          {cols.map((col) => {
+            const isVisible = visibleColumns.size === 0 || visibleColumns.has(col.key)
+            return (
+              <button
+                key={col.key}
+                type="button"
+                className={`px-2 py-0.5 rounded text-xs border ${
+                  isVisible
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                }`}
+                onClick={() => toggleColumn(col.key)}
+              >
+                {isVisible ? '✓ ' : ''}{col.displayName}
               </button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 rounded border text-sm hover:bg-accent" onClick={onClose}>
-              キャンセル
-            </button>
-            <button
-              className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-40"
-              disabled={!name.trim()}
-              onClick={handleSave}
-            >
-              保存
-            </button>
-          </div>
+            )
+          })}
         </div>
       </div>
-    </div>
+    </DialogShell>
   )
 }

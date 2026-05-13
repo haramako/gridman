@@ -3,6 +3,7 @@ import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
 import type { FilterViewQuery, LookupViewQuery, ViewDefinition } from '@/types/view';
+import { getRowOwnerTable } from '@/lib/viewRowSource';
 import { useCallback, useState } from 'react';
 import RowContextMenu from './RowContextMenu';
 import type { ContextMenuEntry } from './RowContextMenu';
@@ -53,11 +54,11 @@ export default function SpreadsheetView({
     const targetRowId = rowId;
 
     const getSourceTable = (id: string) => {
-      if (isUnionView) return (rows.get(id)?._source as string) ?? tableName;
+      const row = rows.get(id);
+      if (isUnionView) return getRowOwnerTable(row, tableName, 'union');
       if (isLookupView && activeView) {
-        const sources = rows.get(id)?._sources as Record<string, unknown> | undefined;
         const fromTable = (activeView.query as LookupViewQuery).from;
-        return sources ? ((sources[fromTable] as string) ? fromTable : tableName) : tableName;
+        return getRowOwnerTable(row, tableName, 'lookup', fromTable);
       }
       return tableName;
     };
@@ -112,15 +113,10 @@ export default function SpreadsheetView({
     ids.forEach((rowId) => {
       let sourceTable = tableName;
       if (isUnionView) {
-        sourceTable = (rows.get(rowId)?._source as string) ?? tableName;
+        sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'union');
       } else if (isLookupView) {
-        const sources = rows.get(rowId)?._sources as Record<string, unknown> | undefined;
         const fromTable = (activeView!.query as LookupViewQuery).from;
-        sourceTable = sources
-          ? (sources[fromTable] as string)
-            ? fromTable
-            : tableName
-          : tableName;
+        sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'lookup', fromTable);
       }
       deleteRow(sourceTable, rowId);
     });

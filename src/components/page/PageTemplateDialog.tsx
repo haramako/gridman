@@ -2,6 +2,8 @@ import type { PageLayoutItem, PageLayoutWidget, PageTemplate } from '@/types/pag
 import type { TableSchema } from '@/types/schema';
 import { useState } from 'react';
 import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
+import DialogShell from '@/components/ui/DialogShell';
+import DialogFooter from '@/components/ui/DialogFooter';
 
 const WIDGET_OPTIONS: { value: string; label: string }[] = [
   { value: 'text', label: 'テキスト' },
@@ -184,133 +186,91 @@ export default function PageTemplateDialog({
     );
   };
 
+  const footer = (
+    <DialogFooter
+      onClose={onClose}
+      onSave={handleSave}
+      saveDisabled={!name.trim() || layout.length === 0}
+      onDelete={editTemplate && onDelete && editTemplate.id
+        ? () => { onDelete(editTemplate.id!); onClose(); }
+        : undefined}
+    />
+  );
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); e.stopPropagation(); }}
+    <DialogShell
+      title={editTemplate ? 'ページテンプレートを編集' : 'ページテンプレートを作成'}
+      width="w-[600px]"
+      onClose={onClose}
+      footer={footer}
     >
-      <div role="dialog" className="bg-background rounded-lg border shadow-lg w-[600px] max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-semibold text-sm">
-            {editTemplate ? 'ページテンプレートを編集' : 'ページテンプレートを作成'}
-          </span>
+      {/* Name */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="template-name" className="w-24 text-muted-foreground shrink-0">
+          テンプレート名
+        </label>
+        <input
+          id="template-name"
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="例: 敵詳細カード"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="template-table" className="w-24 text-muted-foreground shrink-0">
+          テーブル
+        </label>
+        <select
+          id="template-table"
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={selectedTable}
+          onChange={(e) => {
+            setSelectedTable(e.target.value);
+            setLayout([]);
+          }}
+        >
+          {tables.map((t) => (
+            <option key={t} value={t}>
+              {schemas.get(t)?.displayName ?? t}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Layout */}
+      <div>
+        <div className="text-muted-foreground mb-2">レイアウト</div>
+        <div className="space-y-2">
+          {layout.map((item, i) =>
+            renderItemEditor(
+              item,
+              i,
+              (patch) => updateItem(i, patch),
+              () => removeItem(i),
+            )
+          )}
+        </div>
+        <div className="mt-2 flex gap-2">
           <button
             type="button"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={onClose}
+            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={addField}
+            disabled={cols.length === 0}
           >
-            ✕
+            + フィールドを追加
+          </button>
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={addSection}
+          >
+            + セクションを追加
           </button>
         </div>
-
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">
-          {/* Name */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="template-name" className="w-24 text-muted-foreground shrink-0">
-              テンプレート名
-            </label>
-            <input
-              id="template-name"
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="例: 敵詳細カード"
-            />
-          </div>
-
-          {/* Table */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="template-table" className="w-24 text-muted-foreground shrink-0">
-              テーブル
-            </label>
-            <select
-              id="template-table"
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={selectedTable}
-              onChange={(e) => {
-                setSelectedTable(e.target.value);
-                setLayout([]);
-              }}
-            >
-              {tables.map((t) => (
-                <option key={t} value={t}>
-                  {schemas.get(t)?.displayName ?? t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Layout */}
-          <div>
-            <div className="text-muted-foreground mb-2">レイアウト</div>
-            <div className="space-y-2">
-              {layout.map((item, i) =>
-                renderItemEditor(
-                  item,
-                  i,
-                  (patch) => updateItem(i, patch),
-                  () => removeItem(i),
-                )
-              )}
-            </div>
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground"
-                onClick={addField}
-                disabled={cols.length === 0}
-              >
-                + フィールドを追加
-              </button>
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground"
-                onClick={addSection}
-              >
-                + セクションを追加
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t">
-          <div>
-            {editTemplate && onDelete && (
-              <button
-                type="button"
-                className="text-sm text-destructive hover:underline"
-                onClick={() => {
-                  if (editTemplate?.id) {
-                    onDelete(editTemplate.id);
-                    onClose();
-                  }
-                }}
-              >
-                削除
-              </button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded border text-sm hover:bg-accent"
-              onClick={onClose}
-            >
-              キャンセル
-            </button>
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-40"
-              disabled={!name.trim() || layout.length === 0}
-              onClick={handleSave}
-            >
-              保存
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </DialogShell>
   );
 }

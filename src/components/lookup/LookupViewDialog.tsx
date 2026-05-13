@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { ColumnDef, TableSchema } from '@/types/schema'
 import type { LookupViewQuery, ViewDefinition } from '@/types/view'
+import { makeId } from '@/lib/utils'
+import DialogShell from '@/components/ui/DialogShell'
+import DialogFooter from '@/components/ui/DialogFooter'
 
 interface LookupDef {
   id: string
@@ -8,10 +11,6 @@ interface LookupDef {
   from: string
   as: string
   fields: string[]
-}
-
-function makeId() {
-  return Math.random().toString(36).slice(2, 8)
 }
 
 interface Props {
@@ -65,7 +64,6 @@ export default function LookupViewDialog({ schemas, tables, editView, onSave, on
       prev.map((l) => {
         if (l.id !== id) return l
         const updated = { ...l, ...patch }
-        // When column changes, update from/as defaults
         if (patch.column !== undefined) {
           const col = baseSchema?.columns.find((c) => c.key === patch.column)
           updated.from = col?.refTable ?? tables[0] ?? ''
@@ -112,179 +110,153 @@ export default function LookupViewDialog({ schemas, tables, editView, onSave, on
 
   const canSave = name.trim() && fromTable && lookups.length > 0 && lookups.every((l) => l.fields.length > 0)
 
+  const footer = (
+    <DialogFooter
+      onClose={onClose}
+      onSave={handleSave}
+      saveDisabled={!canSave}
+      onDelete={editView && onDelete ? () => { onDelete(editView.id); onClose() } : undefined}
+    />
+  )
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); e.stopPropagation(); }}
+    <DialogShell
+      title={editView ? 'ルックアップビューを編集' : 'ルックアップビューを作成'}
+      width="w-[600px]"
+      maxHeight="max-h-[85vh]"
+      onClose={onClose}
+      footer={footer}
     >
-      <div className="bg-background rounded-lg border shadow-lg w-[600px] max-h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-semibold text-sm">
-            {editView ? 'ルックアップビューを編集' : 'ルックアップビューを作成'}
-          </span>
-          <button className="text-muted-foreground hover:text-foreground" onClick={onClose}>✕</button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">
-          {/* Name */}
-          <div className="flex items-center gap-2">
-            <label className="w-20 text-muted-foreground shrink-0">ビュー名</label>
-            <input
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="例: 敵一覧（アイテム展開）"
-              autoFocus
-            />
-          </div>
-
-          {/* Base table */}
-          <div className="flex items-center gap-2">
-            <label className="w-20 text-muted-foreground shrink-0">ベーステーブル</label>
-            <select
-              className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none"
-              value={fromTable}
-              onChange={(e) => handleFromTableChange(e.target.value)}
-            >
-              {tables.map((t) => (
-                <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Lookup definitions */}
-          <div>
-            <div className="mb-2 text-muted-foreground">展開する参照列</div>
-            {refColumns.length === 0 ? (
-              <div className="text-xs text-muted-foreground py-2">
-                このテーブルには ref 型のカラムがありません
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {lookups.map((lookup) => {
-                  const refSchema = schemas.get(lookup.from)
-                  const refCols = refSchema?.columns ?? []
-                  return (
-                    <div key={lookup.id} className="border rounded p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 grid grid-cols-3 gap-2">
-                          {/* Column selector */}
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-1">参照列</div>
-                            <select
-                              className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
-                              value={lookup.column}
-                              onChange={(e) => updateLookup(lookup.id, { column: e.target.value })}
-                            >
-                              {refColumns.map((c) => (
-                                <option key={c.key} value={c.key}>{c.displayName}</option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* From table */}
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-1">参照先テーブル</div>
-                            <select
-                              className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
-                              value={lookup.from}
-                              onChange={(e) => updateLookup(lookup.id, { from: e.target.value, fields: [] })}
-                            >
-                              {tables.map((t) => (
-                                <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* Alias */}
-                          <div>
-                            <div className="text-xs text-muted-foreground mb-1">エイリアス</div>
-                            <input
-                              className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
-                              value={lookup.as}
-                              onChange={(e) => updateLookup(lookup.id, { as: e.target.value })}
-                              placeholder="エイリアス"
-                            />
-                          </div>
-                        </div>
-                        <button
-                          className="text-muted-foreground hover:text-destructive text-xs px-1 shrink-0"
-                          onClick={() => removeLookup(lookup.id)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-
-                      {/* Field selection */}
-                      {refCols.length > 0 && (
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">展開するフィールド</div>
-                          <div className="flex flex-wrap gap-1">
-                            {refCols.map((col) => {
-                              const checked = lookup.fields.includes(col.key)
-                              return (
-                                <label
-                                  key={col.key}
-                                  className={`flex items-center gap-1 px-2 py-0.5 rounded border text-xs cursor-pointer select-none ${
-                                    checked
-                                      ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                      : 'hover:bg-accent'
-                                  }`}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="hidden"
-                                    checked={checked}
-                                    onChange={() => toggleField(lookup.id, col.key)}
-                                  />
-                                  {col.displayName}
-                                </label>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-            {refColumns.length > 0 && (
-              <button
-                className="mt-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={addLookup}
-              >
-                + 参照列を追加
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t">
-          <div>
-            {editView && onDelete && (
-              <button
-                className="text-sm text-destructive hover:underline"
-                onClick={() => { onDelete(editView.id); onClose() }}
-              >
-                削除
-              </button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 rounded border text-sm hover:bg-accent" onClick={onClose}>
-              キャンセル
-            </button>
-            <button
-              className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-40"
-              disabled={!canSave}
-              onClick={handleSave}
-            >
-              保存
-            </button>
-          </div>
-        </div>
+      {/* Name */}
+      <div className="flex items-center gap-2">
+        <label className="w-20 text-muted-foreground shrink-0">ビュー名</label>
+        <input
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="例: 敵一覧（アイテム展開）"
+          autoFocus
+        />
       </div>
-    </div>
+
+      {/* Base table */}
+      <div className="flex items-center gap-2">
+        <label className="w-20 text-muted-foreground shrink-0">ベーステーブル</label>
+        <select
+          className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none"
+          value={fromTable}
+          onChange={(e) => handleFromTableChange(e.target.value)}
+        >
+          {tables.map((t) => (
+            <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Lookup definitions */}
+      <div>
+        <div className="mb-2 text-muted-foreground">展開する参照列</div>
+        {refColumns.length === 0 ? (
+          <div className="text-xs text-muted-foreground py-2">
+            このテーブルには ref 型のカラムがありません
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {lookups.map((lookup) => {
+              const refSchema = schemas.get(lookup.from)
+              const refCols = refSchema?.columns ?? []
+              return (
+                <div key={lookup.id} className="border rounded p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 grid grid-cols-3 gap-2">
+                      {/* Column selector */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">参照列</div>
+                        <select
+                          className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
+                          value={lookup.column}
+                          onChange={(e) => updateLookup(lookup.id, { column: e.target.value })}
+                        >
+                          {refColumns.map((c) => (
+                            <option key={c.key} value={c.key}>{c.displayName}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* From table */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">参照先テーブル</div>
+                        <select
+                          className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
+                          value={lookup.from}
+                          onChange={(e) => updateLookup(lookup.id, { from: e.target.value, fields: [] })}
+                        >
+                          {tables.map((t) => (
+                            <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* Alias */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">エイリアス</div>
+                        <input
+                          className="w-full border rounded px-2 py-1 text-xs focus:outline-none"
+                          value={lookup.as}
+                          onChange={(e) => updateLookup(lookup.id, { as: e.target.value })}
+                          placeholder="エイリアス"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      className="text-muted-foreground hover:text-destructive text-xs px-1 shrink-0"
+                      onClick={() => removeLookup(lookup.id)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Field selection */}
+                  {refCols.length > 0 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">展開するフィールド</div>
+                      <div className="flex flex-wrap gap-1">
+                        {refCols.map((col) => {
+                          const checked = lookup.fields.includes(col.key)
+                          return (
+                            <label
+                              key={col.key}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded border text-xs cursor-pointer select-none ${
+                                checked
+                                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                  : 'hover:bg-accent'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={checked}
+                                onChange={() => toggleField(lookup.id, col.key)}
+                              />
+                              {col.displayName}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {refColumns.length > 0 && (
+          <button
+            className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+            onClick={addLookup}
+          >
+            + 参照列を追加
+          </button>
+        )}
+      </div>
+    </DialogShell>
   )
 }
