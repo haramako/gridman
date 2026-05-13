@@ -64,16 +64,16 @@ export default function PageTemplateDialog({
     setLayout(layout.filter((_, i) => i !== index));
   };
 
-  const updateFieldKey = (index: number, key: string) => {
+  const resolveFieldUpdate = (key: string): Partial<PageLayoutItem> => {
     const col = cols.find((c) => c.key === key);
-    if (!col) return;
+    if (!col) return {};
     let widget: PageLayoutWidget = 'text';
     if (col.type === 'boolean') widget = 'checkbox';
     else if (col.type === 'integer' || col.type === 'number') widget = 'number';
     else if (col.type === 'enum') widget = 'select';
     else if (col.type === 'ref[]') widget = 'tag-list';
     else if (col.type === 'json') widget = 'json';
-    updateItem(index, { key, label: col.displayName, widget });
+    return { key, label: col.displayName, widget };
   };
 
   const handleSave = () => {
@@ -88,7 +88,12 @@ export default function PageTemplateDialog({
     onClose();
   };
 
-  const renderItemEditor = (item: PageLayoutItem, index: number): JSX.Element => {
+  const renderItemEditor = (
+    item: PageLayoutItem,
+    index: number,
+    onUpdate: (patch: Partial<PageLayoutItem>) => void,
+    onRemove: () => void,
+  ): JSX.Element => {
     if (item.type === 'section') {
       return (
         <div key={index} className="border rounded p-3 space-y-2 bg-muted/30">
@@ -96,19 +101,34 @@ export default function PageTemplateDialog({
             <input
               className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               value={item.label ?? ''}
-              onChange={(e) => updateItem(index, { label: e.target.value })}
+              onChange={(e) => onUpdate({ label: e.target.value })}
               placeholder="セクション名"
             />
             <button
               type="button"
               className="ml-2 text-xs text-muted-foreground hover:text-destructive"
-              onClick={() => removeItem(index)}
+              onClick={onRemove}
             >
               ✕
             </button>
           </div>
           <div className="pl-3 space-y-2">
-            {(item.children ?? []).map((child, ci) => renderItemEditor(child, ci))}
+            {(item.children ?? []).map((child, ci) =>
+              renderItemEditor(
+                child,
+                ci,
+                (patch) => {
+                  const newChildren = (item.children ?? []).map((c, i) =>
+                    i === ci ? ({ ...c, ...patch } as PageLayoutItem) : c
+                  );
+                  onUpdate({ children: newChildren });
+                },
+                () => {
+                  const newChildren = (item.children ?? []).filter((_, i) => i !== ci);
+                  onUpdate({ children: newChildren });
+                },
+              )
+            )}
           </div>
           <button
             type="button"
@@ -123,7 +143,7 @@ export default function PageTemplateDialog({
                   widget: 'text' as const,
                 },
               ];
-              updateItem(index, { children: newChildren });
+              onUpdate({ children: newChildren });
             }}
           >
             + フィールドを追加
@@ -137,7 +157,7 @@ export default function PageTemplateDialog({
         <select
           className="border rounded px-1.5 py-1 text-xs focus:outline-none flex-1"
           value={item.key}
-          onChange={(e) => updateFieldKey(index, e.target.value)}
+          onChange={(e) => onUpdate(resolveFieldUpdate(e.target.value))}
         >
           {cols.map((c) => (
             <option key={c.key} value={c.key}>
@@ -148,7 +168,7 @@ export default function PageTemplateDialog({
         <select
           className="border rounded px-1.5 py-1 text-xs focus:outline-none w-32"
           value={item.widget}
-          onChange={(e) => updateItem(index, { widget: e.target.value as PageLayoutWidget })}
+          onChange={(e) => onUpdate({ widget: e.target.value as PageLayoutWidget })}
         >
           {WIDGET_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -159,13 +179,13 @@ export default function PageTemplateDialog({
         <input
           className="border rounded px-1.5 py-1 text-xs focus:outline-none w-24"
           value={item.label ?? ''}
-          onChange={(e) => updateItem(index, { label: e.target.value })}
+          onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="ラベル"
         />
         <button
           type="button"
           className="text-xs text-muted-foreground hover:text-destructive"
-          onClick={() => removeItem(index)}
+          onClick={onRemove}
         >
           ✕
         </button>
@@ -233,7 +253,16 @@ export default function PageTemplateDialog({
           {/* Layout */}
           <div>
             <div className="text-muted-foreground mb-2">レイアウト</div>
-            <div className="space-y-2">{layout.map((item, i) => renderItemEditor(item, i))}</div>
+            <div className="space-y-2">
+              {layout.map((item, i) =>
+                renderItemEditor(
+                  item,
+                  i,
+                  (patch) => updateItem(i, patch),
+                  () => removeItem(i),
+                )
+              )}
+            </div>
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
