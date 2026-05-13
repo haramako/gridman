@@ -76,6 +76,14 @@ summaries/        ← doc/ 各ファイルのサマリー
 - Auto_Save_and_Draft.md
 - Undo_Redo.md
 - Testing.md
+- Gotchas.md
+- Dev_Workflow.md
+
+### concepts/how-to/
+- index.md
+- Add_Column_Type.md
+- Add_Command.md
+- Add_View_Type.md
 
 ### entities/
 - Zustand.md
@@ -119,3 +127,24 @@ summaries/        ← doc/ 各ファイルのサマリー
 | `doc-data-model` | notes | ファイル形式・型定義 |
 | `doc-testing` | notes | テストの書き方・環境分離 |
 | `doc-input-behavior` | notes | キーボード・マウス入力仕様 |
+| `src-fs-adapters` | refs | `src/fs/` — FileSystemAdapter 戦略パターン（3実装） |
+| `src-page-view` | refs | `src/components/page/` — PageView コンポーネント |
+| `src-view-dialogs` | refs | `src/components/filter|lookup|union/` — ビュー作成 UI |
+| `src-schema-editor` | refs | `src/components/schema/` — スキーマ編集ダイアログ |
+| `src-json-editor-search` | refs | `src/components/editor/` + `src/pages/SearchPage.tsx` |
+| `src-stores` | refs | `src/stores/` — Zustand ストア群（project / selection / view / commandHistory） |
+| `src-domain` | refs | `src/domain/` — filter / lookup / union / commands / validator |
+| `src-spreadsheet` | refs | `src/components/spreadsheet/` — グリッド・セル・仮想スクロール |
+| `src-types` | refs | `src/types/` — ColumnType / ViewQuery / Row / ProjectConfig |
+| `src-lib` | refs | `src/lib/` — columnTypeConfig ディスパッチテーブル・enum-resolver |
+| `server` | refs | `server/` — Hono サーバー 2実装（ファイルベース / SQLite） |
+
+---
+
+## src/ SSoT 維持ルール
+
+`raw/refs/src-*.md` は `external_path` で実際の src ファイルを指すポインタ。src が変わったときの更新手順:
+
+1. 変更があったモジュールの `raw/refs/src-XXX.md` を確認（ポインタなので変更不要なことが多い）
+2. `/llm-wiki ingest src-XXX` でサマリーを再生成（`wiki/summaries/src-XXX.md` を上書き）
+3. 影響する概念ページがあれば内容を確認・更新

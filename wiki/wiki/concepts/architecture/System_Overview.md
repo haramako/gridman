@@ -83,3 +83,4 @@ sequenceDiagram
 - [[Stores]] — 状態管理の詳細
 - [[concepts/Auto_Save_and_Draft]] — localStorage ドラフトの仕組み
 - [[concepts/data-model/Project_Format]] — project.json の形式
+- [[summaries/server]] — サーバー実装詳細（2実装・PATCH マージ・SQLite スキーマ）

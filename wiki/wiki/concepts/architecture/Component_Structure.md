@@ -117,3 +117,4 @@ flowchart LR
 - [[Stores]] — EditorPage / Cell が使うストア
 - [[concepts/spreadsheet/Cell_Editing]] — セル編集の詳細フロー
 - [[concepts/spreadsheet/Input_Behavior]] — キーボード操作仕様
+- [[summaries/src-spreadsheet]] — スプレッドシートコンポーネント群のソースコード詳細

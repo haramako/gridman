@@ -101,3 +101,4 @@ startEditWithInput(pos, char)   // type-to-edit（文字入力で編集開始）
 - [[System_Overview]] — ストアを使うデータフロー
 - [[concepts/Auto_Save_and_Draft]] — `isDirty` / `hasDraft` / `writeMode` の詳細
 - [[concepts/Undo_Redo]] — `commandHistory` の仕組み
+- [[summaries/src-stores]] — ソースコードから読み解くストアの実装詳細

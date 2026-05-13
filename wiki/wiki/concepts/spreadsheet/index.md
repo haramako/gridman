@@ -21,3 +21,4 @@ SpreadsheetView
 
 - [[concepts/Auto_Save_and_Draft]] — セル編集がトリガするドラフト保存
 - [[concepts/Undo_Redo]] — Ctrl+Z / Ctrl+Y の実装
+- [[summaries/src-spreadsheet]] — ソースコードから読み解くコンポーネント実装詳細

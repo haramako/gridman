@@ -46,6 +46,14 @@
 - [[concepts/Auto_Save_and_Draft]] — localStorage ドラフト・マルチタブロック
 - [[concepts/Undo_Redo]] — CommandHistory・EditCellCommand・CompositeCommand
 - [[concepts/Testing]] — テスト種類・書き方・環境分離
+- [[concepts/Gotchas]] — よくある落とし穴（8項目）
+- [[concepts/Dev_Workflow]] — 起動・ビルド・テスト手順の早引き
+
+### How-To — 機能追加レシピ
+- [[concepts/how-to/index|How-To]] — レシピ一覧
+    - [[concepts/how-to/Add_Column_Type]] — 新しい ColumnType を追加する
+    - [[concepts/how-to/Add_Command]] — Undo/Redo 対応コマンドを追加する
+    - [[concepts/how-to/Add_View_Type]] — 新しいビュー種別を追加する
 
 ---
 
@@ -71,9 +79,17 @@
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
 - 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（39件・context-overload が最多パターンに）
+- 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
+- 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細
+- 2026-05-14 — [[summaries/src-spreadsheet]] — スプレッドシート UI コンポーネント群（SpreadsheetView / Grid / Cell）の実装詳細
+- 2026-05-14 — [[summaries/src-types]] — 型定義（ColumnType / ViewQuery / Row / ProjectConfig）の全体像
+- 2026-05-14 — [[summaries/src-lib]] — columnTypeConfig による型ディスパッチテーブルとユーティリティ
+- 2026-05-14 — [[summaries/server]] — Hono サーバー 2実装（ファイルベース / SQLite）・API 実装詳細
 
 ---
 
 ## Open Questions
 
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
+- Q4: `countermeasure: none` issue 群（LIN-22, LIN-46 + LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, LIN-171）— context-overload 対策として issue 記述ガイドラインを整備すべきか？
+- Q5: PR省略→再依頼パターン（LIN-172, LIN-175）— SKILL の PR 作成判断基準をどのように徹底するか？

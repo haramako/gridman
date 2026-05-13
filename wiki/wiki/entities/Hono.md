@@ -36,3 +36,4 @@ serve({ fetch: app.fetch, port: 8080 })
 
 - [[concepts/architecture/System_Overview]] — クライアント/サーバー構成
 - [[concepts/data-model/Project_Format]] — project.json の構造
+- [[summaries/server]] — 2サーバー実装の詳細・PATCH マージアルゴリズム・SQLite スキーマ

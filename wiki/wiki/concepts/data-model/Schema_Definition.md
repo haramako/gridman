@@ -76,3 +76,5 @@
 - [[Table_Data]] — スキーマに従ってデータを格納する JSONL
 - [[Project_Format]] — `enumRef` の共有 enum 定義
 - [[concepts/architecture/Domain_Logic]] — `coerceToType` / `validateCell`
+- [[summaries/src-types]] — ColumnType・ColumnDef・TableSchema のソース定義
+- [[summaries/src-lib]] — 各型の UI 動作を集約する columnTypeConfig

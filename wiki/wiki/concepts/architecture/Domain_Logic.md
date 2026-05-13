@@ -84,3 +84,4 @@ class CompositeCommand implements Command // 複数コマンドをまとめて 1
 - [[concepts/data-model/View_Queries]] — FilterExpr / UnionViewQuery / LookupViewQuery の型定義
 - [[concepts/Undo_Redo]] — CommandHistory の詳細
 - [[Stores]] — ストアからのドメイン関数呼び出し
+- [[summaries/src-domain]] — ソースコードから読み解くドメイン関数の実装詳細
