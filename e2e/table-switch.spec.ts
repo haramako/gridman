@@ -17,7 +17,7 @@ test('サイドバーで別テーブルをクリックするとグリッドが�
   await expect(page.locator('header')).toContainText('敵キャラクター')
 
   // サイドバーの「アイテム」をクリック
-  await page.locator('aside').getByRole('button', { name: 'アイテム' }).click()
+  await page.locator('aside').getByRole('button', { name: 'アイテム', exact: true }).click()
 
   // グリッドがアイテムテーブルに切り替わったことを確認
   await expect(page.locator('header')).toContainText('アイテム')
