@@ -673,11 +673,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         const dirtyIds = new Set<string>();
 
         for (const [rowId, draftRow] of draftTable.entries()) {
-          const currentRow = mergedTable.get(rowId);
-          if (!currentRow || (currentRow._order as number) <= (draftRow._order as number)) {
-            mergedTable.set(rowId, draftRow);
-            dirtyIds.add(rowId);
-          }
+          mergedTable.set(rowId, draftRow);
+          dirtyIds.add(rowId);
         }
 
         newTables.set(tableName, mergedTable);
