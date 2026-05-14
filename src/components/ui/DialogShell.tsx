@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 interface DialogShellProps {
   title: string
@@ -17,14 +17,25 @@ export default function DialogShell({
   footer,
   children,
 }: DialogShellProps) {
+  const overlayRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
+    // Focus the overlay only when no child already holds focus (e.g. autoFocus inputs).
+    if (!overlayRef.current?.contains(document.activeElement)) {
+      overlayRef.current?.focus()
+    }
+  }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div
+      ref={overlayRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 outline-none"
+      onKeyDown={(e) => {
+        e.stopPropagation()
+        if (e.key === 'Escape') onClose()
+      }}
+    >
       <div role="dialog" className={`bg-background rounded-lg border shadow-lg ${width} ${maxHeight} flex flex-col`}>
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="font-semibold text-sm">{title}</span>
