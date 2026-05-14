@@ -1,3 +1,4 @@
+import ExportDialog from '@/components/export/ExportDialog';
 import { useProjectStore } from '@/stores/project.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
@@ -32,6 +33,7 @@ export default function SpreadsheetView({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; rowId: string } | null>(
     null
   );
+  const [showExport, setShowExport] = useState(false);
 
   const viewQuery =
     activeView?.query.type === 'filter' ? (activeView.query as FilterViewQuery) : undefined;
@@ -178,6 +180,13 @@ export default function SpreadsheetView({
         <span className="text-xs text-muted-foreground">
           {rows.size} 行{selectedRowIds.size > 0 && ` (${selectedRowIds.size} 選択中)`}
         </span>
+        <button
+          type="button"
+          className="px-3 py-1 rounded border text-sm hover:bg-accent"
+          onClick={() => setShowExport(true)}
+        >
+          エクスポート
+        </button>
       </div>
 
       {/* Grid */}
@@ -203,6 +212,15 @@ export default function SpreadsheetView({
           y={contextMenu.y}
           items={contextMenuItems()}
           onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {showExport && (
+        <ExportDialog
+          tableName={tableName}
+          schema={schema}
+          rows={rows}
+          onClose={() => setShowExport(false)}
         />
       )}
     </div>
