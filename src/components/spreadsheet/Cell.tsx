@@ -123,7 +123,7 @@ export default function Cell({
         }
       }, 0);
     }
-  }, [isEditing]);
+  }, [isEditing, editInitialValue, clearEditInitialValue, currentEditValue]);
 
   const errorMessage = isInvalid
     ? validateCell(coerceToType(row._invalid![col.key], col.type), col)?.message
