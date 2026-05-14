@@ -2,11 +2,11 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 0,
-    "total_duration_seconds": 0
+    "run_count": 1,
+    "total_duration_seconds": 552
   },
-  "assignee_id": null,
-  "assignee_type": null,
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
   "created_at": "2026-05-12T19:24:34Z",
   "description": "## 背景\n\n以下の4ダイアログが各自で ColumnType 検査と UI マッピングを持っており、DRY 違反が生じている：\n- `FilterViewDialog.tsx`（363行）\n- `LookupViewDialog.tsx`（290行）\n- `SchemaEditorDialog.tsx`（436行）\n- `PageTemplateDialog.tsx`（296行）\n\nさらに、ビュー越し座標変換（`_source`, `_sources`）もそれぞれ独立実装されている。\n\n## 改善案\n\n共通 wrapper パターンを導入する：\n- ColumnType 検査・UI マッピングを共通 hook または util 関数に抽出\n- 座標変換ロジックを `useViewCoordinate` などの共通 hook に集約\n- 各ダイアログから重複ロジックを除去\n\n## 注意事項\n\nLIN-170（ColumnType 集約）完了後に取り組むと重複排除の効果が高い。\n\n## 関連\n\n- 難易度: 中",
   "id": "059bb122-311e-4d51-8054-6cd94ed00404",
@@ -14,15 +14,31 @@
   "labels": [],
   "parent_issue_id": null,
   "priority": "low",
-  "runs": [],
-  "status": "backlog",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T21:12:44Z",
+      "duration_seconds": 552,
+      "error": null,
+      "failure_reason": null,
+      "id": "0428302a-75b0-4d6d-b4d5-0369c5af85cd",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR #39 is open at https://github.com/haramako/gridman/pull/39 and the issue is now `in_review`.\n\n**Summary of changes:**\n\n- **`DialogShell.tsx`** (new) — shared modal overlay, header (title + ✕), scrollable body, and Escape key handling\n- **`DialogFooter.tsx`** (new) — shared footer with optional delete button + cancel + save\n- **`viewRowSource.ts`** (new) — `getEffectiveTableName` (for cell rendering in DataRow) and `getRowOwnerTable` (for mutations in SpreadsheetView), consolidating the `_source`/`_sources` coordinate resolution that was duplicated across both files\n- **`utils.ts`** — added `makeId()` (was duplicated in 3 dialog files)\n- All 5 dialogs (Filter, Lookup, Union, PageTemplate, SchemaEditor) refactored to use `DialogShell` + `DialogFooter`",
+      "started_at": "2026-05-13T21:03:32Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
   "title": "【リファクタ】ダイアログ群の DRY 違反解消（共通 wrapper パターン導入）",
-  "updated_at": "2026-05-12T19:24:34Z",
+  "updated_at": "2026-05-14T09:12:29Z",
   "usage": {
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 0,
-    "input_tokens": 0,
-    "output_tokens": 0,
-    "total_tokens": 0
+    "cache_read_tokens": 4137544,
+    "cache_write_tokens": 196314,
+    "input_tokens": 81,
+    "output_tokens": 2181,
+    "total_tokens": 4336120
   }
 }

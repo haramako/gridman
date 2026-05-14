@@ -2,10 +2,10 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 1,
-    "total_duration_seconds": 160
+    "run_count": 4,
+    "total_duration_seconds": 631
   },
-  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
   "assignee_type": "agent",
   "created_at": "2026-05-07T11:57:38Z",
   "description": "## 概要\n\nスプレッドシートで `integer` または `number` 型のセルにフォーカスし、Delete または Backspace キーを押すと、セルの値が `null`（空）ではなく `0` に設定される。\n\n## 再現手順\n\n1. integer/number 型カラムに値（例: 42）が入ったセルを選択する\n2. Delete または Backspace キーを押す\n\n## 期待動作\n\nセルの値が空（null）になり、空白または未入力として表示される。\n\n## 実際の動作\n\nセルの値が `0` になる。\n\n## 原因\n\n`src/components/spreadsheet/SpreadsheetGrid.tsx` の Delete/Backspace キーハンドラー:\n\n```ts\ncase 'Delete':\ncase 'Backspace': {\n  const emptyVal = colDef.type === 'integer' || colDef.type === 'number' ? 0 : ''\n  updateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)\n```\n\n数値型の「空」を `0` としているが、`null` が正しい空値。\n\n## 修正案\n\n```ts\nconst emptyVal = null\nupdateCell(cur.tableName, cur.rowId, cur.colKey, emptyVal)\n```",
@@ -15,6 +15,51 @@
   "parent_issue_id": null,
   "priority": "low",
   "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T09:34:25Z",
+      "duration_seconds": 240,
+      "error": null,
+      "failure_reason": null,
+      "id": "92c1ac17-4e9a-4dfb-90f4-362cba7654e8",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Fix applied and PR created. Changed `emptyValue` from `0` to `null` for `integer`/`number` types in `src/lib/columnTypeConfig.ts` — both the type definition and the config values. PR: https://github.com/haramako/gridman/pull/44",
+      "started_at": "2026-05-14T09:30:25Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T19:06:23Z",
+      "duration_seconds": 217,
+      "error": null,
+      "failure_reason": null,
+      "id": "79dbc41b-1f95-4664-9638-fb56d74d920e",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The bug was refactored into `columnTypeConfig.ts` in the latest main. Need to fix it there.完了。リベース・コンフリクト解決・修正完了し、158テスト全て通過。",
+      "started_at": "2026-05-13T19:02:46Z",
+      "status": "completed",
+      "trigger_summary": "まず、mainの最新にリベースしてから、作業を続けてください"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T19:02:30Z",
+      "duration_seconds": 14,
+      "error": null,
+      "failure_reason": null,
+      "id": "e2a0cd9a-b434-4efe-9077-105839b745ea",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-13T19:02:16Z",
+      "status": "cancelled",
+      "trigger_summary": null
+    },
     {
       "attempt": 1,
       "completed_at": "2026-05-07T20:05:05Z",
@@ -31,14 +76,14 @@
       "trigger_summary": null
     }
   ],
-  "status": "backlog",
+  "status": "done",
   "title": "Delete/Backspace キーで数値セルが null でなく 0 になる",
-  "updated_at": "2026-05-12T20:14:50Z",
+  "updated_at": "2026-05-14T10:57:11Z",
   "usage": {
-    "cache_read_tokens": 240384,
-    "cache_write_tokens": 0,
-    "input_tokens": 22369,
-    "output_tokens": 2532,
-    "total_tokens": 265285
+    "cache_read_tokens": 2856310,
+    "cache_write_tokens": 81450,
+    "input_tokens": 70930,
+    "output_tokens": 8395,
+    "total_tokens": 3017085
   }
 }

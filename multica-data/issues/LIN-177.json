@@ -2,11 +2,11 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 0,
-    "total_duration_seconds": 0
+    "run_count": 1,
+    "total_duration_seconds": 717
   },
-  "assignee_id": null,
-  "assignee_type": null,
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
   "created_at": "2026-05-12T20:03:15Z",
   "description": "## やること\n\n現在まったくカバーされていないコア編集フローの E2E テストを追加する。\n\n## 変更対象ファイル（わかる範囲で）\n\n- e2e/cell-edit.spec.ts（新規）\n- e2e/row-operations.spec.ts（新規）\n- e2e/save.spec.ts（新規）\n- e2e/table-switch.spec.ts（新規）\n\n## 仕様の詳細\n\n- **cell-edit.spec.ts**: クリックで選択 → Enter/F2 で編集モード → 値を入力して Enter 確定 / Esc でキャンセル\n- **row-operations.spec.ts**: `+ 行追加` ボタンで末尾に行が追加される / `- 行削除` ボタンで選択行が削除される\n- **save.spec.ts**: セルを編集 → Ctrl+S → ページリロード後も変更が反映されていること\n- **table-switch.spec.ts**: サイドバーで別テーブルをクリック → グリッドが切り替わること\n\n## 完了の定義\n\n- [ ] 上記4ファイルが追加されていること\n- [ ] npm run test:e2e が全件通ること",
   "id": "6c1183a9-a1f6-48d1-b97c-1a44fbac44f6",
@@ -14,15 +14,31 @@
   "labels": [],
   "parent_issue_id": null,
   "priority": "medium",
-  "runs": [],
-  "status": "backlog",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T17:14:40Z",
+      "duration_seconds": 717,
+      "error": null,
+      "failure_reason": null,
+      "id": "6889435f-9daf-4e59-bcb0-80374fb132fb",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "All done. Here's a summary of what was completed:\n\n**4 new E2E test files added** (all 21 tests pass):\n- `e2e/cell-edit.spec.ts` — 5 tests: click-to-select, Enter/F2 edit mode, Enter confirm, Escape cancel\n- `e2e/row-operations.spec.ts` — 2 tests: add row button, delete row button\n- `e2e/save.spec.ts` — 1 test: Ctrl+S saves and persists through reload\n- `e2e/table-switch.spec.ts` — 1 test: sidebar click switches the grid to another table\n\n**2 bugs fixed along the way:**\n- `Cell.tsx`: Escape key wasn't canceling edit because `onBlur` would commit after `cancelEdit` moved focus away — fixed by setting `committedRef.current = true` in `cancelEdit`\n- `DataRow.tsx`: Row number cell had both `onClick` and `onMouseDown` — `mousedown` selected the row, then after re-render `click` would deselect it (toggle bug) — fixed by removing the conflicting `onClick`",
+      "started_at": "2026-05-13T17:02:43Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
   "title": "E2Eテスト追加: コアフロー（セル編集・行操作・保存・テーブル切り替え）",
-  "updated_at": "2026-05-12T20:07:28Z",
+  "updated_at": "2026-05-13T19:01:44Z",
   "usage": {
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 0,
-    "input_tokens": 0,
-    "output_tokens": 0,
-    "total_tokens": 0
+    "cache_read_tokens": 5949817,
+    "cache_write_tokens": 184953,
+    "input_tokens": 112,
+    "output_tokens": 2871,
+    "total_tokens": 6137753
   }
 }

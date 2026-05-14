@@ -2,8 +2,8 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 1,
-    "total_duration_seconds": 221
+    "run_count": 2,
+    "total_duration_seconds": 263
   },
   "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
   "assignee_type": "agent",
@@ -15,6 +15,21 @@
   "parent_issue_id": null,
   "priority": "high",
   "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T16:07:23Z",
+      "duration_seconds": 42,
+      "error": null,
+      "failure_reason": null,
+      "id": "ecd9629a-c03f-47c9-8631-2757cf554ec0",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR #37 を作成してコメントに通知しました。ブランチ `agent/kanade-claude/4fc10324` はプッシュ済みで、main へのマージはまだです。",
+      "started_at": "2026-05-13T16:06:41Z",
+      "status": "completed",
+      "trigger_summary": "PRは作成されていますか？もしくは、すでにコードはマージされていますか？"
+    },
     {
       "attempt": 1,
       "completed_at": "2026-05-07T13:06:15Z",
@@ -31,14 +46,14 @@
       "trigger_summary": null
     }
   ],
-  "status": "backlog",
+  "status": "done",
   "title": "ドラフト復元時に行削除が反映されない",
-  "updated_at": "2026-05-12T20:15:31Z",
+  "updated_at": "2026-05-13T16:07:44Z",
   "usage": {
-    "cache_read_tokens": 958552,
-    "cache_write_tokens": 72652,
-    "input_tokens": 36,
-    "output_tokens": 663,
-    "total_tokens": 1031903
+    "cache_read_tokens": 1265115,
+    "cache_write_tokens": 132118,
+    "input_tokens": 47,
+    "output_tokens": 861,
+    "total_tokens": 1398141
   }
 }

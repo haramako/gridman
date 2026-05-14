@@ -2,11 +2,11 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 0,
-    "total_duration_seconds": 0
+    "run_count": 1,
+    "total_duration_seconds": 210
   },
-  "assignee_id": null,
-  "assignee_type": null,
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
   "created_at": "2026-05-12T20:05:53Z",
   "description": "## やること\n\nビュー系機能の E2E テストを追加する。\n\n## 変更対象ファイル（わかる範囲で）\n\n- e2e/filter-view.spec.ts（新規）\n- e2e/lookup-view.spec.ts（新規）\n\n## 仕様の詳細\n\n- **filter-view.spec.ts**: フィルタービューを作成 → 条件を設定 → サイドバーに表示される → クリックで切り替わり、条件に合う行のみ表示される\n- **lookup-view.spec.ts**: ルックアップビューを作成 → 参照先テーブルの列が展開表示される\n\n## 完了の定義\n\n- [ ] 上記2ファイルが追加されていること\n- [ ] npm run test:e2e が全件通ること",
   "id": "246925d2-60f7-461a-9f34-1417c9eb864b",
@@ -14,15 +14,31 @@
   "labels": [],
   "parent_issue_id": null,
   "priority": "low",
-  "runs": [],
-  "status": "backlog",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-13T22:05:53Z",
+      "duration_seconds": 210,
+      "error": null,
+      "failure_reason": null,
+      "id": "8ee6b569-43b7-4409-9072-3170a708df62",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. Created PR [#40](https://github.com/haramako/gridman/pull/40) with two new E2E test files:\n\n- **`e2e/filter-view.spec.ts`**: Creates a filter view with `element = water` condition, verifies it appears in the sidebar, and that clicking it shows only スライム and ゴブリン (water enemies).\n- **`e2e/lookup-view.spec.ts`**: Creates a lookup view expanding the `dropItemId → item.名前` column, verifies the `dropItemId.名前` header appears in the grid, and that item names (回復ポーション, 竜の牙) are visible in the rows.\n\nIssue updated to `in_review`.",
+      "started_at": "2026-05-13T22:02:23Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
   "title": "E2Eテスト追加: ビュー系（フィルタービュー / ルックアップビュー）",
-  "updated_at": "2026-05-12T20:07:29Z",
+  "updated_at": "2026-05-14T09:08:48Z",
   "usage": {
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 0,
-    "input_tokens": 0,
-    "output_tokens": 0,
-    "total_tokens": 0
+    "cache_read_tokens": 2731002,
+    "cache_write_tokens": 136028,
+    "input_tokens": 79,
+    "output_tokens": 1610,
+    "total_tokens": 2868719
   }
 }

@@ -46,9 +46,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "todo",
+  "status": "done",
   "title": "行削除がファイルに保存されない",
-  "updated_at": "2026-05-13T01:07:33Z",
+  "updated_at": "2026-05-13T15:37:30Z",
   "usage": {
     "cache_read_tokens": 3278991,
     "cache_write_tokens": 370148,
