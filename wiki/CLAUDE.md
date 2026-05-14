@@ -112,12 +112,14 @@ summaries/        ← doc/ 各ファイルのサマリー
 
 - ~~LIN-71〜LIN-79 + 17件~~: insight 作成済み（2026-05-12）、計 39件
 - ~~LIN-57, LIN-72, LIN-83, LIN-136, LIN-169, LIN-171, LIN-172, LIN-175, LIN-180, LIN-181, LIN-182~~: insight 作成済み（2026-05-13）、計 50件
+- ~~LIN-82, LIN-84, LIN-85, LIN-86, LIN-137, LIN-173, LIN-184, LIN-185, LIN-186, LIN-187, LIN-189~~: insight 作成済み（2026-05-15）、計 62件
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
 - ~~LIN-22, LIN-46, LIN-171~~: `in-agents-md` に更新済み（2026-05-14）
 - **LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79**: `countermeasure: none` のまま — context-overload 系。issue 記述ガイドライン整備が課題
-- **PR 省略→再依頼パターン**（LIN-172, LIN-175）: SKILL の PR 作成判断基準の徹底が必要
+- **PR 作成忘れパターン**（LIN-172, LIN-175, LIN-184）: 新 taxonomy `pr-skip` として追跡。ワークフローの機械的チェックが必要
+- **`quota-recovery` 急増（6→11件）**: クォータ管理の改善が課題
 
 ---
 

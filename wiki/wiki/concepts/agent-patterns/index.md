@@ -16,19 +16,20 @@ AIエージェントタスクで繰り返し発生するパターンとその対
 
 | コード | カテゴリ | 概要 |
 |--------|---------|------|
+| `context-overload` | コスト | 高トークン消費・コンテキスト肥大化 |
+| `duplicate-trigger` | アーティファクト | 同一トリガーの重複送信 |
+| `e2e-not-verified` | テスト | E2E 未確認で PR 作成 |
+| `env-e2e` | 環境 | E2E テスト実行環境未整備 |
 | `env-git-auth` | 環境 | git SSH/HTTPS 認証設定問題 |
 | `env-github-token` | 環境 | GitHub token スコープ不足 |
-| `env-e2e` | 環境 | E2E テスト実行環境未整備 |
 | `env-url-config` | 環境 | 外部 URL/接続設定ミス |
+| `infra-improvement` | 改善 | ワークフロー問題自体を修正したタスク |
 | `platform-artifact` | アーティファクト | 完了後に残る stale failed run |
-| `duplicate-trigger` | アーティファクト | 同一トリガーの重複送信 |
+| `pr-skip` | ワークフロー | 実装完了後に PR を作成しない |
+| `quota-recovery` | アーティファクト | 使用量上限回復後の手動再開チェック（`ping` など） |
+| `regression-broad-change` | テスト | 横断的変更で既存機能が壊れた |
 | `spec-design-change` | 仕様 | 実装後にインターフェース設計変更 |
 | `spec-feature-addition` | 仕様 | 実装後に機能追加依頼 |
-| `e2e-not-verified` | テスト | E2E 未確認で PR 作成 |
-| `regression-broad-change` | テスト | 横断的変更で既存機能が壊れた |
-| `quota-recovery` | アーティファクト | 使用量上限回復後の手動再開チェック（`ping` など） |
-| `infra-improvement` | 改善 | ワークフロー問題自体を修正したタスク |
-| `context-overload` | コスト | 高トークン消費・コンテキスト肥大化 |
 
 ## フィードバックループ
 

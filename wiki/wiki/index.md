@@ -32,7 +32,7 @@
 ### AIエージェントパターン
 - [[concepts/agent-patterns/index|Agent Patterns]] — Multica issue ログから帰納したワークフローパターン
     - [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（最多パターン、8件）
-    - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（4件）
+    - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（5件）
     - [[concepts/agent-patterns/Platform_Artifacts]] — stale failed run・重複トリガー・quota-recovery（メトリクス歪み）
     - [[concepts/agent-patterns/Spec_Quality]] — 仕様不完全による再設計・インタラクションシナリオ手法
     - [[concepts/agent-patterns/Regression_and_Testing]] — リグレッションと E2E 検証（対策済み）
@@ -79,7 +79,7 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（51件・context-overload が最多パターン）
+- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（62件・context-overload が最多、quota-recovery 急増）
 - 2026-05-15 — [[summaries/doc-discussions]] — 設計判断ログ分析（11件・インタラクションシナリオ・大規模タスク停止基準・ブロッカー報告・query promote フロー）
 - 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
 - 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細
@@ -93,5 +93,6 @@
 ## Open Questions
 
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
-- Q4: `countermeasure: none` issue 群（LIN-22, LIN-46 + LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, LIN-171）— context-overload 対策として issue 記述ガイドラインを整備すべきか？
-- Q5: PR省略→再依頼パターン（LIN-172, LIN-175）— SKILL の PR 作成判断基準をどのように徹底するか？
+- Q4: `countermeasure: none` issue 群（LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79）— context-overload 対策として issue 記述ガイドラインを整備すべきか？（LIN-22, LIN-46, LIN-171 は in-agents-md 対応済み）
+- Q5: PR 作成忘れパターン（LIN-172, LIN-175, LIN-184）— AGENTS.md ルールに加え、ワークフローの機械的チェックをどう実装するか？
+- Q6: `quota-recovery` 急増（6→11件）— クォータ管理の改善策は？

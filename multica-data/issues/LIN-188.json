@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 1,
+    "total_duration_seconds": 2
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-14T16:08:13Z",
+  "description": "## 概要\ngridman リポジトリの CI（Lint ステップ）が biome フォーマットエラーで失敗しています。\n\n## エラー内容\n以下のファイルにセミコロン欠落・インデントのフォーマット違反があります：\n\n- `src/App.tsx` — import/return 文にセミコロン欠落\n- `server/index.ts` — インデントと長い行の折り返し\n- `src/types/view.ts` — 型定義のセミコロン欠落\n- `src/types/schema.ts` — 型定義のセミコロン欠落\n\n## 対処方法\n`npx biome check --write src server` を実行してフォーマットを自動修正し、PR を作成する。\n\n## 参照\nCI ラン: https://github.com/haramako/gridman/actions/runs/25870501383",
+  "id": "0919250b-288a-4b7e-9e41-d718ba0aef33",
+  "identifier": "LIN-188",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T16:08:42Z",
+      "duration_seconds": 2,
+      "error": "You're out of extra usage · resets 8:20pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "9e000d04-c55d-4087-b0c7-54ec1b593462",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T16:08:40Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "todo",
+  "title": "CIのLintエラー修正（biomeフォーマット）",
+  "updated_at": "2026-05-14T16:08:13Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

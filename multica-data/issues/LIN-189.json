@@ -1,0 +1,89 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 4,
+    "total_duration_seconds": 316
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-14T16:12:38Z",
+  "description": "## 概要\n\ngridman リポジトリの GitHub Actions E2E Tests が 3件失敗しています。\n\nCI ラン: https://github.com/haramako/gridman/actions/runs/25870501393\n\n## 失敗1: Ctrl+X カット後、整数セルが空文字になる\n\n- テスト: `e2e/copy-paste.spec.ts:62` / `:81` — Ctrl+X でカット後、整数型セルが `\"0\"` ではなく `\"\"` になる\n- 原因: commit `e1a5bf9` で `columnTypeConfig.ts` の `integer`/`number` の `emptyValue` が `0` → `null` に変更されたため\n  - cut ハンドラ (`useKeyboardNavigation.ts:389`) が `colCfg.emptyValue` でセルをクリアする\n  - `Cell.tsx:49` の `getDisplayValue` は `null` を `\"\"` として表示する\n- 修正案: cut ハンドラで明示的に `null` を書き込むか、テストの期待値を `\"\"` に修正する\n\n## 失敗2: サイドバーのテーブル切替が複数要素にヒットする\n\n- テスト: `e2e/table-switch.spec.ts:20` — `page.locator('aside').getByRole('button', { name: 'アイテム' })` が 3要素に解決\n- 原因: lookup-view テストが作成したビュー名（\"敵一覧（アイテム展開）\"、\"アイテム展開テスト\"）に \"アイテム\" が含まれるため\n  - Playwright の `getByRole` はデフォルトで部分一致（`exact: false`）\n  - 全テストは `fullyParallel: false` で同一データを共有\n- 修正案: `exact: true` を追加するか、より specific な locator に変更する\n\n## 備考\n\nCI（Lint）の biome フォーマットエラーは LIN-188 で既に報告済みのため、本 issue では取り扱いません。",
+  "id": "085e8a20-dd32-4820-b593-3c0ebb2b79b4",
+  "identifier": "LIN-189",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T16:33:33Z",
+      "duration_seconds": 49,
+      "error": null,
+      "failure_reason": null,
+      "id": "c61e8c02-7b12-404f-8584-d13362a73d64",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "承知しました。PR作成を進めます。まずリポジトリを確認します。修正を適用します。まずコードの変更から行います。変更を適用しました。ブランチを作成してPRを作成します。PRを作成しました。PRを作成しました: https://github.com/haramako/gridman/pull/50",
+      "started_at": "2026-05-14T16:32:44Z",
+      "status": "completed",
+      "trigger_summary": "正しい判断です。    では、PR作成お願いします"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T16:32:16Z",
+      "duration_seconds": 43,
+      "error": null,
+      "failure_reason": null,
+      "id": "7d594752-651f-4ade-9742-29bf1d65bc7e",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Let me look into the relevant code and commit history to answer this properly.コメントを投稿しました。判断基準は commit `e1a5bf9` のコミットメッセージに明示された意図に基づいていることを説明しています。",
+      "started_at": "2026-05-14T16:31:33Z",
+      "status": "completed",
+      "trigger_summary": "> emptyValue: null への変更は意図的なものと判断し、テストの期待値を更新しました。  これは、どの情報から判断しましたか？    判断の正誤ではなく、判断の基準を確認しています。"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T16:27:30Z",
+      "duration_seconds": 222,
+      "error": null,
+      "failure_reason": null,
+      "id": "822bce9d-3715-4c37-a7da-b5fe5d495e52",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Good, I have a clear understanding. Let me read the actual files to make precise edits.Now I'll apply the fixes. Let me update both files:All pre-existing checks pass (type error in `DataRow.tsx` and lint errors are unrelated to this issue). Unit tests: **158 passed**.完了しました。\n\n**修正内容:**\n1. **`e2e/copy-paste.spec.ts`** — Cut 後の integer セル期待値を `'0'` → `''` に変更（`emptyValue: null` への変更に対応）\n2. **`e2e/table-switch.spec.ts`** — サイドバー locator に `exact: true` を追加し、部分一致による複数ヒットを防止\n\nユニットテスト 158件 全て通過。",
+      "started_at": "2026-05-14T16:23:48Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T16:12:41Z",
+      "duration_seconds": 2,
+      "error": "You're out of extra usage · resets 8:20pm (UTC)",
+      "failure_reason": "agent_error",
+      "id": "dc4ac9b3-5bcc-401b-9de4-b28fe03d63ae",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T16:12:39Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "E2Eテスト3件失敗（Cut処理とテーブル切替）",
+  "updated_at": "2026-05-14T16:37:09Z",
+  "usage": {
+    "cache_read_tokens": 581760,
+    "cache_write_tokens": 0,
+    "input_tokens": 72287,
+    "output_tokens": 7478,
+    "total_tokens": 661525
+  }
+}
