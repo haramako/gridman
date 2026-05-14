@@ -21,3 +21,4 @@ size: ~10 files
 | `2026-05-14_wiki-src-sot-and-coverage.md` | src/ SSoT 追加・wiki 充足性評価・compile フロー整理 |
 | `2026-05-14_intent-gap-and-interaction-scenarios.md` | インタラクションシナリオ手法（UI挙動タスクの事前合意） |
 | `2026-05-14_insight-countermeasure-review.md` | countermeasure 見直し（LIN-22/46/171: none→in-agents-md） |
+| `2026-05-15_llm-wiki-operations.md` | llm-wiki ingest/lint/compile/query 一連の運用記録・outputs/queries の promote フロー確認 |

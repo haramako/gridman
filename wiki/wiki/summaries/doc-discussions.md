@@ -1,7 +1,7 @@
 # Summary — doc-discussions (doc/discussion/)
 
 **Source**: `doc/discussion/` — [[raw/refs/doc-discussions]]  
-**件数**: 10 ファイル（2026-05-12〜14）  
+**件数**: 11 ファイル（2026-05-12〜15）  
 **性質**: 設計判断の決定ログ（変更の "なぜ" を残すための SSoT）
 
 ## 概要
@@ -33,6 +33,12 @@ Gridman のワークフロー改善・wiki 設計・AGENTS.md 更新に関する
 
 - **`ingest` と `compile` の区別**: `doc/discussion/` は不変の決定ログ。コードベースの知識として残す洞察だけを wiki に反映（compile または直接編集）。定期 ingest は不要
 - **LIN-22 / LIN-46 / LIN-171** の countermeasure を `none` → `in-agents-md` に更新
+
+### llm-wiki 運用フロー確認（2026-05-15）
+
+- **`outputs/queries/` は compile で使われない** — compile のスコープは `wiki/concepts/`・`wiki/entities/`・`wiki/summaries/` のみ。`outputs/` は対象外
+- **query 結果を wiki に定着させるには promote が必要** — durable な合成（比較・分析・新しい洞察）の場合のみ `wiki/concepts/` に昇格し `index.md` に追加する
+- **`entities/Playwright.md` の UI モード記述不足**を識別 — `test:e2e:ui` の具体的な使用シナリオが未記載。必要になったタイミングで追記する
 
 ## 合成先
 
