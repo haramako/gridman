@@ -1,6 +1,8 @@
 import type { ColumnDef, ColumnType, TableSchema, ValidationRule } from '@/types/schema';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { COLUMN_TYPE_CONFIG, COLUMN_TYPE_OPTIONS } from '@/lib/columnTypeConfig';
+import DialogShell from '@/components/ui/DialogShell';
+import DialogFooter from '@/components/ui/DialogFooter';
 
 function makeId() {
   return Math.random().toString(36).slice(2, 8);
@@ -65,14 +67,6 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
     );
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   const canSave =
     displayName.trim() !== '' &&
     columns.every((c) => c.key.trim() !== '' && c.displayName.trim() !== '');
@@ -93,86 +87,67 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
     onClose();
   };
 
+  const footer = (
+    <DialogFooter
+      onClose={onClose}
+      onSave={handleSave}
+      saveDisabled={!canSave}
+    />
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-background rounded-lg border shadow-lg w-[680px] max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-semibold text-sm">スキーマ編集 — {tableName}</span>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">
-          <div className="flex items-center gap-2">
-            <label htmlFor="schema-display-name" className="w-28 text-muted-foreground shrink-0">
-              テーブル表示名
-            </label>
-            <input
-              id="schema-display-name"
-              className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium">カラム</span>
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground"
-                onClick={addCol}
-              >
-                + カラムを追加
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {columns.map((col, idx) => (
-                <ColumnEditor
-                  key={col._tempId}
-                  col={col}
-                  idx={idx}
-                  total={columns.length}
-                  tables={tables}
-                  onUpdate={(patch) => updateCol(col._tempId, patch)}
-                  onUpdateValidation={(patch) => updateValidation(col._tempId, patch)}
-                  onRemove={() => removeCol(col._tempId)}
-                  onMove={(dir) => moveCol(col._tempId, dir)}
-                />
-              ))}
-            </div>
-
-            {columns.length === 0 && (
-              <p className="text-xs text-muted-foreground py-2">カラムがありません</p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t">
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded border text-sm hover:bg-accent"
-            onClick={onClose}
-          >
-            キャンセル
-          </button>
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 disabled:opacity-40"
-            disabled={!canSave}
-            onClick={handleSave}
-          >
-            保存
-          </button>
-        </div>
+    <DialogShell
+      title={`スキーマ編集 — ${tableName}`}
+      width="w-[680px]"
+      maxHeight="max-h-[85vh]"
+      onClose={onClose}
+      footer={footer}
+    >
+      <div className="flex items-center gap-2">
+        <label htmlFor="schema-display-name" className="w-28 text-muted-foreground shrink-0">
+          テーブル表示名
+        </label>
+        <input
+          id="schema-display-name"
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
       </div>
-    </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-medium">カラム</span>
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={addCol}
+          >
+            + カラムを追加
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {columns.map((col, idx) => (
+            <ColumnEditor
+              key={col._tempId}
+              col={col}
+              idx={idx}
+              total={columns.length}
+              tables={tables}
+              onUpdate={(patch) => updateCol(col._tempId, patch)}
+              onUpdateValidation={(patch) => updateValidation(col._tempId, patch)}
+              onRemove={() => removeCol(col._tempId)}
+              onMove={(dir) => moveCol(col._tempId, dir)}
+            />
+          ))}
+        </div>
+
+        {columns.length === 0 && (
+          <p className="text-xs text-muted-foreground py-2">カラムがありません</p>
+        )}
+      </div>
+    </DialogShell>
   );
 }
 
