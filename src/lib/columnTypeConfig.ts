@@ -7,7 +7,7 @@ export type ColumnTypeConfig = {
   filterOps: readonly string[]
   filterValueWidget: 'text' | 'enum' | 'boolean'
   defaultWidget: PageLayoutWidget
-  emptyValue: '' | 0
+  emptyValue: '' | null
   gridReadonly: boolean
   supportsKbdEdit: boolean
   supportsTypeToEdit: boolean
@@ -23,8 +23,8 @@ const OPS_BOOL = ['eq', 'isNull', 'isNotNull'] as const
 
 export const COLUMN_TYPE_CONFIG: Record<ColumnType, ColumnTypeConfig> = {
   string:  { icon: '🔤', defaultWidth: 150, filterOps: OPS_STRING, filterValueWidget: 'text',    defaultWidget: 'text',     emptyValue: '', gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: true,  hasEnumValues: false, hasRefTable: false, validationGroup: 'string' },
-  integer: { icon: '🔢', defaultWidth: 100, filterOps: OPS_NUMBER, filterValueWidget: 'text',    defaultWidget: 'number',   emptyValue: 0,  gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: true,  hasEnumValues: false, hasRefTable: false, validationGroup: 'number' },
-  number:  { icon: '🔢', defaultWidth: 100, filterOps: OPS_NUMBER, filterValueWidget: 'text',    defaultWidget: 'number',   emptyValue: 0,  gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: true,  hasEnumValues: false, hasRefTable: false, validationGroup: 'number' },
+  integer: { icon: '🔢', defaultWidth: 100, filterOps: OPS_NUMBER, filterValueWidget: 'text',    defaultWidget: 'number',   emptyValue: null, gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: true,  hasEnumValues: false, hasRefTable: false, validationGroup: 'number' },
+  number:  { icon: '🔢', defaultWidth: 100, filterOps: OPS_NUMBER, filterValueWidget: 'text',    defaultWidget: 'number',   emptyValue: null, gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: true,  hasEnumValues: false, hasRefTable: false, validationGroup: 'number' },
   boolean: { icon: '☑',  defaultWidth: 60,  filterOps: OPS_BOOL,   filterValueWidget: 'boolean', defaultWidget: 'checkbox', emptyValue: '', gridReadonly: false, supportsKbdEdit: false, supportsTypeToEdit: false, hasEnumValues: false, hasRefTable: false, validationGroup: 'other' },
   enum:    { icon: '📋', defaultWidth: 120, filterOps: OPS_ENUM,   filterValueWidget: 'enum',    defaultWidget: 'select',   emptyValue: '', gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: false, hasEnumValues: true,  hasRefTable: false, validationGroup: 'other' },
   ref:     { icon: '🔗', defaultWidth: 160, filterOps: OPS_STRING, filterValueWidget: 'text',    defaultWidget: 'text',     emptyValue: '', gridReadonly: false, supportsKbdEdit: true,  supportsTypeToEdit: false, hasEnumValues: false, hasRefTable: true,  validationGroup: 'other' },
