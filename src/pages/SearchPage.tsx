@@ -167,7 +167,6 @@ export default function SearchPage() {
             placeholder="検索クエリを入力..."
             value={localQuery}
             onChange={(e) => handleInputChange(e.target.value)}
-            autoFocus
           />
         </div>
       </div>

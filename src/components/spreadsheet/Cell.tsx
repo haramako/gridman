@@ -43,7 +43,7 @@ function getDisplayValue(
   if (col.type === 'json') return rawValue != null ? '[JSON]' : '';
   if (col.type === 'text') {
     const s = String(rawValue ?? '');
-    return s.length > 40 ? s.slice(0, 40) + '…' : s;
+    return s.length > 40 ? `${s.slice(0, 40)}…` : s;
   }
 
   return rawValue != null ? String(rawValue) : '';
@@ -93,11 +93,11 @@ export default function Cell({
     colIndex <= selectionBounds.maxCol;
 
   const displayValue = isInvalid
-    ? String(row._invalid![col.key] ?? '')
+    ? String(row._invalid?.[col.key] ?? '')
     : getDisplayValue(row, col, schemas, tables);
 
   const currentEditValue = isInvalid
-    ? String(row._invalid![col.key] ?? '')
+    ? String(row._invalid?.[col.key] ?? '')
     : String(row[col.key] ?? '');
 
   const [editValue, setEditValue] = useState(currentEditValue);
@@ -126,7 +126,7 @@ export default function Cell({
   }, [isEditing]);
 
   const errorMessage = isInvalid
-    ? validateCell(coerceToType(row._invalid![col.key], col.type), col)?.message
+    ? validateCell(coerceToType(row._invalid?.[col.key], col.type), col)?.message
     : null;
 
   const commitEdit = (val: string) => {

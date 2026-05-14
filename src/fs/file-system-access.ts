@@ -53,7 +53,7 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
     }
     const writable = await fileHandle.createWritable();
     for (const row of existingRows.values()) {
-      await writable.write(JSON.stringify(row) + '\n');
+      await writable.write(`${JSON.stringify(row)}\n`);
     }
     await writable.close();
   }

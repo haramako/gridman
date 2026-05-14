@@ -89,7 +89,7 @@ export default function SpreadsheetView({
       danger: true,
       disabled: readOnly,
       onClick: () => {
-        idsToDelete.forEach((id) => deleteRow(getSourceTable(id), id));
+        for (const id of idsToDelete) deleteRow(getSourceTable(id), id);
         setSelectedRowIds(new Set());
       },
     });
@@ -112,16 +112,16 @@ export default function SpreadsheetView({
   const handleDeleteRow = () => {
     if (selectedRowIds.size === 0) return;
     const ids = [...selectedRowIds];
-    ids.forEach((rowId) => {
+    for (const rowId of ids) {
       let sourceTable = tableName;
       if (isUnionView) {
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'union');
       } else if (isLookupView) {
-        const fromTable = (activeView!.query as LookupViewQuery).from;
+        const fromTable = (activeView?.query as LookupViewQuery).from;
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'lookup', fromTable);
       }
       deleteRow(sourceTable, rowId);
-    });
+    }
     setSelectedRowIds(new Set());
   };
 

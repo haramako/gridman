@@ -15,7 +15,7 @@ export function applyUnion(
     const srcSchema = schemas.get(source.from);
     if (!srcSchema) continue;
     const cols = source.columns
-      ? srcSchema.columns.filter((c) => source.columns!.includes(c.key))
+      ? srcSchema.columns.filter((c) => source.columns?.includes(c.key))
       : srcSchema.columns;
     for (const col of cols) {
       if (!columnDefs.has(col.key)) {

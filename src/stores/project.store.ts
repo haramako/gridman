@@ -263,14 +263,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           isDirty: false,
           hasDraft: false,
         };
-      } else {
-        return {
-          dirtyRowIds: newDirtyRowIds,
-          dirtyCellIds: newDirtyCellIds,
-          deletedRowIds: newDeletedRowIds,
-          isDirty: true,
-        };
       }
+      return {
+        dirtyRowIds: newDirtyRowIds,
+        dirtyCellIds: newDirtyCellIds,
+        deletedRowIds: newDeletedRowIds,
+        isDirty: true,
+      };
     });
   },
 
@@ -306,7 +305,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       delete invalid[col];
       newRow = { ...row, [col]: coerced };
       if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
-      else delete newRow._invalid;
+      else newRow._invalid = undefined;
     }
 
     const prevRow = row;
@@ -379,7 +378,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         delete invalid[col];
         newRow = { ...row, [col]: coerced };
         if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
-        else delete newRow._invalid;
+        else newRow._invalid = undefined;
       }
 
       const prevRow = row;

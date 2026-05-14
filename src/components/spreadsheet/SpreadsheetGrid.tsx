@@ -155,7 +155,7 @@ export default function SpreadsheetGrid({
         const rowCell = target?.closest('[data-row-index]');
         if (!rowCell) return;
         const idx = Number.parseInt(rowCell.getAttribute('data-row-index') || '', 10);
-        if (isNaN(idx) || idx === dragCurrentRowIndex.current) return;
+        if (Number.isNaN(idx) || idx === dragCurrentRowIndex.current) return;
         dragCurrentRowIndex.current = idx;
 
         // Select all rows between start and current
@@ -291,7 +291,6 @@ export default function SpreadsheetGrid({
     <GridContext.Provider value={gridContextValue}>
       <div
         ref={containerRef}
-        tabIndex={0}
         className="flex-1 overflow-auto outline-none"
         onScroll={onScroll}
         onKeyDown={handleContainerKeyDown}
