@@ -1,7 +1,7 @@
 ---
-name: workflow-discussion
+name: discussion
 description: >-
-  ワークフロー改善の相談内容・決定事項・持ち越し事項を
+  相談内容・決定事項・持ち越し事項を
   doc/discussion/YYYY-MM-DD_<description>.md に記録する。
   相談の開始時・終了時・区切りのよいタイミングで呼ぶ。
 user-invocable: true
@@ -11,9 +11,9 @@ allowed-tools:
   - Glob
 ---
 
-# /workflow-discussion — ワークフロー改善相談の記録スキル
+# /discussion — 相談記録スキル
 
-ワークフロー改善に関する相談・設計判断を `doc/discussion/` に蓄積する。
+相談内容・決定事項・持ち越し事項を `doc/discussion/` に記録する。
 「なぜそう決めたか」の理由を残すことで、同じ議論の繰り返しを防ぐ。
 
 Arguments passed: `$ARGUMENTS`
