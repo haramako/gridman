@@ -1,9 +1,9 @@
+import DialogFooter from '@/components/ui/DialogFooter';
+import DialogShell from '@/components/ui/DialogShell';
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
 import type { PageLayoutItem, PageLayoutWidget, PageTemplate } from '@/types/page';
 import type { TableSchema } from '@/types/schema';
 import { useState } from 'react';
-import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
-import DialogShell from '@/components/ui/DialogShell';
-import DialogFooter from '@/components/ui/DialogFooter';
 
 const WIDGET_OPTIONS: { value: string; label: string }[] = [
   { value: 'text', label: 'テキスト' },
@@ -85,7 +85,7 @@ export default function PageTemplateDialog({
     item: PageLayoutItem,
     index: number,
     onUpdate: (patch: Partial<PageLayoutItem>) => void,
-    onRemove: () => void,
+    onRemove: () => void
   ): JSX.Element => {
     if (item.type === 'section') {
       return (
@@ -119,7 +119,7 @@ export default function PageTemplateDialog({
                 () => {
                   const newChildren = (item.children ?? []).filter((_, i) => i !== ci);
                   onUpdate({ children: newChildren });
-                },
+                }
               )
             )}
           </div>
@@ -191,9 +191,14 @@ export default function PageTemplateDialog({
       onClose={onClose}
       onSave={handleSave}
       saveDisabled={!name.trim() || layout.length === 0}
-      onDelete={editTemplate && onDelete && editTemplate.id
-        ? () => { onDelete(editTemplate.id!); onClose(); }
-        : undefined}
+      onDelete={
+        editTemplate && onDelete && editTemplate.id
+          ? () => {
+              onDelete(editTemplate.id!);
+              onClose();
+            }
+          : undefined
+      }
     />
   );
 
@@ -249,7 +254,7 @@ export default function PageTemplateDialog({
               item,
               i,
               (patch) => updateItem(i, patch),
-              () => removeItem(i),
+              () => removeItem(i)
             )
           )}
         </div>

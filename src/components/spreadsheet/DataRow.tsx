@@ -1,7 +1,7 @@
+import { getEffectiveTableName } from '@/lib/viewRowSource';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
 import type { ProjectConfig } from '@/types/view';
-import { getEffectiveTableName } from '@/lib/viewRowSource';
 import Cell from './Cell';
 
 interface Props {

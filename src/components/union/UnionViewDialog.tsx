@@ -1,85 +1,100 @@
-import { useState } from 'react'
-import type { TableSchema } from '@/types/schema'
-import type { UnionViewQuery, ViewDefinition } from '@/types/view'
-import { makeId } from '@/lib/utils'
-import DialogShell from '@/components/ui/DialogShell'
-import DialogFooter from '@/components/ui/DialogFooter'
+import DialogFooter from '@/components/ui/DialogFooter';
+import DialogShell from '@/components/ui/DialogShell';
+import { makeId } from '@/lib/utils';
+import type { TableSchema } from '@/types/schema';
+import type { UnionViewQuery, ViewDefinition } from '@/types/view';
+import { useState } from 'react';
 
 interface SourceRow {
-  id: string
-  from: string
-  columns: string[]
+  id: string;
+  from: string;
+  columns: string[];
 }
 
 interface Props {
-  schemas: Map<string, TableSchema>
-  tables: string[]
-  editView?: ViewDefinition
-  onSave: (view: ViewDefinition) => void
-  onDelete?: (id: string) => void
-  onClose: () => void
+  schemas: Map<string, TableSchema>;
+  tables: string[];
+  editView?: ViewDefinition;
+  onSave: (view: ViewDefinition) => void;
+  onDelete?: (id: string) => void;
+  onClose: () => void;
 }
 
-export default function UnionViewDialog({ schemas, tables, editView, onSave, onDelete, onClose }: Props) {
-  const existing = editView?.query.type === 'union' ? (editView.query as UnionViewQuery) : undefined
+export default function UnionViewDialog({
+  schemas,
+  tables,
+  editView,
+  onSave,
+  onDelete,
+  onClose,
+}: Props) {
+  const existing =
+    editView?.query.type === 'union' ? (editView.query as UnionViewQuery) : undefined;
 
-  const [name, setName] = useState(editView?.name ?? '')
+  const [name, setName] = useState(editView?.name ?? '');
   const [sources, setSources] = useState<SourceRow[]>(() => {
     if (existing?.sources && existing.sources.length > 0) {
       return existing.sources.map((s) => ({
         id: makeId(),
         from: s.from,
         columns: s.columns ?? [],
-      }))
+      }));
     }
-    return tables.slice(0, 2).map((t) => ({ id: makeId(), from: t, columns: [] }))
-  })
+    return tables.slice(0, 2).map((t) => ({ id: makeId(), from: t, columns: [] }));
+  });
 
   const addSource = () => {
-    setSources((prev) => [...prev, { id: makeId(), from: tables[0] ?? '', columns: [] }])
-  }
+    setSources((prev) => [...prev, { id: makeId(), from: tables[0] ?? '', columns: [] }]);
+  };
 
   const removeSource = (id: string) => {
-    setSources((prev) => prev.filter((s) => s.id !== id))
-  }
+    setSources((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const updateSourceTable = (id: string, from: string) => {
-    setSources((prev) => prev.map((s) => s.id === id ? { ...s, from, columns: [] } : s))
-  }
+    setSources((prev) => prev.map((s) => (s.id === id ? { ...s, from, columns: [] } : s)));
+  };
 
   const toggleColumn = (sourceId: string, colKey: string) => {
     setSources((prev) =>
       prev.map((s) => {
-        if (s.id !== sourceId) return s
+        if (s.id !== sourceId) return s;
         const cols = s.columns.includes(colKey)
           ? s.columns.filter((c) => c !== colKey)
-          : [...s.columns, colKey]
-        return { ...s, columns: cols }
+          : [...s.columns, colKey];
+        return { ...s, columns: cols };
       })
-    )
-  }
+    );
+  };
 
   const handleSave = () => {
-    if (!name.trim() || sources.length === 0) return
+    if (!name.trim() || sources.length === 0) return;
     const query: UnionViewQuery = {
       type: 'union',
       sources: sources.map((s) => ({
         from: s.from,
         ...(s.columns.length > 0 ? { columns: s.columns } : {}),
       })),
-    }
-    onSave({ id: editView?.id ?? makeId(), name: name.trim(), query })
-    onClose()
-  }
+    };
+    onSave({ id: editView?.id ?? makeId(), name: name.trim(), query });
+    onClose();
+  };
 
   const footer = (
     <DialogFooter
       onClose={onClose}
       onSave={handleSave}
       saveDisabled={!name.trim() || sources.length === 0}
-      onDelete={editView && onDelete ? () => { onDelete(editView.id); onClose() } : undefined}
+      onDelete={
+        editView && onDelete
+          ? () => {
+              onDelete(editView.id);
+              onClose();
+            }
+          : undefined
+      }
     />
-  )
+  );
 
   return (
     <DialogShell
@@ -105,9 +120,9 @@ export default function UnionViewDialog({ schemas, tables, editView, onSave, onD
         <div className="mb-2 text-muted-foreground">結合するテーブル</div>
         <div className="space-y-3">
           {sources.map((source, idx) => {
-            const schema = schemas.get(source.from)
-            const cols = schema?.columns ?? []
-            const allSelected = source.columns.length === 0
+            const schema = schemas.get(source.from);
+            const cols = schema?.columns ?? [];
+            const allSelected = source.columns.length === 0;
             return (
               <div key={source.id} className="border rounded p-3 space-y-2">
                 <div className="flex items-center gap-2">
@@ -118,7 +133,9 @@ export default function UnionViewDialog({ schemas, tables, editView, onSave, onD
                     onChange={(e) => updateSourceTable(source.id, e.target.value)}
                   >
                     {tables.map((t) => (
-                      <option key={t} value={t}>{schemas.get(t)?.displayName ?? t}</option>
+                      <option key={t} value={t}>
+                        {schemas.get(t)?.displayName ?? t}
+                      </option>
                     ))}
                   </select>
                   <button
@@ -133,10 +150,12 @@ export default function UnionViewDialog({ schemas, tables, editView, onSave, onD
                 {/* Column selection */}
                 {cols.length > 0 && (
                   <div>
-                    <div className="text-xs text-muted-foreground mb-1">使用するカラム（未選択=すべて）</div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      使用するカラム（未選択=すべて）
+                    </div>
                     <div className="flex flex-wrap gap-1">
                       {cols.map((col) => {
-                        const checked = allSelected || source.columns.includes(col.key)
+                        const checked = allSelected || source.columns.includes(col.key);
                         return (
                           <label
                             key={col.key}
@@ -154,13 +173,13 @@ export default function UnionViewDialog({ schemas, tables, editView, onSave, onD
                             />
                             {col.displayName}
                           </label>
-                        )
+                        );
                       })}
                     </div>
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </div>
         <button
@@ -171,5 +190,5 @@ export default function UnionViewDialog({ schemas, tables, editView, onSave, onD
         </button>
       </div>
     </DialogShell>
-  )
+  );
 }

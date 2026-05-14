@@ -1,26 +1,26 @@
-import { useState, useRef, useEffect } from 'react'
-import { useProjectStore } from '@/stores/project.store'
-import { useSelectionStore } from '@/stores/selection.store'
-import { useGridContext } from './SpreadsheetGrid'
-import { validateCell, coerceToType } from '@/domain/validator'
-import { cn } from '@/lib/utils'
-import { resolveEnumValues } from '@/lib/enum-resolver'
-import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
-import type { ColumnDef } from '@/types/schema'
-import type { ProjectConfig } from '@/types/view'
-import type { TableSchema } from '@/types/schema'
-import type { Row } from '@/types/row'
+import { coerceToType, validateCell } from '@/domain/validator';
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
+import { resolveEnumValues } from '@/lib/enum-resolver';
+import { cn } from '@/lib/utils';
+import { useProjectStore } from '@/stores/project.store';
+import { useSelectionStore } from '@/stores/selection.store';
+import type { Row } from '@/types/row';
+import type { ColumnDef } from '@/types/schema';
+import type { TableSchema } from '@/types/schema';
+import type { ProjectConfig } from '@/types/view';
+import { useEffect, useRef, useState } from 'react';
+import { useGridContext } from './SpreadsheetGrid';
 
 interface Props {
-  row: Row
-  col: ColumnDef
-  colIndex: number
-  gridRowIndex: number
-  tableName: string
-  schemas: Map<string, TableSchema>
-  tables: Map<string, Map<string, Row>>
-  project: ProjectConfig | null
-  readOnly?: boolean
+  row: Row;
+  col: ColumnDef;
+  colIndex: number;
+  gridRowIndex: number;
+  tableName: string;
+  schemas: Map<string, TableSchema>;
+  tables: Map<string, Map<string, Row>>;
+  project: ProjectConfig | null;
+  readOnly?: boolean;
 }
 
 function getDisplayValue(
@@ -29,43 +29,60 @@ function getDisplayValue(
   schemas: Map<string, TableSchema>,
   tables: Map<string, Map<string, Row>>
 ): string {
-  const rawValue = row[col.key]
+  const rawValue = row[col.key];
 
   if (col.type === 'ref' && col.refTable) {
-    const refTable = tables.get(col.refTable)
-    const refSchema = schemas.get(col.refTable)
-    const displayCol = refSchema?.columns.find((c) => c.isDisplayName)
-    const refRow = refTable?.get(rawValue as string)
-    if (refRow && displayCol) return String(refRow[displayCol.key] ?? '')
-    return rawValue != null ? String(rawValue) : ''
+    const refTable = tables.get(col.refTable);
+    const refSchema = schemas.get(col.refTable);
+    const displayCol = refSchema?.columns.find((c) => c.isDisplayName);
+    const refRow = refTable?.get(rawValue as string);
+    if (refRow && displayCol) return String(refRow[displayCol.key] ?? '');
+    return rawValue != null ? String(rawValue) : '';
   }
 
-  if (col.type === 'json') return rawValue != null ? '[JSON]' : ''
+  if (col.type === 'json') return rawValue != null ? '[JSON]' : '';
   if (col.type === 'text') {
-    const s = String(rawValue ?? '')
-    return s.length > 40 ? s.slice(0, 40) + '…' : s
+    const s = String(rawValue ?? '');
+    return s.length > 40 ? s.slice(0, 40) + '…' : s;
   }
 
-  return rawValue != null ? String(rawValue) : ''
+  return rawValue != null ? String(rawValue) : '';
 }
 
-export default function Cell({ row, col, colIndex, gridRowIndex, tableName, schemas, tables, project, readOnly }: Props) {
-  const { cursor, editingCell, editInitialValue, setCursor, setEditing, clearEditInitialValue, setJsonPanelCell } =
-    useSelectionStore()
-  const { updateCell, dirtyRowIds, dirtyCellIds } = useProjectStore()
-  const resolvedEnumValues = resolveEnumValues(col, project)
-  const { navigate, selectionBounds, focusContainer, onCellMouseDown } = useGridContext()
-  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null)
-  const committedRef = useRef(false)
+export default function Cell({
+  row,
+  col,
+  colIndex,
+  gridRowIndex,
+  tableName,
+  schemas,
+  tables,
+  project,
+  readOnly,
+}: Props) {
+  const {
+    cursor,
+    editingCell,
+    editInitialValue,
+    setCursor,
+    setEditing,
+    clearEditInitialValue,
+    setJsonPanelCell,
+  } = useSelectionStore();
+  const { updateCell, dirtyRowIds, dirtyCellIds } = useProjectStore();
+  const resolvedEnumValues = resolveEnumValues(col, project);
+  const { navigate, selectionBounds, focusContainer, onCellMouseDown } = useGridContext();
+  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+  const committedRef = useRef(false);
 
-  const rowId = row._id as string
-  const isSelected = cursor?.rowId === rowId && cursor?.colKey === col.key
-  const isEditing = editingCell?.rowId === rowId && editingCell?.colKey === col.key
+  const rowId = row._id as string;
+  const isSelected = cursor?.rowId === rowId && cursor?.colKey === col.key;
+  const isEditing = editingCell?.rowId === rowId && editingCell?.colKey === col.key;
   const isDirty =
     dirtyCellIds.get(tableName)?.get(rowId)?.has(col.key) ??
     dirtyRowIds.get(tableName)?.has(rowId) ??
-    false
-  const isInvalid = row._invalid?.[col.key] !== undefined
+    false;
+  const isInvalid = row._invalid?.[col.key] !== undefined;
 
   // Check if this cell is inside a multi-cell selection range
   const isInRange =
@@ -73,63 +90,63 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
     gridRowIndex >= selectionBounds.minRow &&
     gridRowIndex <= selectionBounds.maxRow &&
     colIndex >= selectionBounds.minCol &&
-    colIndex <= selectionBounds.maxCol
+    colIndex <= selectionBounds.maxCol;
 
   const displayValue = isInvalid
     ? String(row._invalid![col.key] ?? '')
-    : getDisplayValue(row, col, schemas, tables)
+    : getDisplayValue(row, col, schemas, tables);
 
   const currentEditValue = isInvalid
     ? String(row._invalid![col.key] ?? '')
-    : String(row[col.key] ?? '')
+    : String(row[col.key] ?? '');
 
-  const [editValue, setEditValue] = useState(currentEditValue)
+  const [editValue, setEditValue] = useState(currentEditValue);
 
   useEffect(() => {
     if (isEditing) {
-      committedRef.current = false
+      committedRef.current = false;
       if (editInitialValue !== null) {
-        setEditValue(editInitialValue)
-        clearEditInitialValue()
+        setEditValue(editInitialValue);
+        clearEditInitialValue();
       } else {
-        setEditValue(currentEditValue)
+        setEditValue(currentEditValue);
       }
       setTimeout(() => {
-        const input = inputRef.current
+        const input = inputRef.current;
         if (input instanceof HTMLInputElement) {
-          input.focus()
+          input.focus();
           // For type-to-edit the cursor ends up at end automatically;
           // for normal edit we also put cursor at end
-          input.setSelectionRange(input.value.length, input.value.length)
+          input.setSelectionRange(input.value.length, input.value.length);
         } else {
-          input?.focus()
+          input?.focus();
         }
-      }, 0)
+      }, 0);
     }
-  }, [isEditing])
+  }, [isEditing]);
 
   const errorMessage = isInvalid
     ? validateCell(coerceToType(row._invalid![col.key], col.type), col)?.message
-    : null
+    : null;
 
   const commitEdit = (val: string) => {
-    if (committedRef.current) return
-    committedRef.current = true
-    updateCell(tableName, rowId, col.key, val)
-    setEditing(null)
-  }
+    if (committedRef.current) return;
+    committedRef.current = true;
+    updateCell(tableName, rowId, col.key, val);
+    setEditing(null);
+  };
 
   const cancelEdit = () => {
-    committedRef.current = true  // prevent onBlur from committing
-    setEditing(null)
-    focusContainer()
-  }
+    committedRef.current = true; // prevent onBlur from committing
+    setEditing(null);
+    focusContainer();
+  };
 
   const startEdit = () => {
-    if (COLUMN_TYPE_CONFIG[col.type].gridReadonly || col.readonly) return
-    setCursor({ rowId, colKey: col.key, tableName })
-    setEditing({ rowId, colKey: col.key, tableName })
-  }
+    if (COLUMN_TYPE_CONFIG[col.type].gridReadonly || col.readonly) return;
+    setCursor({ rowId, colKey: col.key, tableName });
+    setEditing({ rowId, colKey: col.key, tableName });
+  };
 
   // boolean: click to toggle
   if (col.type === 'boolean') {
@@ -147,18 +164,18 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
         )}
         onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
         onClick={() => {
-          if (readOnly) return
-          updateCell(tableName, rowId, col.key, !row[col.key])
+          if (readOnly) return;
+          updateCell(tableName, rowId, col.key, !row[col.key]);
         }}
       >
         <span className="text-base leading-none">{row[col.key] ? '✓' : ''}</span>
       </td>
-    )
+    );
   }
 
   // readonly types (json, text, or explicitly readonly columns e.g. lookup expansions)
   if (COLUMN_TYPE_CONFIG[col.type].gridReadonly || col.readonly) {
-    const isJsonClickable = col.type === 'json'
+    const isJsonClickable = col.type === 'json';
     return (
       <td
         data-row-id={rowId}
@@ -172,13 +189,13 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
         onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
         onClick={() => {
           if (isJsonClickable) {
-            setJsonPanelCell({ rowId, colKey: col.key, tableName })
+            setJsonPanelCell({ rowId, colKey: col.key, tableName });
           }
         }}
       >
         {displayValue}
       </td>
-    )
+    );
   }
 
   if (isEditing) {
@@ -190,35 +207,44 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            onBlur={() => { commitEdit(editValue); focusContainer() }}
+            onBlur={() => {
+              commitEdit(editValue);
+              focusContainer();
+            }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
-              if (e.key === 'Escape') cancelEdit()
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                commitEdit(editValue);
+                navigate(rowId, col.key, 1, 0);
+              }
+              if (e.key === 'Escape') cancelEdit();
               if (e.key === 'Tab') {
-                e.preventDefault()
-                e.stopPropagation()
-                commitEdit(editValue)
-                if (e.shiftKey) navigate(rowId, col.key, 0, -1)
-                else navigate(rowId, col.key, 0, 1)
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(editValue);
+                if (e.shiftKey) navigate(rowId, col.key, 0, -1);
+                else navigate(rowId, col.key, 0, 1);
               }
             }}
           >
             <option value="">-</option>
             {resolvedEnumValues.map((v) => (
-              <option key={v} value={v}>{v}</option>
+              <option key={v} value={v}>
+                {v}
+              </option>
             ))}
           </select>
         </td>
-      )
+      );
     }
 
     if (col.type === 'ref' && col.refTable) {
-      const refTable = tables.get(col.refTable)
-      const refSchema = schemas.get(col.refTable)
-      const displayCol = refSchema?.columns.find((c) => c.isDisplayName)
+      const refTable = tables.get(col.refTable);
+      const refSchema = schemas.get(col.refTable);
+      const displayCol = refSchema?.columns.find((c) => c.isDisplayName);
       const refRows = refTable
         ? [...refTable.values()].sort((a, b) => (a._order as number) - (b._order as number))
-        : []
+        : [];
 
       return (
         <td data-row-id={rowId} data-col-key={col.key} className="border-b border-r p-0">
@@ -227,16 +253,23 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             className="w-full h-full px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            onBlur={() => { commitEdit(editValue); focusContainer() }}
+            onBlur={() => {
+              commitEdit(editValue);
+              focusContainer();
+            }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
-              if (e.key === 'Escape') cancelEdit()
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                commitEdit(editValue);
+                navigate(rowId, col.key, 1, 0);
+              }
+              if (e.key === 'Escape') cancelEdit();
               if (e.key === 'Tab') {
-                e.preventDefault()
-                e.stopPropagation()
-                commitEdit(editValue)
-                if (e.shiftKey) navigate(rowId, col.key, 0, -1)
-                else navigate(rowId, col.key, 0, 1)
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(editValue);
+                if (e.shiftKey) navigate(rowId, col.key, 0, -1);
+                else navigate(rowId, col.key, 0, 1);
               }
             }}
           >
@@ -248,7 +281,7 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
             ))}
           </select>
         </td>
-      )
+      );
     }
 
     return (
@@ -258,21 +291,32 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
           className="w-full px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          onBlur={() => { commitEdit(editValue); focusContainer() }}
+          onBlur={() => {
+            commitEdit(editValue);
+            focusContainer();
+          }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitEdit(editValue); navigate(rowId, col.key, 1, 0) }
-            if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              commitEdit(editValue);
+              navigate(rowId, col.key, 1, 0);
+            }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              cancelEdit();
+            }
             if (e.key === 'Tab') {
-              e.preventDefault()
-              e.stopPropagation()
-              commitEdit(editValue)
-              if (e.shiftKey) navigate(rowId, col.key, 0, -1)
-              else navigate(rowId, col.key, 0, 1)
+              e.preventDefault();
+              e.stopPropagation();
+              commitEdit(editValue);
+              if (e.shiftKey) navigate(rowId, col.key, 0, -1);
+              else navigate(rowId, col.key, 0, 1);
             }
           }}
         />
       </td>
-    )
+    );
   }
 
   return (
@@ -290,11 +334,11 @@ export default function Cell({ row, col, colIndex, gridRowIndex, tableName, sche
       title={errorMessage ?? undefined}
       onMouseDown={(e) => onCellMouseDown(e, { rowId, colKey: col.key, tableName })}
       onDoubleClick={() => {
-        if (!readOnly) startEdit()
+        if (!readOnly) startEdit();
       }}
     >
       {isInvalid && <span className="mr-1 text-red-500">⚠</span>}
       {displayValue}
     </td>
-  )
+  );
 }

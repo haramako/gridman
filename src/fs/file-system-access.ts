@@ -31,7 +31,12 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
       .map((line) => JSON.parse(line));
   }
 
-  async patchTable(_projectPath: string, tableName: string, rows: Row[], deletedIds: string[]): Promise<void> {
+  async patchTable(
+    _projectPath: string,
+    tableName: string,
+    rows: Row[],
+    deletedIds: string[]
+  ): Promise<void> {
     const fileHandle = await this.dirHandle.getFileHandle(`${tableName}.jsonl`);
     const file = await fileHandle.getFile();
     const text = await file.text();
@@ -61,7 +66,9 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
   }
 
   async writeSchema(_projectPath: string, tableName: string, schema: TableSchema): Promise<void> {
-    const fileHandle = await this.dirHandle.getFileHandle(`${tableName}.schema.json`, { create: true });
+    const fileHandle = await this.dirHandle.getFileHandle(`${tableName}.schema.json`, {
+      create: true,
+    });
     const writable = await fileHandle.createWritable();
     await writable.write(JSON.stringify(schema, null, 2));
     await writable.close();
@@ -74,7 +81,11 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
     return JSON.parse(text);
   }
 
-  async writePageTemplate(_projectPath: string, name: string, template: PageTemplate): Promise<void> {
+  async writePageTemplate(
+    _projectPath: string,
+    name: string,
+    template: PageTemplate
+  ): Promise<void> {
     const fileHandle = await this.dirHandle.getFileHandle(`${name}.page.json`, { create: true });
     const writable = await fileHandle.createWritable();
     await writable.write(JSON.stringify(template, null, 2));
