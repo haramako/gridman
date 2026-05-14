@@ -31,11 +31,12 @@
 
 ### AIエージェントパターン
 - [[concepts/agent-patterns/index|Agent Patterns]] — Multica issue ログから帰納したワークフローパターン
-    - [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（最多パターン、7件）
+    - [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（最多パターン、8件）
     - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（4件）
-    - [[concepts/agent-patterns/Platform_Artifacts]] — stale failed run・重複トリガー（メトリクス歪み）
-    - [[concepts/agent-patterns/Spec_Quality]] — 仕様不完全による再設計
+    - [[concepts/agent-patterns/Platform_Artifacts]] — stale failed run・重複トリガー・quota-recovery（メトリクス歪み）
+    - [[concepts/agent-patterns/Spec_Quality]] — 仕様不完全による再設計・インタラクションシナリオ手法
     - [[concepts/agent-patterns/Regression_and_Testing]] — リグレッションと E2E 検証（対策済み）
+    - [[concepts/agent-patterns/Blocker_Reporting]] — タスク完了できない場合の構造化報告フォーマット
 
 ### 横断的概念
 - [[concepts/Page_View]] — カード型ビュー・テンプレート定義・ウィジェット
@@ -78,7 +79,8 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（39件・context-overload が最多パターンに）
+- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（51件・context-overload が最多パターン）
+- 2026-05-14 — [[summaries/doc-discussions]] — 設計判断ログ分析（10件・インタラクションシナリオ・大規模タスク停止基準・ブロッカー報告）
 - 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
 - 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細
 - 2026-05-14 — [[summaries/src-spreadsheet]] — スプレッドシート UI コンポーネント群（SpreadsheetView / Grid / Cell）の実装詳細

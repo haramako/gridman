@@ -66,6 +66,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - Platform_Artifacts.md
 - Spec_Quality.md
 - Regression_and_Testing.md
+- Blocker_Reporting.md
 
 ### concepts/
 - Page_View.md
@@ -103,6 +104,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - src-schema-editor.md
 - src-json-editor-search.md
 - issue-insights.md
+- doc-discussions.md
 
 ---
 
@@ -113,7 +115,8 @@ summaries/        ← doc/ 各ファイルのサマリー
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
-- LIN-22, LIN-46 + LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, **LIN-171**: `countermeasure: none` — context-overload 対策（issue 記述ガイドライン整備）が必要
+- ~~LIN-22, LIN-46, LIN-171~~: `in-agents-md` に更新済み（2026-05-14）
+- **LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79**: `countermeasure: none` のまま — context-overload 系。issue 記述ガイドライン整備が課題
 - **PR 省略→再依頼パターン**（LIN-172, LIN-175）: SKILL の PR 作成判断基準の徹底が必要
 
 ---
@@ -138,6 +141,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 | `src-types` | refs | `src/types/` — ColumnType / ViewQuery / Row / ProjectConfig |
 | `src-lib` | refs | `src/lib/` — columnTypeConfig ディスパッチテーブル・enum-resolver |
 | `server` | refs | `server/` — Hono サーバー 2実装（ファイルベース / SQLite） |
+| `doc-discussions` | refs | `doc/discussion/` — 設計判断ログ（10件、2026-05-12〜14） |
 
 ---
 

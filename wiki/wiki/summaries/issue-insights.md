@@ -1,7 +1,7 @@
 # Summary — issue-insights (multica-data/issue-insights/)
 
 **Source**: `multica-data/issue-insights/` — [[raw/refs/issue-insights]]  
-**件数**: 50 issue（LIN-1〜LIN-182、一部欠番）  
+**件数**: 51 issue（LIN-1〜LIN-182、一部欠番）  
 **期間**: 2026-04〜05
 
 ## 概要
@@ -13,9 +13,9 @@ Multica で実行された AI エージェントタスクの実行ログを分�
 
 | 値 | 件数 | 意味 |
 |----|------|------|
-| `one-time` | 39 | 一度限りの環境問題・操作ミス |
-| `none` | 9 | 未対策（要改善） |
-| `in-agents-md` | 1 | AGENTS.md 対策済み（LIN-51） |
+| `one-time` | 40 | 一度限りの環境問題・操作ミス（LIN-81 追加） |
+| `none` | 6 | 未対策（context-overload 系: LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79） |
+| `in-agents-md` | 4 | AGENTS.md 対策済み（LIN-51, LIN-22, LIN-46, LIN-171） |
 | `platform-fix` | 1 | プラットフォーム修正済み（LIN-43） |
 
 ## 観察されたパターン分布
@@ -43,7 +43,7 @@ Multica で実行された AI エージェントタスクの実行ログを分�
 3. **ゼロ run issue が9件**（LIN-1, LIN-27, LIN-28, LIN-34, LIN-35, LIN-67, LIN-180, LIN-181, LIN-182）。LIN-180/181/182 は LIN-171 の sub-task で、親 issue の作業内で一括完了した。
 4. **50件中 27件がパターンなし（正常フロー）**。単純実装は1 run で完了するケースが多数。
 5. **PR 省略→再依頼パターン**（LIN-172, LIN-175）: エージェントが実装完了後に PR を作成せず、ユーザーが再依頼。SKILL の「PR 作成判断基準」を厳守すれば防げる。
-6. **仕様の後追い変更**（LIN-22, LIN-46）と **context-overload 未対策**（LIN-171 など）は `countermeasure: none` のまま残っている。
+6. **仕様の後追い変更**（LIN-22, LIN-46）と **context-overload**（LIN-171）は `countermeasure: in-agents-md` に更新済み。残り `none` は context-overload 系 6 件（LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79）— issue 記述ガイドラインの整備が課題。
 
 ## 合成先
 

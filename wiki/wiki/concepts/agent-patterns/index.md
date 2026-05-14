@@ -5,11 +5,12 @@ AIエージェントタスクで繰り返し発生するパターンとその対
 
 ## サブページ
 
-- [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（**最多パターン、7件**）
+- [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（**最多パターン、8件**）
 - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（4件）
 - [[concepts/agent-patterns/Platform_Artifacts]] — プラットフォームアーティファクト（メトリクス歪み）
-- [[concepts/agent-patterns/Spec_Quality]] — 仕様品質起因の再設計
+- [[concepts/agent-patterns/Spec_Quality]] — 仕様品質起因の再設計・インタラクションシナリオ手法
 - [[concepts/agent-patterns/Regression_and_Testing]] — リグレッションと E2E 検証
+- [[concepts/agent-patterns/Blocker_Reporting]] — タスク完了できない場合の構造化報告
 
 ## パターン taxonomy
 
