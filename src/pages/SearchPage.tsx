@@ -1,126 +1,132 @@
-import { useProjectStore } from '@/stores/project.store'
-import { useViewStore } from '@/stores/view.store'
-import type { SearchResult } from '@/stores/view.store'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useProjectStore } from '@/stores/project.store';
+import { useViewStore } from '@/stores/view.store';
+import type { SearchResult } from '@/stores/view.store';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const DEBOUNCE_MS = 300
+const DEBOUNCE_MS = 300;
 
 export default function SearchPage() {
-  const navigate = useNavigate()
-  const { project, tables, schemas } = useProjectStore()
+  const navigate = useNavigate();
+  const { project, tables, schemas } = useProjectStore();
   const { searchQuery, searchResults, setSearchQuery, setSearchResults, clearSearch } =
-    useViewStore()
+    useViewStore();
 
-  const [localQuery, setLocalQuery] = useState(searchQuery)
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setLocalQuery(searchQuery)
-  }, [searchQuery])
+    setLocalQuery(searchQuery);
+  }, [searchQuery]);
 
-  const performSearch = useCallback((query: string) => {
-    if (!query.trim() || !project) {
-      setSearchResults([])
-      return
-    }
+  const performSearch = useCallback(
+    (query: string) => {
+      if (!query.trim() || !project) {
+        setSearchResults([]);
+        return;
+      }
 
-    const lowerQuery = query.toLowerCase()
-    const results: SearchResult[] = []
+      const lowerQuery = query.toLowerCase();
+      const results: SearchResult[] = [];
 
-    for (const [tableName, rowMap] of tables.entries()) {
-      const schema = schemas.get(tableName)
-      if (!schema) continue
+      for (const [tableName, rowMap] of tables.entries()) {
+        const schema = schemas.get(tableName);
+        if (!schema) continue;
 
-      for (const [rowId, row] of rowMap.entries()) {
-        for (const col of schema.columns) {
-          const value = row[col.key]
-          if (value === undefined || value === null) continue
+        for (const [rowId, row] of rowMap.entries()) {
+          for (const col of schema.columns) {
+            const value = row[col.key];
+            if (value === undefined || value === null) continue;
 
-          let strValue: string
-          if (typeof value === 'object') {
-            strValue = JSON.stringify(value)
-          } else {
-            strValue = String(value)
-          }
+            let strValue: string;
+            if (typeof value === 'object') {
+              strValue = JSON.stringify(value);
+            } else {
+              strValue = String(value);
+            }
 
-          if (strValue.toLowerCase().includes(lowerQuery)) {
-            results.push({
-              tableName,
-              tableDisplayName: schema.displayName ?? tableName,
-              rowId,
-              columnKey: col.key,
-              columnDisplayName: col.displayName,
-              value: strValue.length > 100 ? `${strValue.slice(0, 100)}...` : strValue,
-              row: row as Record<string, unknown>,
-            })
+            if (strValue.toLowerCase().includes(lowerQuery)) {
+              results.push({
+                tableName,
+                tableDisplayName: schema.displayName ?? tableName,
+                rowId,
+                columnKey: col.key,
+                columnDisplayName: col.displayName,
+                value: strValue.length > 100 ? `${strValue.slice(0, 100)}...` : strValue,
+                row: row as Record<string, unknown>,
+              });
+            }
           }
         }
       }
-    }
 
-    setSearchResults(results)
-  }, [project, tables, schemas, setSearchResults])
+      setSearchResults(results);
+    },
+    [project, tables, schemas, setSearchResults]
+  );
 
-  const handleInputChange = useCallback((value: string) => {
-    setLocalQuery(value)
-    setSearchQuery(value)
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setLocalQuery(value);
+      setSearchQuery(value);
 
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current)
-    }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
 
-    debounceTimer.current = setTimeout(() => {
-      performSearch(value)
-    }, DEBOUNCE_MS)
-  }, [setSearchQuery, performSearch])
+      debounceTimer.current = setTimeout(() => {
+        performSearch(value);
+      }, DEBOUNCE_MS);
+    },
+    [setSearchQuery, performSearch]
+  );
 
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current)
+        clearTimeout(debounceTimer.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      performSearch(searchQuery)
+      performSearch(searchQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery])
+  }, [searchQuery]);
 
   const groupedResults = useMemo(() => {
-    const groups: Map<string, SearchResult[]> = new Map()
+    const groups: Map<string, SearchResult[]> = new Map();
     for (const result of searchResults) {
-      const key = result.tableName
+      const key = result.tableName;
       if (!groups.has(key)) {
-        groups.set(key, [])
+        groups.set(key, []);
       }
-      groups.get(key)?.push(result)
+      groups.get(key)?.push(result);
     }
-    return groups
-  }, [searchResults])
+    return groups;
+  }, [searchResults]);
 
   const handleResultClick = (result: SearchResult) => {
     navigate(
       `/editor?project=${encodeURIComponent(project?.name ?? '')}&table=${result.tableName}`
-    )
-  }
+    );
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent, result: SearchResult) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      handleResultClick(result)
+      e.preventDefault();
+      handleResultClick(result);
     }
-  }
+  };
 
   if (!project) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
         プロジェクトが読み込まれていません
       </div>
-    )
+    );
   }
 
   return (
@@ -142,11 +148,11 @@ export default function SearchPage() {
           type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent"
           onClick={() => {
-            clearSearch()
-            setLocalQuery('')
+            clearSearch();
+            setLocalQuery('');
             navigate(
               `/editor?project=${encodeURIComponent(project.name)}&table=${project.tables[0] ?? ''}`
-            )
+            );
           }}
         >
           閉じる
@@ -183,15 +189,13 @@ export default function SearchPage() {
             </div>
 
             {[...groupedResults.entries()].map(([tableName, results]) => {
-              const schema = schemas.get(tableName)
+              const schema = schemas.get(tableName);
               return (
                 <div key={tableName} className="border rounded-lg overflow-hidden">
                   <div className="bg-muted px-4 py-2 text-sm font-medium flex items-center gap-2">
                     <span>📊</span>
                     <span>{schema?.displayName ?? tableName}</span>
-                    <span className="text-muted-foreground text-xs">
-                      ({results.length} 件)
-                    </span>
+                    <span className="text-muted-foreground text-xs">({results.length} 件)</span>
                   </div>
                   <table className="w-full text-sm">
                     <thead>
@@ -214,19 +218,15 @@ export default function SearchPage() {
                           <td className="px-4 py-2 text-xs text-muted-foreground font-mono">
                             {result.rowId}
                           </td>
-                          <td className="px-4 py-2">
-                            {result.columnDisplayName}
-                          </td>
-                          <td className="px-4 py-2 max-w-md truncate">
-                            {String(result.value)}
-                          </td>
+                          <td className="px-4 py-2">{result.columnDisplayName}</td>
+                          <td className="px-4 py-2 max-w-md truncate">{String(result.value)}</td>
                           <td className="px-4 py-2">
                             <button
                               type="button"
                               className="text-xs text-primary hover:underline"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                handleResultClick(result)
+                                e.stopPropagation();
+                                handleResultClick(result);
                               }}
                             >
                               ジャンプ
@@ -237,11 +237,11 @@ export default function SearchPage() {
                     </tbody>
                   </table>
                 </div>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

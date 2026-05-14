@@ -1,9 +1,9 @@
 interface DialogFooterProps {
-  onClose: () => void
-  onSave: () => void
-  saveDisabled?: boolean
-  saveLabel?: string
-  onDelete?: () => void
+  onClose: () => void;
+  onSave: () => void;
+  saveDisabled?: boolean;
+  saveLabel?: string;
+  onDelete?: () => void;
 }
 
 export default function DialogFooter({
@@ -44,5 +44,5 @@ export default function DialogFooter({
         </button>
       </div>
     </div>
-  )
+  );
 }

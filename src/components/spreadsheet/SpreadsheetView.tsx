@@ -1,10 +1,10 @@
 import ExportDialog from '@/components/export/ExportDialog';
+import { getRowOwnerTable } from '@/lib/viewRowSource';
 import { useProjectStore } from '@/stores/project.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
 import type { FilterViewQuery, LookupViewQuery, ViewDefinition } from '@/types/view';
-import { getRowOwnerTable } from '@/lib/viewRowSource';
 import { useCallback, useState } from 'react';
 import RowContextMenu from './RowContextMenu';
 import type { ContextMenuEntry } from './RowContextMenu';
@@ -43,7 +43,7 @@ export default function SpreadsheetView({
 
   const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍';
 
-  const visibleColumnKeys = viewQuery?.columns ?? null
+  const visibleColumnKeys = viewQuery?.columns ?? null;
 
   const handleRowContextMenu = useCallback((e: React.MouseEvent, rowId: string) => {
     e.preventDefault();

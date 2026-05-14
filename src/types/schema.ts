@@ -8,29 +8,29 @@ export type ColumnType =
   | 'ref[]'
   | 'json'
   | 'text'
-  | 'date'
+  | 'date';
 
 export type ValidationRule = {
-  required?: boolean
-  min?: number
-  max?: number
-  maxLength?: number
-}
+  required?: boolean;
+  min?: number;
+  max?: number;
+  maxLength?: number;
+};
 
 export type ColumnDef = {
-  key: string
-  displayName: string
-  type: ColumnType
-  validation?: ValidationRule
-  isDisplayName?: boolean
-  enumValues?: string[]
-  enumRef?: string
-  refTable?: string
-  readonly?: boolean
-}
+  key: string;
+  displayName: string;
+  type: ColumnType;
+  validation?: ValidationRule;
+  isDisplayName?: boolean;
+  enumValues?: string[];
+  enumRef?: string;
+  refTable?: string;
+  readonly?: boolean;
+};
 
 export type TableSchema = {
-  name: string
-  displayName: string
-  columns: ColumnDef[]
-}
+  name: string;
+  displayName: string;
+  columns: ColumnDef[];
+};

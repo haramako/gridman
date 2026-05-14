@@ -29,7 +29,12 @@ export class LocalServerAdapter implements FileSystemAdapter {
     return fetchJson(`${BASE}/tables/${tableName}?project=${encodeURIComponent(projectPath)}`);
   }
 
-  async patchTable(projectPath: string, tableName: string, rows: Row[], deletedIds: string[]): Promise<void> {
+  async patchTable(
+    projectPath: string,
+    tableName: string,
+    rows: Row[],
+    deletedIds: string[]
+  ): Promise<void> {
     await fetch(`${BASE}/tables/${tableName}?project=${encodeURIComponent(projectPath)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

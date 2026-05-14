@@ -1,16 +1,16 @@
-import { createContext, useContext, useMemo, useState, useRef, useCallback } from 'react'
-import { useProjectStore } from '@/stores/project.store'
-import { useSelectionStore } from '@/stores/selection.store'
-import { applySort } from '@/domain/filter'
-import DataRow from './DataRow'
-import { useColumnResize } from './useColumnResize'
-import { useVirtualScroll } from './useVirtualScroll'
-import { useKeyboardNavigation } from './useKeyboardNavigation'
-import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig'
-import type { TableSchema, ColumnDef } from '@/types/schema'
-import type { Row } from '@/types/row'
-import type { SelectionBounds, CellPosition } from '@/stores/selection.store'
-import type { SortDef } from '@/types/view'
+import { applySort } from '@/domain/filter';
+import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
+import { useProjectStore } from '@/stores/project.store';
+import { useSelectionStore } from '@/stores/selection.store';
+import type { CellPosition, SelectionBounds } from '@/stores/selection.store';
+import type { Row } from '@/types/row';
+import type { ColumnDef, TableSchema } from '@/types/schema';
+import type { SortDef } from '@/types/view';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import DataRow from './DataRow';
+import { useColumnResize } from './useColumnResize';
+import { useKeyboardNavigation } from './useKeyboardNavigation';
+import { useVirtualScroll } from './useVirtualScroll';
 
 const ROW_NUM_WIDTH = 40;
 
@@ -19,14 +19,14 @@ const ROW_NUM_WIDTH = 40;
 // ---------------------------------------------------------------------------
 
 type GridContextValue = {
-  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void
-  selectionBounds: SelectionBounds | null
-  focusContainer: () => void
-  filteredRows: Row[]
-  columns: ColumnDef[]
-  readOnly: boolean
-  onCellMouseDown: (e: React.MouseEvent, pos: CellPosition) => void
-}
+  navigate: (fromRowId: string, fromColKey: string, dr: number, dc: number) => void;
+  selectionBounds: SelectionBounds | null;
+  focusContainer: () => void;
+  filteredRows: Row[];
+  columns: ColumnDef[];
+  readOnly: boolean;
+  onCellMouseDown: (e: React.MouseEvent, pos: CellPosition) => void;
+};
 
 const GridContext = createContext<GridContextValue>({
   navigate: () => {},
@@ -36,7 +36,7 @@ const GridContext = createContext<GridContextValue>({
   columns: [],
   readOnly: false,
   onCellMouseDown: () => {},
-})
+});
 
 export const useGridContext = () => useContext(GridContext);
 
@@ -79,11 +79,11 @@ export default function SpreadsheetGrid({
 
   // Compute visible columns based on visibleColumnKeys
   const visibleColumns = useMemo(() => {
-    if (!visibleColumnKeys) return schema.columns
-    return schema.columns.filter((col) => visibleColumnKeys.includes(col.key))
-  }, [schema.columns, visibleColumnKeys])
+    if (!visibleColumnKeys) return schema.columns;
+    return schema.columns.filter((col) => visibleColumnKeys.includes(col.key));
+  }, [schema.columns, visibleColumnKeys]);
 
-  const { colWidths, handleResizeMouseDown } = useColumnResize(visibleColumns, schema.columns)
+  const { colWidths, handleResizeMouseDown } = useColumnResize(visibleColumns, schema.columns);
 
   const [sort, setSort] = useState<{ col: string | null; dir: 'asc' | 'desc' }>({
     col: null,
@@ -104,7 +104,6 @@ export default function SpreadsheetGrid({
   const dragCurrentRowIndex = useRef<number | null>(null);
 
   const totalWidth = ROW_NUM_WIDTH + colWidths.reduce((sum, w) => sum + w, 0);
-
 
   const sortedRows = useMemo(() => {
     const arr = [...rows.values()];
@@ -206,7 +205,7 @@ export default function SpreadsheetGrid({
   }, [filteredRows, sort]);
 
   const { containerRef, containerHeight, startIndex, endIndex, topPad, bottomPad, onScroll } =
-    useVirtualScroll(displayRows.length)
+    useVirtualScroll(displayRows.length);
   const visibleRows = displayRows.slice(startIndex, endIndex + 1);
 
   const { navigate, focusContainer, handleCellMouseDown, handleContainerKeyDown } =
@@ -225,7 +224,7 @@ export default function SpreadsheetGrid({
       startEditWithInput,
       updateCell,
       onSelectRows,
-    })
+    });
 
   // ---------------------------------------------------------------------------
   // Selection bounds for range highlighting
@@ -235,10 +234,10 @@ export default function SpreadsheetGrid({
     if (!cursor || !anchorCell) return null;
     if (cursor.rowId === anchorCell.rowId && cursor.colKey === anchorCell.colKey) return null;
 
-    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId)
-    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId)
-    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cursor.colKey)
-    const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey)
+    const cursorRowIdx = filteredRows.findIndex((r) => (r._id as string) === cursor.rowId);
+    const anchorRowIdx = filteredRows.findIndex((r) => (r._id as string) === anchorCell.rowId);
+    const cursorColIdx = visibleColumns.findIndex((c) => c.key === cursor.colKey);
+    const anchorColIdx = visibleColumns.findIndex((c) => c.key === anchorCell.colKey);
 
     if (cursorRowIdx === -1 || anchorRowIdx === -1) return null;
 
@@ -247,27 +246,46 @@ export default function SpreadsheetGrid({
       maxRow: Math.max(cursorRowIdx, anchorRowIdx),
       minCol: Math.min(cursorColIdx, anchorColIdx),
       maxCol: Math.max(cursorColIdx, anchorColIdx),
-    }
-  }, [cursor, anchorCell, filteredRows, visibleColumns])
+    };
+  }, [cursor, anchorCell, filteredRows, visibleColumns]);
 
   // ---------------------------------------------------------------------------
   // Context value
   // ---------------------------------------------------------------------------
 
   const gridContextValue = useMemo<GridContextValue>(
-    () => ({ navigate, selectionBounds, focusContainer, filteredRows, columns: visibleColumns, readOnly: readOnly ?? false, onCellMouseDown: handleCellMouseDown }),
-    [navigate, selectionBounds, focusContainer, filteredRows, visibleColumns, readOnly, handleCellMouseDown]
-  )
+    () => ({
+      navigate,
+      selectionBounds,
+      focusContainer,
+      filteredRows,
+      columns: visibleColumns,
+      readOnly: readOnly ?? false,
+      onCellMouseDown: handleCellMouseDown,
+    }),
+    [
+      navigate,
+      selectionBounds,
+      focusContainer,
+      filteredRows,
+      visibleColumns,
+      readOnly,
+      handleCellMouseDown,
+    ]
+  );
 
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
   // Create a filtered schema with only visible columns for DataRow
-  const visibleSchema = useMemo(() => ({
-    ...schema,
-    columns: visibleColumns,
-  }), [schema, visibleColumns])
+  const visibleSchema = useMemo(
+    () => ({
+      ...schema,
+      columns: visibleColumns,
+    }),
+    [schema, visibleColumns]
+  );
 
   return (
     <GridContext.Provider value={gridContextValue}>

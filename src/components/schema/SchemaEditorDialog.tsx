@@ -1,8 +1,8 @@
+import DialogFooter from '@/components/ui/DialogFooter';
+import DialogShell from '@/components/ui/DialogShell';
+import { COLUMN_TYPE_CONFIG, COLUMN_TYPE_OPTIONS } from '@/lib/columnTypeConfig';
 import type { ColumnDef, ColumnType, TableSchema, ValidationRule } from '@/types/schema';
 import { useState } from 'react';
-import { COLUMN_TYPE_CONFIG, COLUMN_TYPE_OPTIONS } from '@/lib/columnTypeConfig';
-import DialogShell from '@/components/ui/DialogShell';
-import DialogFooter from '@/components/ui/DialogFooter';
 
 function makeId() {
   return Math.random().toString(36).slice(2, 8);
@@ -87,13 +87,7 @@ export default function SchemaEditorDialog({ tableName, schema, tables, onSave, 
     onClose();
   };
 
-  const footer = (
-    <DialogFooter
-      onClose={onClose}
-      onSave={handleSave}
-      saveDisabled={!canSave}
-    />
-  );
+  const footer = <DialogFooter onClose={onClose} onSave={handleSave} saveDisabled={!canSave} />;
 
   return (
     <DialogShell

@@ -45,9 +45,9 @@ export type ViewDefinition = {
 };
 
 export type SharedEnum = {
-  name: string
-  values: string[]
-}
+  name: string;
+  values: string[];
+};
 
 export type ProjectConfig = {
   version: number;

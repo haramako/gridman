@@ -119,7 +119,7 @@ app.put('/api/tables/:name', async (c) => {
   if (!projectPath) return c.json({ error: 'project required' }, 400);
   const name = c.req.param('name');
   const rows: Record<string, unknown>[] = await c.req.json();
-   const content = `${rows.map((r) => JSON.stringify(r)).join('\n')}\n`;
+  const content = `${rows.map((r) => JSON.stringify(r)).join('\n')}\n`;
   await writeFile(join(projectPath, `${name}.jsonl`), content, 'utf-8');
   return c.json({ ok: true });
 });
@@ -177,7 +177,11 @@ app.put('/api/schemas/:name', async (c) => {
   if (!projectPath) return c.json({ error: 'project required' }, 400);
   const name = c.req.param('name');
   const schema = await c.req.json();
-  await writeFile(join(projectPath, `${name}.schema.json`), JSON.stringify(schema, null, 2), 'utf-8');
+  await writeFile(
+    join(projectPath, `${name}.schema.json`),
+    JSON.stringify(schema, null, 2),
+    'utf-8'
+  );
   return c.json({ ok: true });
 });
 

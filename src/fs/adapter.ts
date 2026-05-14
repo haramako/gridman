@@ -7,7 +7,12 @@ export interface FileSystemAdapter {
   readProjectConfig(projectPath: string): Promise<ProjectConfig>;
   writeProjectConfig(projectPath: string, config: ProjectConfig): Promise<void>;
   readTable(projectPath: string, tableName: string): Promise<Row[]>;
-  patchTable(projectPath: string, tableName: string, rows: Row[], deletedIds: string[]): Promise<void>;
+  patchTable(
+    projectPath: string,
+    tableName: string,
+    rows: Row[],
+    deletedIds: string[]
+  ): Promise<void>;
   readSchema(projectPath: string, tableName: string): Promise<TableSchema>;
   writeSchema(projectPath: string, tableName: string, schema: TableSchema): Promise<void>;
   readPageTemplate(projectPath: string, name: string): Promise<PageTemplate>;

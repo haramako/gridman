@@ -1,9 +1,9 @@
-import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
-import SchemaEditorDialog from '@/components/schema/SchemaEditorDialog';
+import FilterViewDialog from '@/components/filter/FilterViewDialog';
 import LookupViewDialog from '@/components/lookup/LookupViewDialog';
 import PageTemplateDialog from '@/components/page/PageTemplateDialog';
 import PageView from '@/components/page/PageView';
+import SchemaEditorDialog from '@/components/schema/SchemaEditorDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
 import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
@@ -15,7 +15,12 @@ import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, LookupViewQuery, UnionViewQuery, ViewDefinition } from '@/types/view';
+import type {
+  FilterViewQuery,
+  LookupViewQuery,
+  UnionViewQuery,
+  ViewDefinition,
+} from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -53,7 +58,9 @@ export default function EditorPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
   const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
-  const [editingPageTemplate, setEditingPageTemplate] = useState<(PageTemplate & { id?: string }) | undefined>();
+  const [editingPageTemplate, setEditingPageTemplate] = useState<
+    (PageTemplate & { id?: string }) | undefined
+  >();
   // TEMP: ドラフト確認ダイアログ無効化中
   // const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
@@ -194,7 +201,11 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (pageTemplateName && projectPath) {
-      useProjectStore.getState().readPageTemplate(projectPath, pageTemplateName).then(setPageTemplate).catch(() => setPageTemplate(null));
+      useProjectStore
+        .getState()
+        .readPageTemplate(projectPath, pageTemplateName)
+        .then(setPageTemplate)
+        .catch(() => setPageTemplate(null));
     } else {
       setPageTemplate(null);
     }
@@ -321,18 +332,13 @@ export default function EditorPage() {
           </span>
         )}
         <span className="text-xs text-muted-foreground">
-          {writeMode && (hasDraft && !isDirty
-            ? 'ローカルに保存済み'
-            : isDirty
-              ? '未保存の変更があります'
-              : '')}
+          {writeMode &&
+            (hasDraft && !isDirty ? 'ローカルに保存済み' : isDirty ? '未保存の変更があります' : '')}
         </span>
         <button
           type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent"
-          onClick={() =>
-            navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`)
-          }
+          onClick={() => navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`)}
           title="横断検索 (Ctrl+Shift+F)"
         >
           🔍 検索
@@ -357,10 +363,7 @@ export default function EditorPage() {
             const isTableDirty = (dirtyRowIds.get(name)?.size ?? 0) > 0;
             const isActive = !activeViewId && name === currentTable;
             return (
-              <div
-                key={name}
-                className={`flex items-center group ${isActive ? 'bg-accent' : ''}`}
-              >
+              <div key={name} className={`flex items-center group ${isActive ? 'bg-accent' : ''}`}>
                 <button
                   className={`flex-1 text-left px-4 py-1.5 text-sm hover:bg-accent ${isActive ? 'font-medium' : ''}`}
                   onClick={() => {
@@ -416,7 +419,8 @@ export default function EditorPage() {
             + ページ
           </button>
           {project.views.map((view) => {
-            const icon = view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍'
+            const icon =
+              view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍';
             return (
               <button
                 key={view.id}
@@ -426,7 +430,7 @@ export default function EditorPage() {
                 <span className="text-xs opacity-60">{icon}</span>
                 <span className="truncate">{view.name}</span>
               </button>
-            )
+            );
           })}
         </aside>
 
@@ -465,17 +469,17 @@ export default function EditorPage() {
       </div>
 
       {/* View dialogs */}
-       {dialogOpen && dialogType === 'filter' && (
-         <FilterViewDialog
-           schemas={schemas}
-           tables={project.tables}
-           project={project}
-           editView={editingView}
-           onSave={handleSaveView}
-           onDelete={editingView ? handleDeleteView : undefined}
-           onClose={() => setDialogOpen(false)}
-         />
-       )}
+      {dialogOpen && dialogType === 'filter' && (
+        <FilterViewDialog
+          schemas={schemas}
+          tables={project.tables}
+          project={project}
+          editView={editingView}
+          onSave={handleSaveView}
+          onDelete={editingView ? handleDeleteView : undefined}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
       {dialogOpen && dialogType === 'union' && (
         <UnionViewDialog
           schemas={schemas}
@@ -503,10 +507,14 @@ export default function EditorPage() {
           schemas={schemas}
           editTemplate={editingPageTemplate}
           onSave={handleSavePageTemplate}
-          onDelete={editingPageTemplate?.id ? () => {
-            useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
-            setDialogOpen(false);
-          } : undefined}
+          onDelete={
+            editingPageTemplate?.id
+              ? () => {
+                  useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
+                  setDialogOpen(false);
+                }
+              : undefined
+          }
           onClose={() => setDialogOpen(false)}
         />
       )}
