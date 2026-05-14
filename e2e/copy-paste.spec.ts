@@ -74,8 +74,8 @@ test('Ctrl+X でセルをカットできる（クリップボードにコピー�
   const clipboard = await page.evaluate(() => navigator.clipboard.readText())
   expect(clipboard.trim()).toBe(originalText?.trim() ?? '')
 
-  // セルがクリアされていることを確認（整数型なので0になる）
-  await expect(valueCell).toHaveText('0')
+  // セルがクリアされていることを確認（整数型はnull→空文字として表示）
+  await expect(valueCell).toHaveText('')
 })
 
 test('Ctrl+X で範囲選択した複数セルをカットできる', async ({ page }) => {
@@ -98,8 +98,8 @@ test('Ctrl+X で範囲選択した複数セルをカットできる', async ({ p
   expect(lines.length).toBe(2)
   expect(lines[0].trim()).toBe(firstText?.trim() ?? '')
 
-  // 選択範囲のセルがクリアされていることを確認（整数型なので0になる）
-  await expect(firstCell).toHaveText('0')
+  // 選択範囲のセルがクリアされていることを確認（整数型はnull→空文字として表示）
+  await expect(firstCell).toHaveText('')
   const secondCell = page.locator('tbody tr:nth-child(2) td:nth-child(4)')
-  await expect(secondCell).toHaveText('0')
+  await expect(secondCell).toHaveText('')
 })
