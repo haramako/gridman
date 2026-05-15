@@ -6,6 +6,7 @@ export default defineConfig({
   globalTeardown: './e2e/global-teardown.ts',
   fullyParallel: false,
   retries: 0,
+  timeout: 60000,
   use: {
     baseURL: 'http://localhost:5173',
     headless: true,
@@ -19,7 +20,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'npm run server',
+      command: 'npx tsx server/index.ts',
       port: 8080,
       reuseExistingServer: true,
     },
