@@ -315,6 +315,12 @@ export default function SpreadsheetGrid({
                   key={col.key}
                   className="border-b border-r bg-muted px-2 py-1 text-left font-medium text-muted-foreground select-none overflow-hidden relative cursor-pointer hover:bg-accent/50"
                   onClick={() => handleHeaderClick(col.key)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleHeaderClick(col.key);
+                    }
+                  }}
                 >
                   <span className="mr-1 opacity-60">{COLUMN_TYPE_CONFIG[col.type].icon}</span>
                   <span className="truncate">{col.displayName}</span>
