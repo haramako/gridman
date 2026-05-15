@@ -159,8 +159,10 @@ export default function SpreadsheetGrid({
         dragCurrentRowIndex.current = idx;
 
         // Select all rows between start and current
-        const start = Math.min(dragStartRowIndex.current!, idx);
-        const end = Math.max(dragStartRowIndex.current!, idx);
+        const dragStart = dragStartRowIndex.current;
+        if (dragStart === null) return;
+        const start = Math.min(dragStart, idx);
+        const end = Math.max(dragStart, idx);
         const ids: string[] = [];
         for (let i = start; i <= end; i++) {
           const r = filteredRows[i];
@@ -187,10 +189,11 @@ export default function SpreadsheetGrid({
   );
 
   const displayRows = useMemo(() => {
-    if (!sort.col) return filteredRows;
+    const sortCol = sort.col;
+    if (!sortCol) return filteredRows;
     return [...filteredRows].sort((a, b) => {
-      const av = a[sort.col!];
-      const bv = b[sort.col!];
+      const av = a[sortCol];
+      const bv = b[sortCol];
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
       if (bv == null) return -1;
