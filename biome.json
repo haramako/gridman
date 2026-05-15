@@ -16,6 +16,19 @@
     "indentWidth": 2,
     "lineWidth": 100
   },
+  "overrides": [
+    {
+      "include": ["src/components/spreadsheet/SpreadsheetGrid.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noNoninteractiveTabindex": "off",
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "single",

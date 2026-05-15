@@ -16,7 +16,7 @@ test.describe('ページビュー', () => {
     await pageButton.click();
 
     // ページテンプレートダイアログが開くのを待つ
-    const dialog = page.locator('[role="dialog"]');
+    const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 10000 });
 
     // テンプレート名を入力

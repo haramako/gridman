@@ -294,6 +294,8 @@ export default function SpreadsheetGrid({
     <GridContext.Provider value={gridContextValue}>
       <div
         ref={containerRef}
+        role="grid"
+        tabIndex={0}
         className="flex-1 overflow-auto outline-none"
         onScroll={onScroll}
         onKeyDown={handleContainerKeyDown}
