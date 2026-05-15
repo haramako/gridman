@@ -14,8 +14,9 @@ export function applyUnion(
   for (const source of query.sources) {
     const srcSchema = schemas.get(source.from);
     if (!srcSchema) continue;
-    const cols = source.columns
-      ? srcSchema.columns.filter((c) => source.columns?.includes(c.key))
+    const srcColumns = source.columns;
+    const cols = srcColumns
+      ? srcSchema.columns.filter((c) => srcColumns.includes(c.key))
       : srcSchema.columns;
     for (const col of cols) {
       if (!columnDefs.has(col.key)) {
@@ -25,7 +26,9 @@ export function applyUnion(
     }
   }
 
-  const unionColumns = orderedKeys.map((key) => columnDefs.get(key)!);
+  const unionColumns = orderedKeys
+    .map((key) => columnDefs.get(key))
+    .filter((col): col is ColumnDef => col !== undefined);
 
   const rows: Row[] = [];
   for (const source of query.sources) {

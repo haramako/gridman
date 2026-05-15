@@ -445,12 +445,12 @@ export default function EditorPage() {
 
         {/* Main */}
         <main className="flex-1 overflow-hidden flex flex-col">
-          {isPageView && pageTemplate && pageRow ? (
+          {isPageView && pageTemplate && pageRow && schema ? (
             <PageView
               template={pageTemplate}
               row={pageRow}
               tableName={currentTable}
-              schema={schema!}
+              schema={schema}
               schemas={schemas}
               tables={tables}
               currentIndex={pageRowIndex}
@@ -509,24 +509,28 @@ export default function EditorPage() {
           onClose={() => setDialogOpen(false)}
         />
       )}
-      {dialogOpen && dialogType === 'page' && (
-        <PageTemplateDialog
-          schema={schema ?? schemas.get(project.tables[0])!}
-          tables={project.tables}
-          schemas={schemas}
-          editTemplate={editingPageTemplate}
-          onSave={handleSavePageTemplate}
-          onDelete={
-            editingPageTemplate?.id
-              ? () => {
-                  useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
-                  setDialogOpen(false);
-                }
-              : undefined
-          }
-          onClose={() => setDialogOpen(false)}
-        />
-      )}
+      {dialogOpen && dialogType === 'page' && (() => {
+        const pageSchema = schema ?? schemas.get(project.tables[0]);
+        if (!pageSchema) return null;
+        return (
+          <PageTemplateDialog
+            schema={pageSchema}
+            tables={project.tables}
+            schemas={schemas}
+            editTemplate={editingPageTemplate}
+            onSave={handleSavePageTemplate}
+            onDelete={
+              editingPageTemplate?.id
+                ? () => {
+                    useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
+                    setDialogOpen(false);
+                  }
+                : undefined
+            }
+            onClose={() => setDialogOpen(false)}
+          />
+        );
+      })()}
 
       {/* Draft confirmation dialog — TEMP: 無効化中（自動で「変更を保持」を選択） */}
       {/* {showDraftConfirm && (
@@ -555,18 +559,21 @@ export default function EditorPage() {
       )} */}
 
       {/* Schema editor dialog */}
-      {schemaEditorTable && schemas.get(schemaEditorTable) && (
-        <SchemaEditorDialog
-          tableName={schemaEditorTable}
-          schema={schemas.get(schemaEditorTable)!}
-          tables={project.tables}
-          onSave={async (newSchema) => {
-            await updateSchema(schemaEditorTable, newSchema);
-            setSchemaEditorTable(null);
-          }}
-          onClose={() => setSchemaEditorTable(null)}
-        />
-      )}
+      {schemaEditorTable && (() => {
+        const schemaEditorSchema = schemas.get(schemaEditorTable);
+        return schemaEditorSchema && (
+          <SchemaEditorDialog
+            tableName={schemaEditorTable}
+            schema={schemaEditorSchema}
+            tables={project.tables}
+            onSave={async (newSchema) => {
+              await updateSchema(schemaEditorTable, newSchema);
+              setSchemaEditorTable(null);
+            }}
+            onClose={() => setSchemaEditorTable(null)}
+          />
+        );
+      })()}
 
       {/* Lock steal confirmation dialog */}
       {showLockStealConfirm && (

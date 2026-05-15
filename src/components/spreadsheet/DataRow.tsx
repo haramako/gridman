@@ -30,7 +30,6 @@ export default function DataRow({
   tables,
   project,
   isSelected,
-  onSelect,
   onRowNumberMouseDown,
   onRowContextMenu,
   readOnly,
