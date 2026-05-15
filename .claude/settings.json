@@ -20,10 +20,54 @@
       "Skill(workflow-insight:*)",
       "Edit(/.claude/skills/multica/**)",
       "Bash(python .claude/skills/multica/scripts/multica_sync.py sync --full)",
-      "Bash(python .claude/skills/multica/scripts/multica_sync.py status)"
+      "Bash(python .claude/skills/multica/scripts/multica_sync.py status)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Work\\\\gridman\\\\src\" -Recurse -Filter \"*.tsx\" -o Name)",
+      "Bash(Select-Object -First 30)",
+      "Bash(python wiki/scripts/lint_wiki.py wiki/)",
+      "Bash(python .claude/skills/llm-wiki/scripts/lint_wiki.py wiki/)",
+      "Edit(/.claude/skills/llm-wiki/**)",
+      "Bash(python -X utf8 .claude/skills/llm-wiki/scripts/lint_wiki.py wiki/)",
+      "Bash(node -e \"require\\('./lib/helpers'\\).detectDevServers\\(\\).then\\(s => console.log\\(JSON.stringify\\(s\\)\\)\\)\")",
+      "Bash(node run.js \"C:/tmp/playwright-test-gridman-ui.js\")",
+      "Bash(node run.js \"C:/tmp/playwright-test-gridman-editor.js\")",
+      "Bash(python .claude/skills/multica/scripts/multica_sync.py --help)",
+      "WebSearch",
+      "Bash(gh api *)",
+      "Bash(multica --version)",
+      "Bash(mkdir -p \"c:\\\\Work\\\\gridman\\\\.claude\\\\skills\\\\multica-cli\")",
+      "Bash(cp /tmp/multica-skill.md \"c:\\\\Work\\\\gridman\\\\.claude\\\\skills\\\\multica-cli\\\\SKILL.md\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Work\\\\gridman\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Work\\\\gridman\\\\src\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(grep -E \"\\\\.\\(md|json|yml|yaml\\)$\")",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:antigravity.codes)",
+      "WebFetch(domain:www.mindstudio.ai)",
+      "WebFetch(domain:agentpedia.codes)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(f'{k}: {v}'\\) for k,v in d.get\\('scripts',{}\\).items\\(\\)]\")",
+      "Bash(python3 scripts/lint_wiki.py .)",
+      "Bash(python3 /c/Work/gridman/wiki/scripts/lint_wiki.py /c/Work/gridman/wiki)",
+      "PowerShell(python3 \"c:\\\\Work\\\\gridman\\\\.claude\\\\skills\\\\llm-wiki\\\\scripts\\\\lint_wiki.py\" \"c:\\\\Work\\\\gridman\\\\wiki\")",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; python3 \"c:\\\\Work\\\\gridman\\\\.claude\\\\skills\\\\llm-wiki\\\\scripts\\\\lint_wiki.py\" \"c:\\\\Work\\\\gridman\\\\wiki\" 2>&1)",
+      "Bash(findstr :8080)",
+      "Bash(npx tsx *)",
+      "Bash(Get-ChildItem -Name)",
+      "Bash(cat biome.json)",
+      "Bash(cat biome.jsonc)",
+      "Bash(git config *)"
     ],
     "ask": [
       "Bash(python -c *)"
+    ],
+    "additionalDirectories": [
+      "C:\\tmp",
+      "\\tmp"
     ]
+  },
+  "enabledPlugins": {
+    "playwright-skill@playwright-skill": true
   }
 }
