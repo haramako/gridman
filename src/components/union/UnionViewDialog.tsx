@@ -105,7 +105,9 @@ export default function UnionViewDialog({
     >
       {/* Name */}
       <div className="flex items-center gap-2">
-        <label htmlFor="union-view-name" className="w-20 text-muted-foreground shrink-0">ビュー名</label>
+        <label htmlFor="union-view-name" className="w-20 text-muted-foreground shrink-0">
+          ビュー名
+        </label>
         <input
           id="union-view-name"
           className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
