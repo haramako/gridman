@@ -102,6 +102,7 @@ export default function Cell({
 
   const [editValue, setEditValue] = useState(currentEditValue);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs only when isEditing changes
   useEffect(() => {
     if (isEditing) {
       committedRef.current = false;

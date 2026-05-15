@@ -270,7 +270,11 @@ export default function EditorPage() {
       const newView: ViewDefinition = {
         id: viewId,
         name: template.name,
-        query: { type: 'page', from: template.table, pageLayout: template.name } satisfies PageViewQuery,
+        query: {
+          type: 'page',
+          from: template.table,
+          pageLayout: template.name,
+        } satisfies PageViewQuery,
       };
       await addView(newView);
       setActiveViewId(viewId);
@@ -510,28 +514,30 @@ export default function EditorPage() {
           onClose={() => setDialogOpen(false)}
         />
       )}
-      {dialogOpen && dialogType === 'page' && (() => {
-        const pageSchema = schema ?? schemas.get(project.tables[0]);
-        if (!pageSchema) return null;
-        return (
-          <PageTemplateDialog
-            schema={pageSchema}
-            tables={project.tables}
-            schemas={schemas}
-            editTemplate={editingPageTemplate}
-            onSave={handleSavePageTemplate}
-            onDelete={
-              editingPageTemplate?.id
-                ? () => {
-                    useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
-                    setDialogOpen(false);
-                  }
-                : undefined
-            }
-            onClose={() => setDialogOpen(false)}
-          />
-        );
-      })()}
+      {dialogOpen &&
+        dialogType === 'page' &&
+        (() => {
+          const pageSchema = schema ?? schemas.get(project.tables[0]);
+          if (!pageSchema) return null;
+          return (
+            <PageTemplateDialog
+              schema={pageSchema}
+              tables={project.tables}
+              schemas={schemas}
+              editTemplate={editingPageTemplate}
+              onSave={handleSavePageTemplate}
+              onDelete={
+                editingPageTemplate?.id
+                  ? () => {
+                      useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
+                      setDialogOpen(false);
+                    }
+                  : undefined
+              }
+              onClose={() => setDialogOpen(false)}
+            />
+          );
+        })()}
 
       {/* Draft confirmation dialog — TEMP: 無効化中（自動で「変更を保持」を選択） */}
       {/* {showDraftConfirm && (
@@ -560,21 +566,24 @@ export default function EditorPage() {
       )} */}
 
       {/* Schema editor dialog */}
-      {schemaEditorTable && (() => {
-        const schemaEditorSchema = schemas.get(schemaEditorTable);
-        return schemaEditorSchema && (
-          <SchemaEditorDialog
-            tableName={schemaEditorTable}
-            schema={schemaEditorSchema}
-            tables={project.tables}
-            onSave={async (newSchema) => {
-              await updateSchema(schemaEditorTable, newSchema);
-              setSchemaEditorTable(null);
-            }}
-            onClose={() => setSchemaEditorTable(null)}
-          />
-        );
-      })()}
+      {schemaEditorTable &&
+        (() => {
+          const schemaEditorSchema = schemas.get(schemaEditorTable);
+          return (
+            schemaEditorSchema && (
+              <SchemaEditorDialog
+                tableName={schemaEditorTable}
+                schema={schemaEditorSchema}
+                tables={project.tables}
+                onSave={async (newSchema) => {
+                  await updateSchema(schemaEditorTable, newSchema);
+                  setSchemaEditorTable(null);
+                }}
+                onClose={() => setSchemaEditorTable(null)}
+              />
+            )
+          );
+        })()}
 
       {/* Lock steal confirmation dialog */}
       {showLockStealConfirm && (
