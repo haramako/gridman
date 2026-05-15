@@ -116,8 +116,8 @@ export default function SpreadsheetView({
       let sourceTable = tableName;
       if (isUnionView) {
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'union');
-      } else if (isLookupView) {
-        const fromTable = (activeView?.query as LookupViewQuery).from;
+      } else if (isLookupView && activeView) {
+        const fromTable = (activeView.query as LookupViewQuery).from;
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'lookup', fromTable);
       }
       deleteRow(sourceTable, rowId);

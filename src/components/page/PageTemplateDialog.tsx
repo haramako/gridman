@@ -186,15 +186,16 @@ export default function PageTemplateDialog({
     );
   };
 
+  const editTemplateId = editTemplate?.id;
   const footer = (
     <DialogFooter
       onClose={onClose}
       onSave={handleSave}
       saveDisabled={!name.trim() || layout.length === 0}
       onDelete={
-        editTemplate && onDelete && editTemplate.id
+        editTemplateId && onDelete
           ? () => {
-              onDelete(editTemplate.id!);
+              onDelete(editTemplateId);
               onClose();
             }
           : undefined
