@@ -98,7 +98,7 @@ export class FileSystemAccessAPIAdapter implements FileSystemAdapter {
 
   async listPageTemplates(_projectPath: string): Promise<string[]> {
     const templates: string[] = [];
-    for await (const entry of (this.dirHandle as any).values()) {
+    for await (const entry of this.dirHandle as unknown as AsyncIterable<FileSystemHandle>) {
       if (entry.kind === 'file' && entry.name.endsWith('.page.json')) {
         templates.push(entry.name.replace(/\.page\.json$/, ''));
       }

@@ -18,6 +18,7 @@ import type { Row } from '@/types/row';
 import type {
   FilterViewQuery,
   LookupViewQuery,
+  PageViewQuery,
   UnionViewQuery,
   ViewDefinition,
 } from '@/types/view';
@@ -196,7 +197,7 @@ export default function EditorPage() {
   }, [rawRows, activeView, unionResult, lookupResult]);
 
   const isPageView = activeView?.query.type === 'page';
-  const pageTemplateName = isPageView ? (activeView.query as any).pageLayout : undefined;
+  const pageTemplateName = isPageView ? (activeView.query as PageViewQuery).pageLayout : undefined;
   const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
 
   useEffect(() => {
@@ -269,7 +270,7 @@ export default function EditorPage() {
       const newView: ViewDefinition = {
         id: viewId,
         name: template.name,
-        query: { type: 'page', pageLayout: template.name } as any,
+        query: { type: 'page', from: template.table, pageLayout: template.name } satisfies PageViewQuery,
       };
       await addView(newView);
       setActiveViewId(viewId);

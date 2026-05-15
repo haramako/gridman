@@ -48,13 +48,15 @@ export default function HomePage() {
   const openFolder = async () => {
     setError('');
     try {
-      const dirHandle = await (window as any).showDirectoryPicker();
+      const dirHandle = await (window as unknown as { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }).showDirectoryPicker();
       setAdapter('file-system-access', dirHandle);
       addRecent(dirHandle.name);
       navigate(`/editor?project=${encodeURIComponent(dirHandle.name)}&table=`);
-    } catch (e: any) {
-      if (e.name !== 'AbortError') {
-        setError(e instanceof Error ? e.message : 'フォルダを開けませんでした');
+    } catch (e) {
+      if (e instanceof Error) {
+        if (e.name !== 'AbortError') setError(e.message);
+      } else {
+        setError('フォルダを開けませんでした');
       }
     }
   };
