@@ -289,6 +289,7 @@ export default function EditorPage() {
       {/* Header */}
       <header className="border-b px-4 py-2 flex items-center gap-3 shrink-0 bg-background z-20">
         <button
+          type="button"
           className="text-sm text-muted-foreground hover:text-foreground"
           onClick={() => navigate('/')}
         >
@@ -344,6 +345,7 @@ export default function EditorPage() {
           🔍 検索
         </button>
         <button
+          type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
           disabled={!isDirty}
           onClick={() => saveAll()}
@@ -365,6 +367,7 @@ export default function EditorPage() {
             return (
               <div key={name} className={`flex items-center group ${isActive ? 'bg-accent' : ''}`}>
                 <button
+                  type="button"
                   className={`flex-1 text-left px-4 py-1.5 text-sm hover:bg-accent ${isActive ? 'font-medium' : ''}`}
                   onClick={() => {
                     setActiveViewId(null);
@@ -376,6 +379,7 @@ export default function EditorPage() {
                 </button>
                 {writeMode && (
                   <button
+                    type="button"
                     className="mr-2 px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 shrink-0"
                     title="スキーマを編集"
                     onClick={(e) => {
@@ -395,24 +399,28 @@ export default function EditorPage() {
             ビュー
           </div>
           <button
+            type="button"
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={() => openCreateDialog('filter')}
           >
             + フィルター
           </button>
           <button
+            type="button"
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={() => openCreateDialog('union')}
           >
             + ユニオン
           </button>
           <button
+            type="button"
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={() => openCreateDialog('lookup')}
           >
             + ルックアップ
           </button>
           <button
+            type="button"
             className="text-left px-4 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={openCreatePageTemplate}
           >
@@ -424,6 +432,7 @@ export default function EditorPage() {
             return (
               <button
                 key={view.id}
+                type="button"
                 className={`text-left px-4 py-1.5 text-sm hover:bg-accent flex items-center gap-1 ${activeViewId === view.id ? 'bg-accent font-medium' : ''}`}
                 onClick={() => setActiveViewId(view.id)}
               >
@@ -572,12 +581,14 @@ export default function EditorPage() {
             </p>
             <div className="flex gap-2 justify-end">
               <button
+                type="button"
                 className="px-3 py-1.5 rounded border text-sm hover:bg-accent"
                 onClick={() => setShowLockStealConfirm(false)}
               >
                 キャンセル
               </button>
               <button
+                type="button"
                 className="px-3 py-1.5 rounded border text-sm bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => {
                   stealLock();

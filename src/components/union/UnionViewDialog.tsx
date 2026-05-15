@@ -139,6 +139,7 @@ export default function UnionViewDialog({
                     ))}
                   </select>
                   <button
+                    type="button"
                     className="text-muted-foreground hover:text-destructive text-xs px-1"
                     onClick={() => removeSource(source.id)}
                     disabled={sources.length <= 1}
@@ -183,6 +184,7 @@ export default function UnionViewDialog({
           })}
         </div>
         <button
+          type="button"
           className="mt-2 text-xs text-muted-foreground hover:text-foreground"
           onClick={addSource}
         >
