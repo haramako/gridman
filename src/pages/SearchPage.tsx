@@ -93,8 +93,7 @@ export default function SearchPage() {
     if (searchQuery.trim()) {
       performSearch(searchQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, performSearch]);
 
   const groupedResults = useMemo(() => {
     const groups: Map<string, SearchResult[]> = new Map();
@@ -167,6 +166,7 @@ export default function SearchPage() {
             placeholder="検索クエリを入力..."
             value={localQuery}
             onChange={(e) => handleInputChange(e.target.value)}
+            autoFocus
           />
         </div>
       </div>
