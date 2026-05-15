@@ -143,7 +143,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 | `src-types` | refs | `src/types/` — ColumnType / ViewQuery / Row / ProjectConfig |
 | `src-lib` | refs | `src/lib/` — columnTypeConfig ディスパッチテーブル・enum-resolver |
 | `server` | refs | `server/` — Hono サーバー 2実装（ファイルベース / SQLite） |
-| `doc-discussions` | refs | `doc/discussion/` — 設計判断ログ（11件、2026-05-12〜15） |
+| `doc-discussions` | refs | `doc/discussion/` — 設計判断ログ（14件、2026-05-12〜15） |
 
 ---
 

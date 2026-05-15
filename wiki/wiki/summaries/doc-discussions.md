@@ -1,7 +1,7 @@
 # Summary — doc-discussions (doc/discussion/)
 
 **Source**: `doc/discussion/` — [[raw/refs/doc-discussions]]  
-**件数**: 11 ファイル（2026-05-12〜15）  
+**件数**: 14 ファイル（2026-05-12〜15）  
 **性質**: 設計判断の決定ログ（変更の "なぜ" を残すための SSoT）
 
 ## 概要
@@ -40,6 +40,20 @@ Gridman のワークフロー改善・wiki 設計・AGENTS.md 更新に関する
 - **query 結果を wiki に定着させるには promote が必要** — durable な合成（比較・分析・新しい洞察）の場合のみ `wiki/concepts/` に昇格し `index.md` に追加する
 - **`entities/Playwright.md` の UI モード記述不足**を識別 — `test:e2e:ui` の具体的な使用シナリオが未記載。必要になったタイミングで追記する
 
+### 開発環境・CI 修正（2026-05-15）
+
+- **`tsx watch` は TTY なしのサブプロセスとして起動するとサイレントに停止する** — Playwright の webServer では `npm run server`（= `tsx watch`）が使えない。`npx tsx server/index.ts`（watch なし）に変更して解決
+- **Biome の a11y lint 修正が `tabIndex={0}` を誤削除するパターンを確認** — `noNoninteractiveTabindex` 警告の "fix" として削除されたが、グリッドコンテナのキーボードフォーカスに必須。`biome.json` の `overrides` で再発防止
+- **`[role="dialog"]` CSS セレクタはネイティブ `<dialog>` 要素に一致しない** — Playwright テストでは `getByRole('dialog')` を使うこと（ARIA ロールで照合）
+- **CRLF 問題の根本対策**: `core.autocrlf=true` のグローバル Git 設定に対し `.gitattributes`（`eol=lf`）で上書きして恒久解決
+- **`.claude/settings.json` の整理**: 63 → 25 エントリへ削減（冗長エントリ統合・一回限り削除）
+
+### llm-wiki 参照定量化（2026-05-15、未決定）
+
+- **AI が作業中に wiki を受動的に参照した回数を定量化したい** — 現状は明示的な操作（ingest/query/lint）しか `log/` に記録されない
+- **候補**: Claude Code PostToolUse hook（`matcher: "Read|Glob|Grep"`）、OpenCode plugin（`tool.execute.after`）、Multica API バッチ解析
+- **未決定**: どのプラットフォームで実装するか、ログフォーマットと保存先
+
 ## 合成先
 
 → [[concepts/agent-patterns/Spec_Quality]] — インタラクションシナリオ手法
@@ -47,3 +61,5 @@ Gridman のワークフロー改善・wiki 設計・AGENTS.md 更新に関する
 → [[concepts/agent-patterns/Blocker_Reporting]] — ブロッカー報告フォーマット
 → [[concepts/agent-patterns/Platform_Artifacts]] — quota-recovery / has_real_failures
 → [[summaries/issue-insights]] — countermeasure 分布更新
+→ [[concepts/agent-patterns/Regression_and_Testing]] — lint 修正 AI によるリグレッションパターン追加
+→ [[entities/Playwright]] — webServer 設定の注意点（tsx watch / getByRole）

@@ -58,6 +58,28 @@ PR 作成前に必ず実行すること。
 現在は SKILL の「PR 作成判断基準」に依存しており、判断基準だけでなく
 ワークフローとして機械的にチェックする方法を検討すべき。
 
+### `lint-fix-regression` — lint 修正 AI による機能破壊
+
+**事例**: `9cc710b`（tabIndex 削除）、`1e7360f`（dialog セレクタ不一致）
+
+lint 修正・リファクタリング・セマンティックHTML化を行う AI タスクが、E2E テストを実行せずに
+マージされた結果、キーボード操作が全滅するパターン。
+
+**具体的な破壊パターン**:
+
+1. **`noNoninteractiveTabindex` "fix"**: Biome が `tabIndex={0}` を lint 違反として検出し、
+   AI が "Unsafe fix: Remove" を採用。グリッドコンテナのキーボードフォーカスが失われ、
+   Enter/F2/Ctrl+矢印 が全て動作しなくなった（15 件の E2E テスト失敗）
+2. **セマンティックHTML化によるセレクタ不一致**: `<div role="dialog">` を `<dialog>` 要素に
+   変換したため、E2E テストの `[role="dialog"]` CSS セレクタが一致しなくなった
+   （`[role="..."]` は CSS 属性セレクタなので ARIA ロールを参照しない）
+
+**対策**:
+- `biome.json` の `overrides` で意図的な lint 例外を明示的に保護する
+- E2E テストでは `page.locator('[role="..."]')` ではなく `page.getByRole('...')` を使う
+  （ARIA ロールで照合するため DOM 構造変更に強い）
+- **lint 修正・リファクタリング系タスクにも E2E テスト実行を必須とする**（AGENTS.md 追記推奨）
+
 ## インフラ改善による学習ループ
 
 LIN-46 → 問題発見 → LIN-78（インフラ改善）→ AGENTS.md 更新 → 後続エージェントに伝達

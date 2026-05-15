@@ -1,7 +1,7 @@
 ---
 kind: ref
 external_path: doc/discussion/
-size: ~10 files
+size: ~14 files
 ---
 
 `doc/discussion/` — Gridman プロジェクトの設計判断・相談内容の決定ログ。
@@ -22,3 +22,6 @@ size: ~10 files
 | `2026-05-14_intent-gap-and-interaction-scenarios.md` | インタラクションシナリオ手法（UI挙動タスクの事前合意） |
 | `2026-05-14_insight-countermeasure-review.md` | countermeasure 見直し（LIN-22/46/171: none→in-agents-md） |
 | `2026-05-15_llm-wiki-operations.md` | llm-wiki ingest/lint/compile/query 一連の運用記録・outputs/queries の promote フロー確認 |
+| `2026-05-15_crlf-fix-and-settings-cleanup.md` | CRLF lint エラー修正（.gitattributes 追加）・settings.json 整理（63→25エントリ） |
+| `2026-05-15_e2e-fixes.md` | E2E サーバー自動起動修正（tsx watch TTY 問題）・tabIndex/dialog セレクタ リグレッション修正 |
+| `2026-05-15_llm-wiki-reference-tracking.md` | llm-wiki 参照定量化の検討（Claude Code hook / OpenCode plugin / Multica API）—未決定 |
