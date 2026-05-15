@@ -73,13 +73,14 @@ export default function HomePage() {
             onKeyDown={(e) => e.key === 'Enter' && openProject(path)}
           />
           <button
+            type="button"
             className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm hover:opacity-90"
             onClick={() => openProject(path)}
           >
             開く
           </button>
         </div>
-        <button className="px-4 py-2 border rounded text-sm hover:bg-accent" onClick={openFolder}>
+        <button type="button" className="px-4 py-2 border rounded text-sm hover:bg-accent" onClick={openFolder}>
           📁 フォルダを選択（Chrome/Edge）
         </button>
         {error && <p className="text-sm text-destructive">{error}</p>}
@@ -92,6 +93,7 @@ export default function HomePage() {
             {recent.map((p) => (
               <button
                 key={p}
+                type="button"
                 className="text-left px-3 py-2 rounded border text-sm hover:bg-accent truncate"
                 onClick={() => openProject(p)}
               >
