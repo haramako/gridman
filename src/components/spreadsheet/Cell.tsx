@@ -167,6 +167,13 @@ export default function Cell({
           if (readOnly) return;
           updateCell(tableName, rowId, col.key, !row[col.key]);
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (readOnly) return;
+            updateCell(tableName, rowId, col.key, !row[col.key]);
+          }
+        }}
       >
         <span className="text-base leading-none">{row[col.key] ? '✓' : ''}</span>
       </td>
@@ -190,6 +197,14 @@ export default function Cell({
         onClick={() => {
           if (isJsonClickable) {
             setJsonPanelCell({ rowId, colKey: col.key, tableName });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (isJsonClickable) {
+              setJsonPanelCell({ rowId, colKey: col.key, tableName });
+            }
           }
         }}
       >
