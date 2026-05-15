@@ -48,7 +48,9 @@ export default function HomePage() {
   const openFolder = async () => {
     setError('');
     try {
-      const dirHandle = await (window as unknown as { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }).showDirectoryPicker();
+      const dirHandle = await (
+        window as unknown as { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }
+      ).showDirectoryPicker();
       setAdapter('file-system-access', dirHandle);
       addRecent(dirHandle.name);
       navigate(`/editor?project=${encodeURIComponent(dirHandle.name)}&table=`);
@@ -82,7 +84,11 @@ export default function HomePage() {
             開く
           </button>
         </div>
-        <button type="button" className="px-4 py-2 border rounded text-sm hover:bg-accent" onClick={openFolder}>
+        <button
+          type="button"
+          className="px-4 py-2 border rounded text-sm hover:bg-accent"
+          onClick={openFolder}
+        >
           📁 フォルダを選択（Chrome/Edge）
         </button>
         {error && <p className="text-sm text-destructive">{error}</p>}
