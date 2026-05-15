@@ -144,20 +144,23 @@ export default function LookupViewDialog({
     >
       {/* Name */}
       <div className="flex items-center gap-2">
-        <label htmlFor="lookup-name" className="w-20 text-muted-foreground shrink-0">ビュー名</label>
+        <label htmlFor="lookup-name" className="w-20 text-muted-foreground shrink-0">
+          ビュー名
+        </label>
         <input
           id="lookup-name"
           className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: 敵一覧（アイテム展開）"
-          autoFocus
         />
       </div>
 
       {/* Base table */}
       <div className="flex items-center gap-2">
-        <label htmlFor="lookup-table" className="w-20 text-muted-foreground shrink-0">ベーステーブル</label>
+        <label htmlFor="lookup-table" className="w-20 text-muted-foreground shrink-0">
+          ベーステーブル
+        </label>
         <select
           id="lookup-table"
           className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none"

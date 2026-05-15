@@ -8,12 +8,12 @@ export function coerceToType(value: unknown, type: ColumnType): unknown {
     case 'integer': {
       if (s === '') return null;
       const n = Number.parseInt(s, 10);
-      return isNaN(n) ? s : n;
+      return Number.isNaN(n) ? s : n;
     }
     case 'number': {
       if (s === '') return null;
       const n = Number.parseFloat(s);
-      return isNaN(n) ? s : n;
+      return Number.isNaN(n) ? s : n;
     }
     case 'boolean':
       return value === true || s === 'true' || s === '1';
@@ -46,7 +46,7 @@ export function validateCell(value: unknown, col: ColumnDef): ValidationError | 
   }
 
   if (col.type === 'number') {
-    if (isNaN(Number(value))) {
+    if (Number.isNaN(Number(value))) {
       return { rule: 'type', message: '数値を入力してください' };
     }
     const n = Number(value);
