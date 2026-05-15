@@ -26,7 +26,16 @@
       "Skill(workflow-insight)",
       "Skill(workflow-insight:*)",
       "WebSearch",
-      "WebFetch(domain:gist.github.com)"
+      "WebFetch(domain:gist.github.com)",
+      "Bash(findstr :8080)",
+      "Bash(tasklist /FI \"PID eq 34900\")",
+      "PowerShell(Get-Process -Id 34900)",
+      "PowerShell(Get-Process -Id 34900 2>&1)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(wait)",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
       "C:\\tmp",
