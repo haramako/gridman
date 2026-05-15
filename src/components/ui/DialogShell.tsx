@@ -36,9 +36,9 @@ export default function DialogShell({
         if (e.key === 'Escape') onClose();
       }}
     >
-      <div
-        role="dialog"
-        className={`bg-background rounded-lg border shadow-lg ${width} ${maxHeight} flex flex-col`}
+      <dialog
+        open
+        className={`m-0 p-0 bg-background rounded-lg border shadow-lg ${width} ${maxHeight} flex flex-col`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="font-semibold text-sm">{title}</span>
@@ -52,7 +52,7 @@ export default function DialogShell({
         </div>
         <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4 text-sm">{children}</div>
         {footer}
-      </div>
+      </dialog>
     </div>
   );
 }
