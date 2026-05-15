@@ -153,6 +153,7 @@ export default function LookupViewDialog({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: 敵一覧（アイテム展開）"
+          autoFocus
         />
       </div>
 

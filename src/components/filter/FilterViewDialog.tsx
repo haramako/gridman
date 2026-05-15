@@ -185,6 +185,7 @@ export default function FilterViewDialog({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: fire属性の敵"
+          autoFocus
         />
       </div>
 

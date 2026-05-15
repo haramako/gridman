@@ -112,6 +112,7 @@ export default function UnionViewDialog({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: 全ユニット一覧"
+          autoFocus
         />
       </div>
 
