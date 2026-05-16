@@ -1,0 +1,89 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 4,
+    "total_duration_seconds": 14649
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-14T17:53:18Z",
+  "description": "Cell.tsx (clearEditInitialValue, currentEditValue, editInitialValue の3つが未指定) と SearchPage.tsx (performSearch が未指定) の useEffect 依存配列を修正。",
+  "id": "14d50108-2ca0-4f2e-a55d-d9d8782ce1f3",
+  "identifier": "LIN-195",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T03:48:41Z",
+      "duration_seconds": 10,
+      "error": null,
+      "failure_reason": null,
+      "id": "e58621f1-dc05-46ae-9b4c-8d0cc5d44b3c",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The triggering comment \"PR確認OK\" is a pure sign-off acknowledging the PR is confirmed OK. The issue is already in `in_review` status, and no new work is being requested. I produced no work this turn, so no reply is warranted. Silence is the appropriate response here.",
+      "started_at": "2026-05-15T03:48:31Z",
+      "status": "completed",
+      "trigger_summary": "PR確認OK"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T01:13:17Z",
+      "duration_seconds": 238,
+      "error": null,
+      "failure_reason": null,
+      "id": "6ffd66e4-fbcd-40aa-9d1b-9c17c009e81c",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. The two `useEffect` dependency arrays have been fixed:\n\n- **`Cell.tsx`**: Added `editInitialValue`, `clearEditInitialValue`, and `currentEditValue` to the `[isEditing]` dependency array.\n- **`SearchPage.tsx`**: Added `performSearch` to the `[searchQuery]` dependency array and removed the `eslint-disable-next-line` comment.\n\nPR: https://github.com/haramako/gridman/pull/56",
+      "started_at": "2026-05-15T01:09:19Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 2,
+      "completed_at": "2026-05-14T23:54:38Z",
+      "duration_seconds": 7200,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "75b98b7f-eea3-4d05-b9fa-7fede66957c7",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T21:54:38Z",
+      "status": "failed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T19:56:00Z",
+      "duration_seconds": 7201,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "db22083c-d9a6-4ece-8ad4-5c43847beeac",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T17:55:59Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "React hooks 依存配列の修正",
+  "updated_at": "2026-05-15T13:18:00Z",
+  "usage": {
+    "cache_read_tokens": 1666688,
+    "cache_write_tokens": 93648,
+    "input_tokens": 26485,
+    "output_tokens": 4055,
+    "total_tokens": 1790876
+  }
+}

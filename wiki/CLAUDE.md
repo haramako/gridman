@@ -113,13 +113,16 @@ summaries/        ← doc/ 各ファイルのサマリー
 - ~~LIN-71〜LIN-79 + 17件~~: insight 作成済み（2026-05-12）、計 39件
 - ~~LIN-57, LIN-72, LIN-83, LIN-136, LIN-169, LIN-171, LIN-172, LIN-175, LIN-180, LIN-181, LIN-182~~: insight 作成済み（2026-05-13）、計 50件
 - ~~LIN-82, LIN-84, LIN-85, LIN-86, LIN-137, LIN-173, LIN-184, LIN-185, LIN-186, LIN-187, LIN-189~~: insight 作成済み（2026-05-15）、計 62件
+- ~~LIN-188, LIN-190〜LIN-198~~: insight 作成済み（2026-05-16）、計 72件
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
 - ~~LIN-22, LIN-46, LIN-171~~: `in-agents-md` に更新済み（2026-05-14）
 - **LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79**: `countermeasure: none` のまま — context-overload 系。issue 記述ガイドライン整備が課題
 - **PR 作成忘れパターン**（LIN-172, LIN-175, LIN-184）: 新 taxonomy `pr-skip` として追跡。ワークフローの機械的チェックが必要
-- **`quota-recovery` 急増（6→11件）**: クォータ管理の改善が課題
+- **`quota-recovery` 急増（11→17件）**: クォータ管理の改善が課題。lint スプリント（LIN-191〜198）の並行起動が主因。一括タスク作成後は順番割り当てが有効な緩和策
+- **lint スプリント（LIN-191〜198）の並行タイムアウト**: 8 タスク一括作成により全 issue が 2h タイムアウトを経験。issue 一括作成後の並行起動制限またはキュー管理が課題
+- **LIN-192 の `countermeasure: none`**: spec-feature-addition 系で「既存エラーの扱い」を issue 説明に明記すれば防げる手戻り。issue 記述ガイドラインの対象に追加
 
 ---
 

@@ -1,0 +1,89 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 4,
+    "total_duration_seconds": 14554
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-14T17:53:19Z",
+  "description": "Cell.tsx(2), SpreadsheetGrid.tsx(1) の onClick 要素に onKeyDown 追加。UnionViewDialog.tsx(1) の label に htmlFor + input に id 追加。",
+  "id": "e7b843c8-055c-4039-b714-e5bd64572667",
+  "identifier": "LIN-196",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T03:48:14Z",
+      "duration_seconds": 13,
+      "error": null,
+      "failure_reason": null,
+      "id": "1fe700e2-791c-4735-a7b4-36b1ee1114bc",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The triggering comment \"PR確認OK\" is a pure acknowledgment sign-off confirming the PR was reviewed. The issue is already in `done` status, and no work is being requested. I produced no work this turn, so no reply is warranted.",
+      "started_at": "2026-05-15T03:48:01Z",
+      "status": "completed",
+      "trigger_summary": "PR確認OK"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T01:15:41Z",
+      "duration_seconds": 139,
+      "error": null,
+      "failure_reason": null,
+      "id": "673c8809-e5e0-4139-b636-d931491c3933",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Done. Here's a summary of what was implemented:\n\n- **Cell.tsx** (2 changes): Added `onKeyDown` to the boolean cell and readonly/JSON cell — Enter/Space keys now trigger the same action as clicking\n- **SpreadsheetGrid.tsx** (1 change): Added `onKeyDown` to the column header `<th>` — Enter/Space now triggers sort\n- **UnionViewDialog.tsx** (1 change): Added `htmlFor=\"union-view-name\"` to `<label>` and `id=\"union-view-name\"` to `<input>` to properly associate them\n\nPR: https://github.com/haramako/gridman/pull/57",
+      "started_at": "2026-05-15T01:13:22Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 2,
+      "completed_at": "2026-05-14T23:54:38Z",
+      "duration_seconds": 7201,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "186cea4f-b641-4aaf-be88-3ddb4a461f2c",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T21:54:37Z",
+      "status": "failed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T19:55:43Z",
+      "duration_seconds": 7201,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "2711ad0e-54bf-42db-934d-96c2b18360cd",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T17:55:42Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "アクセシビリティ強化 (キーハンドラ＋ラベル)",
+  "updated_at": "2026-05-15T03:35:16Z",
+  "usage": {
+    "cache_read_tokens": 1764447,
+    "cache_write_tokens": 110174,
+    "input_tokens": 33007,
+    "output_tokens": 6147,
+    "total_tokens": 1913775
+  }
+}

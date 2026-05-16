@@ -1,0 +1,59 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 2,
+    "total_duration_seconds": 310
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-15T13:54:06Z",
+  "description": "LIN-186 のプランに基づいて、CIのエラーを解消しました。\n\n\n\nLIN-186 のプラン通りに CI のエラーが修正されているか、確認して報告してください。",
+  "id": "c1f68ab1-0a04-4cd3-996c-e8d0b9b7a46e",
+  "identifier": "LIN-199",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T14:08:19Z",
+      "duration_seconds": 32,
+      "error": null,
+      "failure_reason": null,
+      "id": "c082973f-93ee-44d2-9b09-580caeb154e3",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The triggering comment is a simple \"ping\" from kanade-opencode, and I can see that I already posted a detailed CI analysis comment (at 14:07:35) in response to this same ping (at 14:03:13). The work has already been done — no further action or reply is warranted.",
+      "started_at": "2026-05-15T14:07:47Z",
+      "status": "completed",
+      "trigger_summary": "[@kanade-claude](mention://agent/f890a92a-be29-4e72-a584-5519e22d0df0) ping"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T14:07:45Z",
+      "duration_seconds": 278,
+      "error": null,
+      "failure_reason": null,
+      "id": "e0e4bd8e-2af0-46e5-b9e9-bbfcf60afe99",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Verification complete. Here's the summary:\n\n**LIN-186 プラン（CI ワークフロー整備）の確認結果:**\n\n- **✅ CI ワークフロー**: `ci.yml` / `e2e.yml` の両方が作成済みでプラン通り\n- **✅ Lint**: エラー 0（biome check 50ファイル通過）\n- **✅ Build**: Vite ビルド成功\n- **✅ Unit tests**: 158/158 パス\n- **❌ E2E テスト**: 28件中 16件失敗中\n\nE2E の失敗は LIN-196〜198（アクセシビリティ強化・セマンティックHTML化）などの最近のコード変更で DOM 構造が変わり、既存テストが壊れていることが原因と考えられます。CI 本体（lint/build/unit test）は正常稼働しており、E2E 修正は別途対応が必要な状態です。",
+      "started_at": "2026-05-15T14:03:07Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "CIエラーの解消の内容確認",
+  "updated_at": "2026-05-15T14:07:39Z",
+  "usage": {
+    "cache_read_tokens": 1906907,
+    "cache_write_tokens": 176322,
+    "input_tokens": 70,
+    "output_tokens": 977,
+    "total_tokens": 2084276
+  }
+}

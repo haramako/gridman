@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 138
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-15T19:03:45Z",
+  "description": "## 概要\n\ngridman リポジトリの PR #56「[LIN-195] React hooks 依存配列の修正」のCIが失敗しています。\n\n## 状況\n\n- **main ブランチ**: CI 通過 ✓\n- **PR #56 ブランチ** (`issue/LIN-195-fix-useeffect-deps`): CI 失敗 ✗（21 エラー）\n\n## エラー内容（biome lint）\n\nPR のブランチが main から古い時点で切られており、その後 main で修正済みのエラーが残っています。\n\n| ファイル | エラー種別 |\n|---|---|\n| `src/pages/HomePage.tsx` | `noExplicitAny` (×2), formatter |\n| `src/pages/EditorPage.tsx` | `noExplicitAny` (×3), `noNonNullAssertion` (×3) |\n| `src/fs/file-system-access.ts` | `noExplicitAny` (×1) |\n| `src/domain/union.ts` | `noNonNullAssertion` (×1) |\n| `src/components/page/PageTemplateDialog.tsx` | `noNonNullAssertion` (×1) |\n| `src/components/spreadsheet/Cell.tsx` | `useKeyWithClickEvents` (×2) |\n| `src/components/spreadsheet/SpreadsheetGrid.tsx` | `noNonNullAssertion` (×4), `useKeyWithClickEvents` (×1) |\n| `src/components/ui/DialogShell.tsx` | `useSemanticElements` (×1) |\n| `src/components/union/UnionViewDialog.tsx` | `noLabelWithoutControl` (×1) |\n\n## 対処方法\n\nLIN-195 の issue はすでに「done」のため、PR #56 を main に rebase するか、stale な PR としてクローズする。\n\n## 参照\n\n- CI ラン: https://github.com/haramako/gridman/actions/runs/25894779648\n- PR: https://github.com/haramako/gridman/pull/56",
+  "id": "4d200f65-8d4c-4ca1-a0c3-56d9cceb61ed",
+  "identifier": "LIN-200",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T19:06:33Z",
+      "duration_seconds": 138,
+      "error": null,
+      "failure_reason": null,
+      "id": "cc1d9046-eb79-4581-b028-5d2035768812",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "PR #56 の rebase が完了しました。`issue/LIN-195-fix-useeffect-deps` を `origin/main` に rebase し、21件の biome lint エラーをすべて解消しました。CI は SUCCESS で通過しています。Issue を `in_review` に更新しました。",
+      "started_at": "2026-05-15T19:04:15Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "PR #56 のCI失敗（biome lint エラー21件）- rebase が必要",
+  "updated_at": "2026-05-15T19:06:25Z",
+  "usage": {
+    "cache_read_tokens": 1048119,
+    "cache_write_tokens": 56736,
+    "input_tokens": 56,
+    "output_tokens": 736,
+    "total_tokens": 1105647
+  }
+}

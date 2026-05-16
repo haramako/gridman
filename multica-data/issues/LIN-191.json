@@ -1,0 +1,89 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 4,
+    "total_duration_seconds": 14509
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-14T17:53:14Z",
+  "description": "HomePage.tsx(3), UnionViewDialog.tsx(2), EditorPage.tsx(11) の button 要素に type=\"button\" を追加。",
+  "id": "4151395e-6ec6-4205-b569-6b208f0d0b13",
+  "identifier": "LIN-191",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T00:56:34Z",
+      "duration_seconds": 26,
+      "error": null,
+      "failure_reason": null,
+      "id": "90eb518e-a30c-4c52-836f-36017365e654",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The PR has been approved. Let me check its status and proceed with merging.PR is approved and mergeable. Merging now.PRをマージしました。",
+      "started_at": "2026-05-15T00:56:08Z",
+      "status": "completed",
+      "trigger_summary": "PR確認OK"
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-15T00:55:38Z",
+      "duration_seconds": 81,
+      "error": null,
+      "failure_reason": null,
+      "id": "3f485256-0f67-41d2-a060-ec348b2b2a13",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The triggering comment is a \"ping\" from a human. Let me check the workspace state.I'm here and will continue working on the task. The issue is about adding `type=\"button\"` to button elements in 3 files. Let me check the current state.All buttons in all three files already have `type=\"button\"`. Let me verify with git.The modifications are already complete — all buttons in all 3 files now have `type=\"button\"` (uncommitted). Let me verify and wrap up.The type check error is pre-existing (exists on main too). Now let me commit and create a PR.作業完了しました。Done. PR created: https://github.com/haramako/gridman/pull/54",
+      "started_at": "2026-05-15T00:54:17Z",
+      "status": "completed",
+      "trigger_summary": "ping"
+    },
+    {
+      "attempt": 2,
+      "completed_at": "2026-05-14T21:56:01Z",
+      "duration_seconds": 7201,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "b00583b9-536d-4bc0-9046-32ccda90964c",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T19:56:00Z",
+      "status": "failed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-14T19:54:36Z",
+      "duration_seconds": 7201,
+      "error": "opencode timed out after 2h0m0s",
+      "failure_reason": "timeout",
+      "id": "cc0f6795-ccd7-4f3d-9a36-2ae0fd2611ed",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-14T17:54:35Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "button に type=\"button\" を追加",
+  "updated_at": "2026-05-15T00:57:00Z",
+  "usage": {
+    "cache_read_tokens": 829312,
+    "cache_write_tokens": 0,
+    "input_tokens": 76689,
+    "output_tokens": 9387,
+    "total_tokens": 915388
+  }
+}

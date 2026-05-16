@@ -79,7 +79,7 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-12 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（62件・context-overload が最多、quota-recovery 急増）
+- 2026-05-16 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（72件・quota-recovery が最多 17件、lint スプリント LIN-190〜198）
 - 2026-05-15 — [[summaries/doc-discussions]] — 設計判断ログ分析（11件・インタラクションシナリオ・大規模タスク停止基準・ブロッカー報告・query promote フロー）
 - 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
 - 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細
@@ -95,4 +95,5 @@
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
 - Q4: `countermeasure: none` issue 群（LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79）— context-overload 対策として issue 記述ガイドラインを整備すべきか？（LIN-22, LIN-46, LIN-171 は in-agents-md 対応済み）
 - Q5: PR 作成忘れパターン（LIN-172, LIN-175, LIN-184）— AGENTS.md ルールに加え、ワークフローの機械的チェックをどう実装するか？
-- Q6: `quota-recovery` 急増（6→11件）— クォータ管理の改善策は？
+- Q6: `quota-recovery` 急増（11→17件）— lint スプリント並行起動が主因。一括タスク作成後の順番割り当てで緩和可能か？
+- Q7: lint スプリント（LIN-191〜198）並行タイムアウト — issue 一括作成後のキュー管理・並行起動制限の仕組みをどう実装するか？
