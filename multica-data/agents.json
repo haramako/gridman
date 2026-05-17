@@ -5,6 +5,12 @@
     "model": null,
     "name": "kanade-opencode"
   },
+  "bc40040a-54de-444d-901c-6cecfb70fc62": {
+    "created_at": "2026-05-16T13:50:09Z",
+    "id": "bc40040a-54de-444d-901c-6cecfb70fc62",
+    "model": "opencode/big-pickle",
+    "name": "kanade-big-picle"
+  },
   "f890a92a-be29-4e72-a584-5519e22d0df0": {
     "created_at": "2026-05-02T09:10:55Z",
     "id": "f890a92a-be29-4e72-a584-5519e22d0df0",

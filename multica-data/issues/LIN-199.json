@@ -46,9 +46,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "todo",
   "title": "CIエラーの解消の内容確認",
-  "updated_at": "2026-05-15T14:07:39Z",
+  "updated_at": "2026-05-16T18:08:51Z",
   "usage": {
     "cache_read_tokens": 1906907,
     "cache_write_tokens": 176322,

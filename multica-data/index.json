@@ -1,6 +1,54 @@
 [
   {
     "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "created_at": "2026-05-12T19:24:24Z",
+    "has_failures": true,
+    "has_real_failures": true,
+    "identifier": "LIN-173",
+    "labels": [],
+    "parent_issue_id": null,
+    "priority": "medium",
+    "run_count": 1,
+    "status": "todo",
+    "title": "【リファクタ】EditorPage.tsx のダイアログ管理を useDialogState hook に抽出（587行）",
+    "total_duration_seconds": 3,
+    "total_tokens": 0,
+    "updated_at": "2026-05-16T20:04:18Z"
+  },
+  {
+    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "created_at": "2026-05-15T13:54:06Z",
+    "has_failures": false,
+    "has_real_failures": false,
+    "identifier": "LIN-199",
+    "labels": [],
+    "parent_issue_id": null,
+    "priority": "none",
+    "run_count": 2,
+    "status": "todo",
+    "title": "CIエラーの解消の内容確認",
+    "total_duration_seconds": 310,
+    "total_tokens": 2084276,
+    "updated_at": "2026-05-16T18:08:51Z"
+  },
+  {
+    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "created_at": "2026-05-01T00:28:06Z",
+    "has_failures": true,
+    "has_real_failures": false,
+    "identifier": "LIN-22",
+    "labels": [],
+    "parent_issue_id": null,
+    "priority": "low",
+    "run_count": 7,
+    "status": "in_review",
+    "title": "[TML] 不正なカラー値のサイレント変換に警告がない",
+    "total_duration_seconds": 830,
+    "total_tokens": 8772141,
+    "updated_at": "2026-05-16T18:07:25Z"
+  },
+  {
+    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
     "created_at": "2026-05-14T16:08:13Z",
     "has_failures": true,
     "has_real_failures": false,
@@ -30,22 +78,6 @@
     "total_duration_seconds": 138,
     "total_tokens": 1105647,
     "updated_at": "2026-05-15T19:06:25Z"
-  },
-  {
-    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
-    "created_at": "2026-05-15T13:54:06Z",
-    "has_failures": false,
-    "has_real_failures": false,
-    "identifier": "LIN-199",
-    "labels": [],
-    "parent_issue_id": null,
-    "priority": "none",
-    "run_count": 2,
-    "status": "in_review",
-    "title": "CIエラーの解消の内容確認",
-    "total_duration_seconds": 310,
-    "total_tokens": 2084276,
-    "updated_at": "2026-05-15T14:07:39Z"
   },
   {
     "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
@@ -311,22 +343,6 @@
     "total_duration_seconds": 685,
     "total_tokens": 3708018,
     "updated_at": "2026-05-14T09:20:16Z"
-  },
-  {
-    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
-    "created_at": "2026-05-12T19:24:24Z",
-    "has_failures": true,
-    "has_real_failures": true,
-    "identifier": "LIN-173",
-    "labels": [],
-    "parent_issue_id": null,
-    "priority": "medium",
-    "run_count": 1,
-    "status": "cancelled",
-    "title": "【リファクタ】EditorPage.tsx のダイアログ管理を useDialogState hook に抽出（587行）",
-    "total_duration_seconds": 3,
-    "total_tokens": 0,
-    "updated_at": "2026-05-14T09:15:43Z"
   },
   {
     "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
@@ -1191,22 +1207,6 @@
     "total_duration_seconds": 431,
     "total_tokens": 4541993,
     "updated_at": "2026-05-01T14:43:07Z"
-  },
-  {
-    "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
-    "created_at": "2026-05-01T00:28:06Z",
-    "has_failures": false,
-    "has_real_failures": false,
-    "identifier": "LIN-22",
-    "labels": [],
-    "parent_issue_id": null,
-    "priority": "low",
-    "run_count": 6,
-    "status": "in_review",
-    "title": "[TML] 不正なカラー値のサイレント変換に警告がない",
-    "total_duration_seconds": 827,
-    "total_tokens": 8772141,
-    "updated_at": "2026-05-01T13:50:08Z"
   },
   {
     "assignee_id": "fdec13b8-2096-42d1-b0c9-388114d931e5",
