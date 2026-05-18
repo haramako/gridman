@@ -1,14 +1,10 @@
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
-import FilterViewDialog from '@/components/filter/FilterViewDialog';
-import LookupViewDialog from '@/components/lookup/LookupViewDialog';
-import PageTemplateDialog from '@/components/page/PageTemplateDialog';
 import PageView from '@/components/page/PageView';
-import SchemaEditorDialog from '@/components/schema/SchemaEditorDialog';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
-import UnionViewDialog from '@/components/union/UnionViewDialog';
 import { applyFilter } from '@/domain/filter';
 import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
+import { useDialogState } from '@/hooks/useDialogState';
 import { useCommandHistoryStore } from '@/stores/commandHistoryStore';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
@@ -20,7 +16,6 @@ import type {
   LookupViewQuery,
   PageViewQuery,
   UnionViewQuery,
-  ViewDefinition,
 } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -43,28 +38,15 @@ export default function EditorPage() {
     dirtyRowIds,
     loadProject,
     saveAll,
-    addView,
-    updateView,
-    deleteView,
-    updateSchema,
     // clearDraftState, // TEMP: ドラフト確認ダイアログ無効化中
     syncDraftFromTab,
     releaseLock,
-    stealLock,
   } = useProjectStore();
   const { undo, redo } = useCommandHistoryStore();
   const { activeViewId, setActiveViewId } = useViewStore();
 
-  const [schemaEditorTable, setSchemaEditorTable] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'filter' | 'union' | 'lookup' | 'page'>('filter');
-  const [editingView, setEditingView] = useState<ViewDefinition | undefined>();
-  const [editingPageTemplate, setEditingPageTemplate] = useState<
-    (PageTemplate & { id?: string }) | undefined
-  >();
   // TEMP: ドラフト確認ダイアログ無効化中
   // const [showDraftConfirm, setShowDraftConfirm] = useState(false);
-  const [showLockStealConfirm, setShowLockStealConfirm] = useState(false);
   const draftHandledRef = useRef(false);
 
   useEffect(() => {
@@ -198,7 +180,7 @@ export default function EditorPage() {
 
   const isPageView = activeView?.query.type === 'page';
   const pageTemplateName = isPageView ? (activeView.query as PageViewQuery).pageLayout : undefined;
-  const [pageTemplate, setPageTemplate] = useState<(PageTemplate & { id?: string }) | null>(null);
+  const [pageTemplate, setPageTemplate] = useState<PageTemplate | null>(null);
 
   useEffect(() => {
     if (pageTemplateName && projectPath) {
@@ -219,67 +201,8 @@ export default function EditorPage() {
     return rows[Math.min(pageRowIndex, rows.length - 1)] ?? null;
   }, [isPageView, pageTemplate, displayRows, pageRowIndex]);
 
-  const handlePageNavigate = (index: number) => {
-    setPageRowIndex(index);
-  };
-
-  const openCreateDialog = (type: 'filter' | 'union' | 'lookup') => {
-    setEditingView(undefined);
-    setDialogType(type);
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = () => {
-    if (activeView) {
-      setEditingView(activeView);
-      const t = activeView.query.type;
-      setDialogType(t === 'union' ? 'union' : t === 'lookup' ? 'lookup' : 'filter');
-      setDialogOpen(true);
-    }
-  };
-
-  const handleSaveView = async (view: ViewDefinition) => {
-    if (editingView) {
-      await updateView(view);
-    } else {
-      await addView(view);
-    }
-    setActiveViewId(view.id);
-  };
-
-  const handleDeleteView = async (id: string) => {
-    await deleteView(id);
-    setActiveViewId(null);
-  };
-
-  const openCreatePageTemplate = () => {
-    setEditingPageTemplate(undefined);
-    setDialogType('page');
-    setDialogOpen(true);
-  };
-
-  const handleSavePageTemplate = async (template: PageTemplate & { id?: string }) => {
-    const { addPageTemplate } = useProjectStore.getState();
-    await addPageTemplate(template);
-    setDialogOpen(false);
-
-    // Create a View entry so it appears in the left sidebar
-    const viewId = `page-${template.name}`;
-    const existingView = project?.views.find((v) => v.id === viewId);
-    if (!existingView) {
-      const newView: ViewDefinition = {
-        id: viewId,
-        name: template.name,
-        query: {
-          type: 'page',
-          from: template.table,
-          pageLayout: template.name,
-        } satisfies PageViewQuery,
-      };
-      await addView(newView);
-      setActiveViewId(viewId);
-    }
-  };
+  const { openCreateDialog, openEditDialog, openCreatePageTemplate, openSchemaEditor, setShowLockStealConfirm, dialogs } =
+    useDialogState({ project: project ?? null, schemas, activeView, schema });
 
   if (!project) {
     return (
@@ -389,7 +312,7 @@ export default function EditorPage() {
                     title="スキーマを編集"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSchemaEditorTable(name);
+                      openSchemaEditor(name);
                     }}
                   >
                     ⚙
@@ -460,7 +383,7 @@ export default function EditorPage() {
               tables={tables}
               currentIndex={pageRowIndex}
               totalRows={displayRows.size}
-              onNavigate={handlePageNavigate}
+              onNavigate={(index) => setPageRowIndex(index)}
             />
           ) : schema ? (
             <SpreadsheetView
@@ -481,63 +404,6 @@ export default function EditorPage() {
         {/* JSON Editor Panel */}
         <JsonEditorPanel />
       </div>
-
-      {/* View dialogs */}
-      {dialogOpen && dialogType === 'filter' && (
-        <FilterViewDialog
-          schemas={schemas}
-          tables={project.tables}
-          project={project}
-          editView={editingView}
-          onSave={handleSaveView}
-          onDelete={editingView ? handleDeleteView : undefined}
-          onClose={() => setDialogOpen(false)}
-        />
-      )}
-      {dialogOpen && dialogType === 'union' && (
-        <UnionViewDialog
-          schemas={schemas}
-          tables={project.tables}
-          editView={editingView}
-          onSave={handleSaveView}
-          onDelete={editingView ? handleDeleteView : undefined}
-          onClose={() => setDialogOpen(false)}
-        />
-      )}
-      {dialogOpen && dialogType === 'lookup' && (
-        <LookupViewDialog
-          schemas={schemas}
-          tables={project.tables}
-          editView={editingView}
-          onSave={handleSaveView}
-          onDelete={editingView ? handleDeleteView : undefined}
-          onClose={() => setDialogOpen(false)}
-        />
-      )}
-      {dialogOpen &&
-        dialogType === 'page' &&
-        (() => {
-          const pageSchema = schema ?? schemas.get(project.tables[0]);
-          if (!pageSchema) return null;
-          return (
-            <PageTemplateDialog
-              schema={pageSchema}
-              tables={project.tables}
-              schemas={schemas}
-              editTemplate={editingPageTemplate}
-              onSave={handleSavePageTemplate}
-              onDelete={
-                editingPageTemplate?.id
-                  ? () => {
-                      useProjectStore.getState().deletePageTemplate(editingPageTemplate.name);
-                      setDialogOpen(false);
-                    }
-                  : undefined
-              }
-              onClose={() => setDialogOpen(false)}
-            />
-          );
-        })()}
 
       {/* Draft confirmation dialog — TEMP: 無効化中（自動で「変更を保持」を選択） */}
       {/* {showDraftConfirm && (
@@ -565,59 +431,7 @@ export default function EditorPage() {
         </div>
       )} */}
 
-      {/* Schema editor dialog */}
-      {schemaEditorTable &&
-        (() => {
-          const schemaEditorSchema = schemas.get(schemaEditorTable);
-          return (
-            schemaEditorSchema && (
-              <SchemaEditorDialog
-                tableName={schemaEditorTable}
-                schema={schemaEditorSchema}
-                tables={project.tables}
-                onSave={async (newSchema) => {
-                  await updateSchema(schemaEditorTable, newSchema);
-                  setSchemaEditorTable(null);
-                }}
-                onClose={() => setSchemaEditorTable(null)}
-              />
-            )
-          );
-        })()}
-
-      {/* Lock steal confirmation dialog */}
-      {showLockStealConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 max-w-md mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">編集モードを開始しますか？</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              現在、他のタブがこのプロジェクトを編集中です。
-            </p>
-            <p className="text-sm text-amber-600 mb-4 font-medium">
-              編集モードに切り替えると、他のタブの変更が上書きされる可能性があります。
-            </p>
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                className="px-3 py-1.5 rounded border text-sm hover:bg-accent"
-                onClick={() => setShowLockStealConfirm(false)}
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1.5 rounded border text-sm bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => {
-                  stealLock();
-                  setShowLockStealConfirm(false);
-                }}
-              >
-                編集を開始
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {dialogs}
     </div>
   );
 }
