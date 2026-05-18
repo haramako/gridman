@@ -24,7 +24,7 @@ Multica で実行された AI エージェントタスクの実行ログを分�
 |---------|------|-----------|
 | `quota-recovery` | 17 | LIN-38, LIN-40〜42, LIN-83〜85, LIN-171, LIN-173, LIN-187〜189, LIN-191, LIN-193, LIN-194, LIN-197, LIN-198 |
 | `context-overload` | 8 | LIN-16, LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, LIN-171 |
-| `platform-artifact` | 5 | LIN-41, LIN-42, LIN-45, LIN-72, LIN-188 |
+| `platform-artifact` | 6 | LIN-22, LIN-41, LIN-42, LIN-45, LIN-72, LIN-188 |
 | `infra-improvement` | 5 | LIN-78, LIN-168, LIN-176, LIN-186, LIN-187 |
 | `duplicate-trigger` | 3 | LIN-16, LIN-43, LIN-72 |
 | `e2e-not-verified` | 3 | LIN-46, LIN-51, LIN-184 |

@@ -2,15 +2,15 @@
 {
   "identifier": "LIN-22",
   "title": "[TML] 不正なカラー値のサイレント変換に警告がない",
-  "status": "in_review",
-  "run_count": 6,
+  "status": "done",
+  "run_count": 7,
   "total_tokens": 8772141,
   "has_real_failures": false,
   "failure_cause": null,
   "rerun_causes": ["spec-design-change", "env-url-config"],
-  "patterns": ["spec-design-change", "env-url-config"],
+  "patterns": ["spec-design-change", "env-url-config", "platform-artifact"],
   "countermeasure": "in-agents-md",
-  "written_at": "2026-05-14"
+  "written_at": "2026-05-18"
 }
 ```
 
@@ -26,6 +26,7 @@
 | 4 | completed | Dropbox スキャンについての確認 |
 | 5 | completed | ブランチへの push 依頼 |
 | 6 | completed | コールバック設計変更依頼（WarnCallback → ログレベル+文字列の統一コールバック） |
+| 7 | failed | (トリガーなし — platform-artifact) |
 
 ## 観察
 
@@ -44,6 +45,10 @@ AGENTS.md の「大規模タスクの進め方」に「新しいインターフ�
 ### セキュリティ懸念の確認
 
 Run 4 では「Dropbox のファイルに対して find.exe を実行したか？」という確認コメントが届いた。エージェントのファイルアクセス範囲についてユーザーが懸念を持ったケース。エージェントはプロジェクトディレクトリのみを検索していたことを説明して解消。
+
+### Run 7: platform-artifact
+
+最新 run はトリガーなしの failed（platform-artifact）。Run 6 が completed で完了した後に残った stale な失敗状態。実装自体は正常完了している。
 
 ## 教訓
 

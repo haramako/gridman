@@ -121,9 +121,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "done",
   "title": "[TML] 不正なカラー値のサイレント変換に警告がない",
-  "updated_at": "2026-05-16T18:07:25Z",
+  "updated_at": "2026-05-17T13:20:35Z",
   "usage": {
     "cache_read_tokens": 7948154,
     "cache_write_tokens": 820379,
