@@ -35,21 +35,19 @@ issue が完了した後、トリガーなしで failed run が残留するパ�
 
 ### `quota-recovery` — 使用量上限回復後の手動再開チェック
 
-**事例**: LIN-38, LIN-40, LIN-41, LIN-42, LIN-83, LIN-84, LIN-85, LIN-171, LIN-173, LIN-187, LIN-188, LIN-189, LIN-191, LIN-193, LIN-194, LIN-197, LIN-198（計17件）
+**事例**: LIN-38, LIN-40, LIN-41, LIN-42, LIN-83, LIN-84, LIN-85, LIN-171, LIN-173, LIN-187, LIN-189, LIN-188, LIN-191, LIN-194, LIN-198, LIN-199（計16件）
 
 エージェントの使用量が上限に達して実行が中断した後、使用量が回復したタイミングでタスクが自動再起動しないよう、ユーザーが手動で送る確認メッセージ。"いかがです？" / "how are you？" / "作業できますか？" などが使われてきたが、通常の指示と区別がつかないため誤分類されやすい。
 
 **専用キーワード**: `ping`（機械的に `trigger_summary == "ping"` で検出可能）
 
-**特徴**: 初回 run が failed（quota 切れまたは 2h タイムアウト）、次の run が `ping` トリガーで completed になるパターン。
+**特徴**: 初回 run が failed（quota 切れ）、次の run が quota-recovery トリガーで completed になるパターン。
 
 **LIN-83 の例**: `ping` によって triggered された run が `cancelled` で終わり、別途 "mainブランチのrebase+PR" という明確な指示で completed になった。`cancelled` の run は issue 完了に影響しない。
 
 **LIN-171 の例**: context-overload 状態で `ping` を2回受けて2回失敗。大型タスクへの quota-recovery は単純な ping では復帰できないことがある。
 
-**lint スプリント（LIN-191〜198）の例**: 8 タスクを一括作成・並行起動したことで全タスクが 2h タイムアウトを経験。`ping` による手動再開や新規 direct run で順次回復したが、LIN-194/198 では タイムアウト×2 + API 529 オーバーロードの3連失敗が発生した。**一括作成後は順番割り当てが推奨。**
-
-**bare ping の連鎖**: LIN-188, LIN-194 では kanade-opencode からの bare ping が連鎖し、実作業なしの completed run が複数発生した。ping はステータス確認や具体的な依頼を含む形にすべき。
+**lint 修正タスク波の事例（LIN-191/194/198/199）**: タイムアウト失敗後に ping で再開するパターンが多数発生。lint 修正タスクは短いが一度にファイル数が多く、初回 run がタイムアウトしやすい。完了済みissueへの不要な ping（LIN-188 など）も含む。
 
 ## メトリクスへの影響と `has_real_failures` ロジック
 

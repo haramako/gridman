@@ -31,7 +31,7 @@
 
 ### AIエージェントパターン
 - [[concepts/agent-patterns/index|Agent Patterns]] — Multica issue ログから帰納したワークフローパターン
-    - [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（最多パターン、8件）
+    - [[concepts/agent-patterns/Context_and_Cost]] — コンテキスト肥大化・高コスト（最多パターン、15件）
     - [[concepts/agent-patterns/Environment_Issues]] — 環境起因の再実行（5件）
     - [[concepts/agent-patterns/Platform_Artifacts]] — stale failed run・重複トリガー・quota-recovery（メトリクス歪み）
     - [[concepts/agent-patterns/Spec_Quality]] — 仕様不完全による再設計・インタラクションシナリオ手法
@@ -79,7 +79,7 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-17 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（76件・one-time 61件、infra-improvement 5件、E2E テスト整備 LIN-176〜179）
+- 2026-05-18 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（78件・context-overload 15件に増加, lint修正波 LIN-191〜198, quota-recovery 16件）
 - 2026-05-15 — [[summaries/doc-discussions]] — 設計判断ログ分析（11件・インタラクションシナリオ・大規模タスク停止基準・ブロッカー報告・query promote フロー）
 - 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
 - 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細
@@ -93,7 +93,6 @@
 ## Open Questions
 
 - Q3: `syncDraftFromTab` のマルチタブ同期アルゴリズム詳細は？
-- Q4: `countermeasure: none` issue 群（LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79）— context-overload 対策として issue 記述ガイドラインを整備すべきか？（LIN-22, LIN-46, LIN-171 は in-agents-md 対応済み）
+- Q4: `countermeasure: none` issue 群（LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79 + lint波 LIN-191/193/194/195/196/197/198 = 計13件）— context-overload 対策として「実装前にファイル数確認」指示を issue テンプレートに追加すべきか？
 - Q5: PR 作成忘れパターン（LIN-172, LIN-175, LIN-184）— AGENTS.md ルールに加え、ワークフローの機械的チェックをどう実装するか？
-- Q6: `quota-recovery` 急増（11→17件）— lint スプリント並行起動が主因。一括タスク作成後の順番割り当てで緩和可能か？
-- Q7: lint スプリント（LIN-191〜198）並行タイムアウト — issue 一括作成後のキュー管理・並行起動制限の仕組みをどう実装するか？
+- Q6: `quota-recovery` 16件に増加 — lint修正タスク後の不要 ping 抑制策は？

@@ -2,8 +2,8 @@
   "_derived": {
     "has_failures": false,
     "has_real_failures": false,
-    "run_count": 2,
-    "total_duration_seconds": 310
+    "run_count": 3,
+    "total_duration_seconds": 533
   },
   "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
   "assignee_type": "agent",
@@ -15,6 +15,21 @@
   "parent_issue_id": null,
   "priority": "none",
   "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-18T14:17:26Z",
+      "duration_seconds": 223,
+      "error": null,
+      "failure_reason": null,
+      "id": "8726406f-c5c4-4e03-b996-3cc5b20d3272",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "CI確認レポートをコメントに投稿しました。\n\n**確認結果のまとめ:**\n- mainブランチのCI（lint/build/unit test）: ✅ 全て通過中\n- mainブランチのE2Eテスト: ✅ 全て通過中（2026-05-15 15:09以降継続的に成功）\n\n前回レポート（5/15）時点でE2E 16/28件が失敗していましたが、その後の修正により現在はすべてのCIが正常に動作しています。LIN-186のプランは完全達成です。",
+      "started_at": "2026-05-18T14:13:43Z",
+      "status": "completed",
+      "trigger_summary": "作業を開始してください"
+    },
     {
       "attempt": 1,
       "completed_at": "2026-05-15T14:08:19Z",
@@ -46,14 +61,14 @@
       "trigger_summary": null
     }
   ],
-  "status": "todo",
+  "status": "done",
   "title": "CIエラーの解消の内容確認",
-  "updated_at": "2026-05-16T18:08:51Z",
+  "updated_at": "2026-05-18T14:20:02Z",
   "usage": {
-    "cache_read_tokens": 1906907,
-    "cache_write_tokens": 176322,
-    "input_tokens": 70,
-    "output_tokens": 977,
-    "total_tokens": 2084276
+    "cache_read_tokens": 2674960,
+    "cache_write_tokens": 235698,
+    "input_tokens": 102,
+    "output_tokens": 1875,
+    "total_tokens": 2912635
   }
 }
