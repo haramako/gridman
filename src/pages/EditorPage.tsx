@@ -11,12 +11,7 @@ import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
-import type {
-  FilterViewQuery,
-  LookupViewQuery,
-  PageViewQuery,
-  UnionViewQuery,
-} from '@/types/view';
+import type { FilterViewQuery, LookupViewQuery, PageViewQuery, UnionViewQuery } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -201,8 +196,14 @@ export default function EditorPage() {
     return rows[Math.min(pageRowIndex, rows.length - 1)] ?? null;
   }, [isPageView, pageTemplate, displayRows, pageRowIndex]);
 
-  const { openCreateDialog, openEditDialog, openCreatePageTemplate, openSchemaEditor, setShowLockStealConfirm, dialogs } =
-    useDialogState({ project: project ?? null, schemas, activeView, schema });
+  const {
+    openCreateDialog,
+    openEditDialog,
+    openCreatePageTemplate,
+    openSchemaEditor,
+    setShowLockStealConfirm,
+    dialogs,
+  } = useDialogState({ project: project ?? null, schemas, activeView, schema });
 
   if (!project) {
     return (

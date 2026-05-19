@@ -18,8 +18,15 @@ interface UseDialogStateOptions {
 }
 
 export function useDialogState({ project, schemas, activeView, schema }: UseDialogStateOptions) {
-  const { addView, updateView, deleteView, updateSchema, stealLock, addPageTemplate, deletePageTemplate } =
-    useProjectStore();
+  const {
+    addView,
+    updateView,
+    deleteView,
+    updateSchema,
+    stealLock,
+    addPageTemplate,
+    deletePageTemplate,
+  } = useProjectStore();
   const { setActiveViewId } = useViewStore();
 
   const [schemaEditorTable, setSchemaEditorTable] = useState<string | null>(null);
@@ -120,32 +127,31 @@ export function useDialogState({ project, schemas, activeView, schema }: UseDial
           onClose={() => setDialogOpen(false)}
         />
       )}
-      {dialogOpen && dialogType === 'page' && project && (
-        <>
-          {(() => {
-            const pageSchema = schema ?? schemas.get(project.tables[0]);
-            if (!pageSchema) return null;
-            return (
-              <PageTemplateDialog
-                schema={pageSchema}
-                tables={project.tables}
-                schemas={schemas}
-                editTemplate={editingPageTemplate}
-                onSave={handleSavePageTemplate}
-                onDelete={
-                  editingPageTemplate?.id
-                    ? () => {
-                        deletePageTemplate(editingPageTemplate.name);
-                        setDialogOpen(false);
-                      }
-                    : undefined
-                }
-                onClose={() => setDialogOpen(false)}
-              />
-            );
-          })()}
-        </>
-      )}
+      {dialogOpen &&
+        dialogType === 'page' &&
+        project &&
+        (() => {
+          const pageSchema = schema ?? schemas.get(project.tables[0]);
+          if (!pageSchema) return null;
+          return (
+            <PageTemplateDialog
+              schema={pageSchema}
+              tables={project.tables}
+              schemas={schemas}
+              editTemplate={editingPageTemplate}
+              onSave={handleSavePageTemplate}
+              onDelete={
+                editingPageTemplate?.id
+                  ? () => {
+                      deletePageTemplate(editingPageTemplate.name);
+                      setDialogOpen(false);
+                    }
+                  : undefined
+              }
+              onClose={() => setDialogOpen(false)}
+            />
+          );
+        })()}
 
       {schemaEditorTable &&
         (() => {
