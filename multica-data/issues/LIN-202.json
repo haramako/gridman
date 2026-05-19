@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 226
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-18T19:04:16Z",
+  "description": "## 概要\n\ngridman の main branch で biome lint/format エラーが発生し、CI が失敗している。\n\n- 最新の失敗: https://github.com/haramako/gridman/actions/runs/26040330754\n- 原因コミット: `449ad69193dba16b24ea2adcbc2d8acbfc13ac53` (2026-05-18)\n\n## エラー内容\n\n```\nFound 3 errors. Found 1 warning.\n```\n\n### エラー詳細\n\n1. **`src/components/spreadsheet/Cell.tsx:105`** - `suppressions/unused`（warning）\n   - 不要なbiome抑制コメント\n\n2. **`src/hooks/useDialogState.tsx:124`** - `lint/complexity/noUselessFragments`（FIXABLE）\n   - 不要な`<>`Fragmentが存在（子が1つのみ）\n   - 自動修正可能\n\n3. **`src/hooks/useDialogState.tsx`** - format エラー\n   - 長い行の折り返しが必要\n\n4. **`src/pages/EditorPage.tsx`** - format エラー\n   - import文の折り返し形式が不一致\n\n## 対応方針\n\nリポジトリをチェックアウトし、`npx biome check --apply` を実行してformat/lintを修正し、PRを作成する。",
+  "id": "02e11d08-3d1e-48b6-82ab-3356f316b9cb",
+  "identifier": "LIN-202",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-18T19:08:33Z",
+      "duration_seconds": 226,
+      "error": null,
+      "failure_reason": null,
+      "id": "17028237-58cc-4c33-8151-2c714fd137f4",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "All done. Fixed all 3 biome errors and 1 warning in the `src/` directory:\n\n- **Cell.tsx**: Removed an obsolete `biome-ignore` suppression comment that no longer suppressed any active rule\n- **useDialogState.tsx**: Removed a useless `<>` Fragment wrapper (single child), and reformatted a long destructuring line\n- **EditorPage.tsx**: Reformatted a long import type and long destructuring line\n\nPR: https://github.com/haramako/gridman/pull/62",
+      "started_at": "2026-05-18T19:04:47Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "in_review",
+  "title": "gridman CIのLintエラー修正（biome format/lint、main branch）",
+  "updated_at": "2026-05-18T19:08:29Z",
+  "usage": {
+    "cache_read_tokens": 1401205,
+    "cache_write_tokens": 98705,
+    "input_tokens": 54,
+    "output_tokens": 961,
+    "total_tokens": 1500925
+  }
+}

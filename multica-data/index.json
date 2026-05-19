@@ -1,6 +1,22 @@
 [
   {
     "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "created_at": "2026-05-18T19:04:16Z",
+    "has_failures": false,
+    "has_real_failures": false,
+    "identifier": "LIN-202",
+    "labels": [],
+    "parent_issue_id": null,
+    "priority": "medium",
+    "run_count": 1,
+    "status": "in_review",
+    "title": "gridman CIのLintエラー修正（biome format/lint、main branch）",
+    "total_duration_seconds": 226,
+    "total_tokens": 1500925,
+    "updated_at": "2026-05-18T19:08:29Z"
+  },
+  {
+    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
     "created_at": "2026-05-15T13:54:06Z",
     "has_failures": false,
     "has_real_failures": false,
