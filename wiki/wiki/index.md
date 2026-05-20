@@ -79,7 +79,7 @@
 - 2026-05-11 — [[summaries/src-view-dialogs]] — フィルター/ユニオン/ルックアップ ビュー作成 UI
 - 2026-05-11 — [[summaries/src-schema-editor]] — スキーマ編集ダイアログ
 - 2026-05-11 — [[summaries/src-json-editor-search]] — JsonEditorPanel + SearchPage
-- 2026-05-18 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（78件・context-overload 15件に増加, lint修正波 LIN-191〜198, quota-recovery 16件）
+- 2026-05-20 — [[summaries/issue-insights]] — Multica issue 実行ログ分析（82件・context-overload 15件, quota-recovery 16件, duplicate-trigger 4件）
 - 2026-05-15 — [[summaries/doc-discussions]] — 設計判断ログ分析（11件・インタラクションシナリオ・大規模タスク停止基準・ブロッカー報告・query promote フロー）
 - 2026-05-14 — [[summaries/src-stores]] — Zustand ストア群（project / selection / view / commandHistory）の実装詳細
 - 2026-05-14 — [[summaries/src-domain]] — ドメインロジック（filter / lookup / union / commands / validator）の実装詳細

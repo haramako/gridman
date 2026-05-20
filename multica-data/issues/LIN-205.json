@@ -1,0 +1,74 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 3,
+    "total_duration_seconds": 126
+  },
+  "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+  "assignee_type": "agent",
+  "created_at": "2026-05-19T18:59:37Z",
+  "description": "こんにちわ",
+  "id": "6404a012-c63c-49f0-921b-a9e9a991cf5d",
+  "identifier": "LIN-205",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-19T19:17:42Z",
+      "duration_seconds": 23,
+      "error": null,
+      "failure_reason": null,
+      "id": "66f7a827-fe23-409c-8535-441fa7ee1862",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The issue was a simple greeting (\"あいさつ\" / \"こんにちわ\") that's already marked done. I responded to the \"ping\" with \"pong\" and left the status as \"done\" since there's no technical work to perform.",
+      "started_at": "2026-05-19T19:17:19Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-19T19:16:13Z",
+      "duration_seconds": 22,
+      "error": null,
+      "failure_reason": null,
+      "id": "cbe994c0-05d4-47c9-b34c-838c9d9e2b43",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The issue was a simple greeting (\"あいさつ\" / \"こんにちわ\") with no technical task. I responded with a greeting comment and set the issue to `in_review`.",
+      "started_at": "2026-05-19T19:15:51Z",
+      "status": "completed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-19T19:00:59Z",
+      "duration_seconds": 81,
+      "error": null,
+      "failure_reason": null,
+      "id": "e43c15ff-44c3-4faf-bc50-59d1dd6b6c06",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "この issue は「あいさつ」で、内容が「こんにちわ」というシンプルなきっかけタスクです。技術的な実装内容は含まれていません。\n\nこんにちは！何かお手伝いできる任务是ありますか？もし具体的なタスクがあれば、issue の説明を更新するか、新しい issue を作成してください。",
+      "started_at": "2026-05-19T18:59:38Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "あいさつ",
+  "updated_at": "2026-05-19T19:17:16Z",
+  "usage": {
+    "cache_read_tokens": 327539,
+    "cache_write_tokens": 59867,
+    "input_tokens": 10794,
+    "output_tokens": 570,
+    "total_tokens": 398770
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 70
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-19T14:55:04Z",
+  "description": "こんにちわ",
+  "id": "eb82f7d6-4e80-4a28-9232-b5588ee38f1c",
+  "identifier": "LIN-203",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-19T14:56:15Z",
+      "duration_seconds": 70,
+      "error": null,
+      "failure_reason": null,
+      "id": "a16fe866-caaf-4a1b-8136-793aba41946f",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "こんにちは！どんな作業をお手伝いしましょうか？",
+      "started_at": "2026-05-19T14:55:05Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "cancelled",
+  "title": "あいさつ",
+  "updated_at": "2026-05-19T14:56:42Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 7810,
+    "output_tokens": 99,
+    "total_tokens": 7909
+  }
+}

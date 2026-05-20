@@ -31,9 +31,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "done",
   "title": "gridman CIのLintエラー修正（biome format/lint、main branch）",
-  "updated_at": "2026-05-18T19:08:29Z",
+  "updated_at": "2026-05-19T19:17:32Z",
   "usage": {
     "cache_read_tokens": 1401205,
     "cache_write_tokens": 98705,
