@@ -23,10 +23,3 @@ table(enemy:e)
   column(e.name, e.hp)
   filter(e.hp > 10 and e.attack > 30);
 ```
-
-3. 
-
-
-もしくは、
-
-enemy:e
