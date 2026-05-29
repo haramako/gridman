@@ -61,8 +61,8 @@ describe('applyUnion', () => {
       sources: [{ from: 'hero' }, { from: 'enemy' }],
     };
     const { rows } = applyUnion(query, tables, schemas);
-    const heroRows = rows.filter((r) => r._source === 'hero');
-    const enemyRows = rows.filter((r) => r._source === 'enemy');
+    const heroRows = rows.filter((r) => r._origin?.table ==='hero');
+    const enemyRows = rows.filter((r) => r._origin?.table ==='enemy');
     expect(heroRows).toHaveLength(2);
     expect(enemyRows).toHaveLength(1);
   });
@@ -100,7 +100,7 @@ describe('applyUnion', () => {
       ],
     };
     const { rows } = applyUnion(query, tables, schemas);
-    const heroRows = rows.filter((r) => r._source === 'hero');
+    const heroRows = rows.filter((r) => r._origin?.table ==='hero');
     expect(heroRows).toHaveLength(1);
     expect(heroRows[0].name).toBe('Hero A');
   });

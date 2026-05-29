@@ -61,9 +61,9 @@ describe('applySelect — joins 無し（旧 filter）', () => {
     expect(schema).toBe(itemSchema);
   });
 
-  it('_sources を付与しない（ベース行をそのまま編集）', () => {
+  it('_origin を付与しない（ベース行をそのまま編集）', () => {
     const { rows } = applySelect({ type: 'select', from: 'item' }, tables, schemas);
-    expect(rows.every((r) => r._sources === undefined)).toBe(true);
+    expect(rows.every((r) => r._origin === undefined)).toBe(true);
   });
 
   it('filter を適用する', () => {
@@ -117,17 +117,16 @@ describe('applySelect — joins 有り（旧 lookup）', () => {
     expect(rows.find((r) => r._id === 'i3')?.['cat.label']).toBeNull();
   });
 
-  it('_sources にベースと参照先の id を設定する', () => {
+  it('_origin にベース表とベース行 id を設定する', () => {
     const { rows } = applySelect(joinQuery, tables, schemas);
     const sword = rows.find((r) => r._id === 'i1');
-    expect((sword?._sources as Record<string, unknown>)?.['item']).toBe('i1');
-    expect((sword?._sources as Record<string, unknown>)?.['category']).toBe('c1');
+    expect(sword?._origin).toEqual({ table: 'item', id: 'i1' });
   });
 
-  it('参照が無いとき _sources の参照先 id を null にする', () => {
+  it('参照先が無くても _origin はベース行を指す', () => {
     const { rows } = applySelect(joinQuery, tables, schemas);
     const unknown = rows.find((r) => r._id === 'i3');
-    expect((unknown?._sources as Record<string, unknown>)?.['category']).toBeNull();
+    expect(unknown?._origin).toEqual({ table: 'item', id: 'i3' });
   });
 
   it('ベース行に filter を適用する', () => {

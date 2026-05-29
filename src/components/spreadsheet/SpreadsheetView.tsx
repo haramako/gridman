@@ -56,15 +56,7 @@ export default function SpreadsheetView({
     const { rowId } = contextMenu;
     const targetRowId = rowId;
 
-    const getSourceTable = (id: string) => {
-      const row = rows.get(id);
-      if (isUnionView) return getRowOwnerTable(row, tableName, 'union');
-      if (isJoinView && activeView) {
-        const fromTable = (activeView.query as SelectQuery).from;
-        return getRowOwnerTable(row, tableName, 'lookup', fromTable);
-      }
-      return tableName;
-    };
+    const getSourceTable = (id: string) => getRowOwnerTable(rows.get(id), tableName);
 
     const idsToDelete =
       selectedRowIds.has(targetRowId) && selectedRowIds.size > 1
@@ -103,7 +95,6 @@ export default function SpreadsheetView({
     tableName,
     isUnionView,
     isJoinView,
-    activeView,
     readOnly,
     addRowBefore,
     addRowAfter,
@@ -114,14 +105,7 @@ export default function SpreadsheetView({
     if (selectedRowIds.size === 0) return;
     const ids = [...selectedRowIds];
     for (const rowId of ids) {
-      let sourceTable = tableName;
-      if (isUnionView) {
-        sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'union');
-      } else if (isJoinView && activeView) {
-        const fromTable = (activeView.query as SelectQuery).from;
-        sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'lookup', fromTable);
-      }
-      deleteRow(sourceTable, rowId);
+      deleteRow(getRowOwnerTable(rows.get(rowId), tableName), rowId);
     }
     setSelectedRowIds(new Set());
   };

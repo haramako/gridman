@@ -41,7 +41,7 @@ export function applyUnion(
       sourceRows = applyFilter(sourceRows, source.filter);
     }
     for (const row of sourceRows) {
-      rows.push({ ...row, _source: source.from });
+      rows.push({ ...row, _origin: { table: source.from, id: row._id as string } });
     }
   }
 
