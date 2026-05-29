@@ -2,7 +2,7 @@ import DialogFooter from '@/components/ui/DialogFooter';
 import DialogShell from '@/components/ui/DialogShell';
 import { makeId } from '@/lib/utils';
 import type { ColumnDef, TableSchema } from '@/types/schema';
-import type { LookupViewQuery, ViewDefinition } from '@/types/view';
+import type { SelectQuery, ViewDefinition } from '@/types/view';
 import { useState } from 'react';
 
 interface LookupDef {
@@ -30,14 +30,13 @@ export default function LookupViewDialog({
   onDelete,
   onClose,
 }: Props) {
-  const existing =
-    editView?.query.type === 'lookup' ? (editView.query as LookupViewQuery) : undefined;
+  const existing = editView?.query.type === 'select' ? (editView.query as SelectQuery) : undefined;
 
   const [name, setName] = useState(editView?.name ?? '');
   const [fromTable, setFromTable] = useState(existing?.from ?? tables[0] ?? '');
   const [lookups, setLookups] = useState<LookupDef[]>(() => {
-    if (existing?.lookups && existing.lookups.length > 0) {
-      return existing.lookups.map((l) => ({ id: makeId(), ...l }));
+    if (existing?.joins && existing.joins.length > 0) {
+      return existing.joins.map((l) => ({ id: makeId(), ...l }));
     }
     return [];
   });
@@ -101,10 +100,10 @@ export default function LookupViewDialog({
 
   const handleSave = () => {
     if (!name.trim() || !fromTable) return;
-    const query: LookupViewQuery = {
-      type: 'lookup',
+    const query: SelectQuery = {
+      type: 'select',
       from: fromTable,
-      lookups: lookups.map(({ column, from, as: asVal, fields }) => ({
+      joins: lookups.map(({ column, from, as: asVal, fields }) => ({
         column,
         from,
         as: asVal,

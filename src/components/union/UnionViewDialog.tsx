@@ -2,7 +2,7 @@ import DialogFooter from '@/components/ui/DialogFooter';
 import DialogShell from '@/components/ui/DialogShell';
 import { makeId } from '@/lib/utils';
 import type { TableSchema } from '@/types/schema';
-import type { UnionViewQuery, ViewDefinition } from '@/types/view';
+import type { UnionQuery, ViewDefinition } from '@/types/view';
 import { useState } from 'react';
 
 interface SourceRow {
@@ -28,8 +28,7 @@ export default function UnionViewDialog({
   onDelete,
   onClose,
 }: Props) {
-  const existing =
-    editView?.query.type === 'union' ? (editView.query as UnionViewQuery) : undefined;
+  const existing = editView?.query.type === 'union' ? (editView.query as UnionQuery) : undefined;
 
   const [name, setName] = useState(editView?.name ?? '');
   const [sources, setSources] = useState<SourceRow[]>(() => {
@@ -69,7 +68,7 @@ export default function UnionViewDialog({
 
   const handleSave = () => {
     if (!name.trim() || sources.length === 0) return;
-    const query: UnionViewQuery = {
+    const query: UnionQuery = {
       type: 'union',
       sources: sources.map((s) => ({
         from: s.from,

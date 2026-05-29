@@ -47,8 +47,9 @@ export function useDialogState({ project, schemas, activeView, schema }: UseDial
   const openEditDialog = () => {
     if (activeView) {
       setEditingView(activeView);
-      const t = activeView.query.type;
-      setDialogType(t === 'union' ? 'union' : t === 'lookup' ? 'lookup' : 'filter');
+      const q = activeView.query;
+      const isJoin = q.type === 'select' && (q.joins?.length ?? 0) > 0;
+      setDialogType(q.type === 'union' ? 'union' : isJoin ? 'lookup' : 'filter');
       setDialogOpen(true);
     }
   };
