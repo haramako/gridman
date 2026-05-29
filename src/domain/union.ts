@@ -1,10 +1,10 @@
 import type { Row } from '@/types/row';
 import type { ColumnDef, TableSchema } from '@/types/schema';
-import type { UnionViewQuery } from '@/types/view';
+import type { UnionQuery } from '@/types/view';
 import { applyFilter } from './filter';
 
 export function applyUnion(
-  query: UnionViewQuery,
+  query: UnionQuery,
   tables: Map<string, Map<string, Row>>,
   schemas: Map<string, TableSchema>
 ): { rows: Row[]; schema: TableSchema } {
