@@ -4,7 +4,7 @@ import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
 import { resolveEnumValues } from '@/lib/enum-resolver';
 import { makeId } from '@/lib/utils';
 import type { TableSchema } from '@/types/schema';
-import type { FilterExpr, FilterViewQuery, ProjectConfig, ViewDefinition } from '@/types/view';
+import type { FilterExpr, ProjectConfig, SelectQuery, ViewDefinition } from '@/types/view';
 import { useState } from 'react';
 
 const OP_LABELS: Record<string, string> = {
@@ -63,8 +63,7 @@ export default function FilterViewDialog({
   onDelete,
   onClose,
 }: Props) {
-  const existing =
-    editView?.query.type === 'filter' ? (editView.query as FilterViewQuery) : undefined;
+  const existing = editView?.query.type === 'select' ? (editView.query as SelectQuery) : undefined;
 
   const [name, setName] = useState(editView?.name ?? '');
   const [fromTable, setFromTable] = useState(existing?.from ?? tables[0] ?? '');
@@ -140,8 +139,8 @@ export default function FilterViewDialog({
   const handleSave = () => {
     if (!name.trim()) return;
     const hasColumnFilter = visibleColumns.size > 0;
-    const query: FilterViewQuery = {
-      type: 'filter',
+    const query: SelectQuery = {
+      type: 'select',
       from: fromTable,
       filter: buildFilterExpr(condMode, conds),
       sort: sorts.length > 0 ? sorts.map(({ column, order }) => ({ column, order })) : undefined,

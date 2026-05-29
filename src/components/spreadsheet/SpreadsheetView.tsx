@@ -5,7 +5,7 @@ import { useProjectStore } from '@/stores/project.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
 import type { TableSchema } from '@/types/schema';
-import type { FilterViewQuery, LookupViewQuery, ViewDefinition } from '@/types/view';
+import type { SelectQuery, ViewDefinition } from '@/types/view';
 import { useCallback, useState } from 'react';
 import RowContextMenu from './RowContextMenu';
 import type { ContextMenuEntry } from './RowContextMenu';
@@ -36,15 +36,15 @@ export default function SpreadsheetView({
   );
   const [showExport, setShowExport] = useState(false);
 
-  const viewQuery =
-    activeView?.query.type === 'filter' ? (activeView.query as FilterViewQuery) : undefined;
+  const selectQuery =
+    activeView?.query.type === 'select' ? (activeView.query as SelectQuery) : undefined;
 
   const isUnionView = activeView?.query.type === 'union';
-  const isLookupView = activeView?.query.type === 'lookup';
+  const isJoinView = activeView?.query.type === 'select' && (selectQuery?.joins?.length ?? 0) > 0;
 
-  const viewIcon = VIEW_TYPE_CONFIG[activeView?.query.type ?? 'filter'].icon;
+  const viewIcon = VIEW_TYPE_CONFIG[activeView?.query.type ?? 'select'].icon;
 
-  const visibleColumnKeys = viewQuery?.columns ?? null;
+  const visibleColumnKeys = selectQuery?.columns ?? null;
 
   const handleRowContextMenu = useCallback((e: React.MouseEvent, rowId: string) => {
     e.preventDefault();
@@ -59,8 +59,8 @@ export default function SpreadsheetView({
     const getSourceTable = (id: string) => {
       const row = rows.get(id);
       if (isUnionView) return getRowOwnerTable(row, tableName, 'union');
-      if (isLookupView && activeView) {
-        const fromTable = (activeView.query as LookupViewQuery).from;
+      if (isJoinView && activeView) {
+        const fromTable = (activeView.query as SelectQuery).from;
         return getRowOwnerTable(row, tableName, 'lookup', fromTable);
       }
       return tableName;
@@ -73,7 +73,7 @@ export default function SpreadsheetView({
 
     const items: ContextMenuEntry[] = [];
 
-    if (!isUnionView && !isLookupView && !readOnly) {
+    if (!isUnionView && !isJoinView && !readOnly) {
       items.push({
         label: '上に行を追加',
         onClick: () => addRowBefore(tableName, targetRowId),
@@ -102,7 +102,7 @@ export default function SpreadsheetView({
     rows,
     tableName,
     isUnionView,
-    isLookupView,
+    isJoinView,
     activeView,
     readOnly,
     addRowBefore,
@@ -117,8 +117,8 @@ export default function SpreadsheetView({
       let sourceTable = tableName;
       if (isUnionView) {
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'union');
-      } else if (isLookupView && activeView) {
-        const fromTable = (activeView.query as LookupViewQuery).from;
+      } else if (isJoinView && activeView) {
+        const fromTable = (activeView.query as SelectQuery).from;
         sourceTable = getRowOwnerTable(rows.get(rowId), tableName, 'lookup', fromTable);
       }
       deleteRow(sourceTable, rowId);
@@ -160,7 +160,7 @@ export default function SpreadsheetView({
           </div>
         )}
         <div className="flex-1" />
-        {!isUnionView && !isLookupView && (
+        {!isUnionView && !isJoinView && (
           <button
             type="button"
             className="px-3 py-1 rounded border text-sm hover:bg-accent disabled:opacity-40"
@@ -197,7 +197,7 @@ export default function SpreadsheetView({
         schema={schema}
         rows={rows}
         filter={filter}
-        sortDefs={viewQuery?.sort}
+        sortDefs={selectQuery?.sort}
         visibleColumnKeys={visibleColumnKeys}
         selectedRowIds={selectedRowIds}
         onSelectRow={(id: string) => setSelectedRowIds(new Set([id]))}
