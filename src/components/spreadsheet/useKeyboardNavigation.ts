@@ -1,4 +1,5 @@
 import { COLUMN_TYPE_CONFIG } from '@/lib/columnTypeConfig';
+import { getEffectiveTableName } from '@/lib/viewRowSource';
 import { useSelectionStore } from '@/stores/selection.store';
 import type { CellPosition } from '@/stores/selection.store';
 import type { Row } from '@/types/row';
@@ -172,11 +173,7 @@ export function useKeyboardNavigation({
 
       const newRow = filteredRows[newRowIdx];
       const newCol = visibleColumns[newColIdx];
-      const navSources = newRow._sources as Record<string, unknown> | undefined;
-      const rowTableName =
-        (newRow._source as string) ??
-        (navSources ? Object.keys(navSources)[0] : undefined) ??
-        tableName;
+      const rowTableName = getEffectiveTableName(newRow, tableName);
 
       setCursor({ rowId: newRow._id as string, colKey: newCol.key, tableName: rowTableName });
       setEditing(null);
@@ -306,7 +303,7 @@ export function useKeyboardNavigation({
           const col = visibleColumns[colIdx];
           if (COLUMN_TYPE_CONFIG[col.type].gridReadonly) continue;
 
-          updateCell((row._source as string) ?? tableName, row._id as string, col.key, cells[ci]);
+          updateCell(getEffectiveTableName(row, tableName), row._id as string, col.key, cells[ci]);
         }
       }
     },
@@ -388,7 +385,7 @@ export function useKeyboardNavigation({
         const colCfg = COLUMN_TYPE_CONFIG[col.type];
         if (col.readonly || !colCfg.supportsKbdEdit) continue;
         updateCell(
-          (row._source as string) ?? tableName,
+          getEffectiveTableName(row, tableName),
           row._id as string,
           col.key,
           colCfg.emptyValue
@@ -430,11 +427,7 @@ export function useKeyboardNavigation({
             if (rowIdx !== -1) {
               const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'up');
               const edgeRow = filteredRows[edgeRowIdx];
-              const navSources = edgeRow._sources as Record<string, unknown> | undefined;
-              const rowTableName =
-                (edgeRow._source as string) ??
-                (navSources ? Object.keys(navSources)[0] : undefined) ??
-                tableName;
+              const rowTableName = getEffectiveTableName(edgeRow, tableName);
               setCursor({
                 rowId: edgeRow._id as string,
                 colKey: cur.colKey,
@@ -450,11 +443,7 @@ export function useKeyboardNavigation({
             if (rowIdx !== -1) {
               const edgeRowIdx = findDataEdgeRow(rowIdx, cur.colKey, 'down');
               const edgeRow = filteredRows[edgeRowIdx];
-              const navSources = edgeRow._sources as Record<string, unknown> | undefined;
-              const rowTableName =
-                (edgeRow._source as string) ??
-                (navSources ? Object.keys(navSources)[0] : undefined) ??
-                tableName;
+              const rowTableName = getEffectiveTableName(edgeRow, tableName);
               setCursor({
                 rowId: edgeRow._id as string,
                 colKey: cur.colKey,

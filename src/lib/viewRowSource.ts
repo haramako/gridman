@@ -1,31 +1,17 @@
 import type { Row } from '@/types/row';
 
 /**
- * Returns the effective table name for a row when rendering cells.
- * Union rows carry _source (the origin table); lookup rows carry _sources (tableName → rowId map).
+ * セルの編集・描画時に使う、行の実テーブル名を返す。
+ * ビュー（union / join）越しの行は _origin にベース表を持つ。無ければ fallback。
  */
 export function getEffectiveTableName(row: Row, fallback: string): string {
-  if (row._source) return row._source as string;
-  if (row._sources) {
-    const keys = Object.keys(row._sources as Record<string, unknown>);
-    if (keys.length > 0) return keys[0];
-  }
-  return fallback;
+  return row._origin?.table ?? fallback;
 }
 
 /**
- * Returns the table that owns a row for mutation purposes (e.g. delete).
- * viewType must be 'union' or 'lookup'. fromTable is required for lookup views.
+ * 行を変更（編集・削除）する際の所有テーブルを返す。
+ * _origin があればそのベース表、無ければ fallback（テーブル直表示・join 無し select）。
  */
-export function getRowOwnerTable(
-  row: Row | undefined,
-  fallback: string,
-  viewType: 'union' | 'lookup',
-  fromTable?: string
-): string {
-  if (!row) return fallback;
-  if (viewType === 'union') return (row._source as string | undefined) ?? fallback;
-  const sources = row._sources as Record<string, unknown> | undefined;
-  if (sources && fromTable && sources[fromTable]) return fromTable;
-  return fallback;
+export function getRowOwnerTable(row: Row | undefined, fallback: string): string {
+  return row?._origin?.table ?? fallback;
 }
