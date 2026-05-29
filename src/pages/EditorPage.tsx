@@ -1,8 +1,7 @@
 import JsonEditorPanel from '@/components/editor/JsonEditorPanel';
 import PageView from '@/components/page/PageView';
 import SpreadsheetView from '@/components/spreadsheet/SpreadsheetView';
-import { applyFilter } from '@/domain/filter';
-import { applyLookup } from '@/domain/lookup';
+import { applySelect } from '@/domain/select';
 import { applyUnion } from '@/domain/union';
 import { useDialogState } from '@/hooks/useDialogState';
 import { VIEW_TYPE_CONFIG } from '@/lib/viewTypeConfig';
@@ -12,7 +11,6 @@ import { useSelectionStore } from '@/stores/selection.store';
 import { useViewStore } from '@/stores/view.store';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
-import type { FilterViewQuery, LookupViewQuery, PageViewQuery, UnionViewQuery } from '@/types/view';
 import { initStorageSync, onSyncMessage, setCurrentProjectPath } from '@/utils/autoSave';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -131,51 +129,30 @@ export default function EditorPage() {
   }, [isDirty, project?.name]);
 
   const activeView = project?.views.find((v) => v.id === activeViewId) ?? null;
+  const viewQuery = activeView?.query ?? null;
+
+  const viewResult = useMemo(() => {
+    if (viewQuery?.type === 'select') return applySelect(viewQuery, tables, schemas);
+    if (viewQuery?.type === 'union') return applyUnion(viewQuery, tables, schemas);
+    return null;
+  }, [viewQuery, tables, schemas]);
 
   const currentTable = useMemo(() => {
-    if (activeView?.query.type === 'filter') {
-      return (activeView.query as FilterViewQuery).from;
-    }
-    if (activeView?.query.type === 'union') {
-      return '__union__';
-    }
-    if (activeView?.query.type === 'lookup') {
-      return '__lookup__';
-    }
+    if (viewQuery?.type === 'select') return viewQuery.from;
+    if (viewQuery?.type === 'union') return '__union__';
     return tableName || project?.tables[0] || '';
-  }, [activeView, tableName, project?.tables]);
+  }, [viewQuery, tableName, project?.tables]);
 
-  const unionResult = useMemo(() => {
-    if (activeView?.query.type !== 'union') return null;
-    return applyUnion(activeView.query as UnionViewQuery, tables, schemas);
-  }, [activeView, tables, schemas]);
-
-  const lookupResult = useMemo(() => {
-    if (activeView?.query.type !== 'lookup') return null;
-    return applyLookup(activeView.query as LookupViewQuery, tables, schemas);
-  }, [activeView, tables, schemas]);
-
-  const schema = lookupResult?.schema ?? unionResult?.schema ?? schemas.get(currentTable);
+  const schema = viewResult?.schema ?? schemas.get(currentTable);
   const rawRows = tables.get(currentTable);
 
   const displayRows = useMemo((): Map<string, Row> => {
-    if (activeView?.query.type === 'union' && unionResult) {
-      return new Map(unionResult.rows.map((r) => [r._id as string, r]));
-    }
-    if (activeView?.query.type === 'lookup' && lookupResult) {
-      return new Map(lookupResult.rows.map((r) => [r._id as string, r]));
-    }
-    if (!rawRows) return new Map();
-    if (activeView?.query.type === 'filter') {
-      const q = activeView.query as FilterViewQuery;
-      const filtered = applyFilter([...rawRows.values()], q.filter);
-      return new Map(filtered.map((r) => [r._id as string, r]));
-    }
-    return rawRows;
-  }, [rawRows, activeView, unionResult, lookupResult]);
+    if (viewResult) return new Map(viewResult.rows.map((r) => [r._id as string, r]));
+    return rawRows ?? new Map();
+  }, [viewResult, rawRows]);
 
-  const isPageView = activeView?.query.type === 'page';
-  const pageTemplateName = isPageView ? (activeView.query as PageViewQuery).pageLayout : undefined;
+  const isPageView = viewQuery?.type === 'page';
+  const pageTemplateName = viewQuery?.type === 'page' ? viewQuery.pageLayout : undefined;
   const [pageTemplate, setPageTemplate] = useState<PageTemplate | null>(null);
 
   useEffect(() => {
