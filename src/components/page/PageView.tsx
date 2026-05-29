@@ -1,3 +1,4 @@
+import { formatCellValue } from '@/lib/formatCellValue';
 import { cn } from '@/lib/utils';
 import { useProjectStore } from '@/stores/project.store';
 import type { PageLayoutItem, PageTemplate } from '@/types/page';
@@ -15,54 +16,6 @@ interface Props {
   currentIndex?: number;
   totalRows?: number;
   onNavigate?: (index: number) => void;
-}
-
-function getDisplayValue(
-  row: Row,
-  col: ColumnDef,
-  schemas: Map<string, TableSchema>,
-  tables: Map<string, Map<string, Row>>
-): string {
-  const rawValue = row[col.key];
-
-  if (col.type === 'ref' && col.refTable) {
-    const refTable = tables.get(col.refTable);
-    const refSchema = schemas.get(col.refTable);
-    const displayCol = refSchema?.columns.find((c) => c.isDisplayName);
-    const refRow = refTable?.get(rawValue as string);
-    if (refRow && displayCol) return String(refRow[displayCol.key] ?? '');
-    return rawValue != null ? String(rawValue) : '';
-  }
-
-  if (col.type === 'json') return rawValue != null ? '[JSON]' : '';
-  if (col.type === 'boolean') return rawValue ? 'true' : 'false';
-  if (col.type === 'text' || col.type === 'string') {
-    const s = String(rawValue ?? '');
-    return s.length > 40 ? `${s.slice(0, 40)}…` : s;
-  }
-
-  return rawValue != null ? String(rawValue) : '';
-}
-
-function getRefDisplayValue(
-  row: Row,
-  col: ColumnDef,
-  schemas: Map<string, TableSchema>,
-  tables: Map<string, Map<string, Row>>
-): string {
-  if (col.type === 'ref[]' && col.refTable) {
-    const refTable = tables.get(col.refTable);
-    const refSchema = schemas.get(col.refTable);
-    const displayCol = refSchema?.columns.find((c) => c.isDisplayName);
-    const ids = (row[col.key] as string[]) ?? [];
-    return ids
-      .map((id) => {
-        const refRow = refTable?.get(id);
-        return refRow && displayCol ? String(refRow[displayCol.key] ?? id) : id;
-      })
-      .join(', ');
-  }
-  return '';
 }
 
 export default function PageView({
@@ -84,9 +37,7 @@ export default function PageView({
     const isInvalid = row._invalid?.[col.key] !== undefined;
     const displayValue = isInvalid
       ? String(row._invalid?.[col.key] ?? '')
-      : col.type === 'ref[]'
-        ? getRefDisplayValue(row, col, schemas, tables)
-        : getDisplayValue(row, col, schemas, tables);
+      : formatCellValue(row, col, schemas, tables);
 
     const handleChange = (newValue: unknown) => {
       updateCell(tableName, rowId, col.key, newValue);
