@@ -5,6 +5,7 @@ import { applyFilter } from '@/domain/filter';
 import { applyLookup } from '@/domain/lookup';
 import { applyUnion } from '@/domain/union';
 import { useDialogState } from '@/hooks/useDialogState';
+import { VIEW_TYPE_CONFIG } from '@/lib/viewTypeConfig';
 import { useCommandHistoryStore } from '@/stores/commandHistoryStore';
 import { useProjectStore } from '@/stores/project.store';
 import { useSelectionStore } from '@/stores/selection.store';
@@ -356,8 +357,7 @@ export default function EditorPage() {
             + ページ
           </button>
           {project.views.map((view) => {
-            const icon =
-              view.query.type === 'union' ? '⊕' : view.query.type === 'lookup' ? '🔎' : '🔍';
+            const icon = VIEW_TYPE_CONFIG[view.query.type].icon;
             return (
               <button
                 key={view.id}

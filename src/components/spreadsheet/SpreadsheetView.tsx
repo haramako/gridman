@@ -1,5 +1,6 @@
 import ExportDialog from '@/components/export/ExportDialog';
 import { getRowOwnerTable } from '@/lib/viewRowSource';
+import { VIEW_TYPE_CONFIG } from '@/lib/viewTypeConfig';
 import { useProjectStore } from '@/stores/project.store';
 import { useViewStore } from '@/stores/view.store';
 import type { Row } from '@/types/row';
@@ -41,7 +42,7 @@ export default function SpreadsheetView({
   const isUnionView = activeView?.query.type === 'union';
   const isLookupView = activeView?.query.type === 'lookup';
 
-  const viewIcon = isUnionView ? '⊕' : isLookupView ? '🔎' : '🔍';
+  const viewIcon = VIEW_TYPE_CONFIG[activeView?.query.type ?? 'filter'].icon;
 
   const visibleColumnKeys = viewQuery?.columns ?? null;
 
