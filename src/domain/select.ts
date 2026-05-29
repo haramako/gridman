@@ -6,7 +6,7 @@ import { applyFilter, applySort } from './filter';
 /**
  * SelectQuery を評価する。filter（joins 無し）と lookup（joins 有り）を統合した変換。
  * - joins 無し: ベース表の実スキーマをそのまま返し、行は素のベース行（編集はベース表へ直接）。
- * - joins 有り: 参照先フィールドを `${as}.${field}` の readonly 列として展開し、各行に _sources を付与。
+ * - joins 有り: 参照先フィールドを `${as}.${field}` の readonly 列として展開し、各行に _origin を付与。
  */
 export function applySelect(
   query: SelectQuery,
@@ -50,21 +50,19 @@ export function applySelect(
 
   const rows: Row[] = baseRows.map((row) => {
     const merged: Row = { ...row };
-    const sources: Record<string, unknown> = { [query.from]: row._id };
 
     for (const join of joins) {
       const refId = row[join.column] as string | undefined;
       const refTable = tables.get(join.from);
       const refRow = refId ? refTable?.get(refId) : undefined;
 
-      sources[join.from] = refId ?? null;
-
       for (const field of join.fields) {
         merged[`${join.as}.${field}`] = refRow ? refRow[field] : null;
       }
     }
 
-    merged._sources = sources;
+    // 展開列は readonly のため、編集の書き戻し先はベース行のみで足りる
+    merged._origin = { table: query.from, id: row._id as string };
     return merged;
   });
 

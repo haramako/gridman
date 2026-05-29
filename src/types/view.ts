@@ -29,7 +29,7 @@ export type SelectQuery = {
 /** union の各ソース（ベース表＋任意の列絞り込み・フィルタ。JOIN は持たない）。 */
 export type UnionSource = { from: string; columns?: string[]; filter?: FilterExpr };
 
-/** 複数の SelectQuery 相当を縦結合する。各行に _source で元テーブルを付与。 */
+/** 複数の SelectQuery 相当を縦結合する。各行に _origin で元テーブルを付与。 */
 export type UnionQuery = {
   type: 'union';
   sources: UnionSource[];
