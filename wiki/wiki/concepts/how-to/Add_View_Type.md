@@ -1,7 +1,7 @@
 # How-To: 新しいビュー種別を追加する
 
 `ViewQuery` の差別化共用体に新しい型を追加する手順。
-既存の 4 種（filter / union / lookup / page）を参考にする。
+既存の 3 種（select / union / page）を参考にする。
 
 ---
 
@@ -18,7 +18,7 @@ type MyViewQuery = {
 }
 
 // ViewQuery union に追加
-type ViewQuery = FilterViewQuery | UnionViewQuery | LookupViewQuery | PageViewQuery | MyViewQuery
+type ViewQuery = SelectQuery | UnionQuery | PageViewQuery | MyViewQuery
 ```
 
 TypeScript の型エラーが switch の欠落箇所を教えてくれる。
@@ -43,23 +43,28 @@ export function applyMyView(
 ```
 
 既存の参考実装:
-- 単テーブルフィルター → `filter.ts` の `applyFilter`
+- 単テーブル選択（フィルタ／JOIN 展開）→ `select.ts` の `applySelect`
 - 複数テーブル縦結合 → `union.ts` の `applyUnion`
-- 外部キー展開 → `lookup.ts` の `applyLookup`
+
+ビュー越しの行は `_origin = { table, id }` を付けて書き戻し先を示す（[[concepts/Gotchas]] #8）。
 
 ---
 
-### Step 3: `src/stores/project.store.ts` — ビュー計算を統合
+### Step 3: `src/pages/EditorPage.tsx` — ビュー計算を統合
 
-プロジェクトストア内でビューの rows を計算しているセクションに分岐を追加する。
-`activeViewId` のビュー定義を読み、`query.type` で switch して対応する関数を呼ぶ。
+ビューの rows/schema は EditorPage の `viewResult` useMemo で計算している（ストアではない）。
+`viewQuery.type` の分岐に新型を追加する。
 
 ```ts
-case 'my-view':
-  return applyMyView(query as MyViewQuery, tables, schemas);
+const viewResult = useMemo(() => {
+  if (viewQuery?.type === 'select') return applySelect(viewQuery, tables, schemas);
+  if (viewQuery?.type === 'union') return applyUnion(viewQuery, tables, schemas);
+  if (viewQuery?.type === 'my-view') return applyMyView(viewQuery, tables, schemas);
+  return null;
+}, [viewQuery, tables, schemas]);
 ```
 
-正確な追加箇所は `project.store.ts` の `getViewRows` または類似のセレクター関数を検索する。
+あわせて `currentTable`（編集の書き戻し先となるベース表）の分岐も追加する。
 
 ---
 
@@ -110,14 +115,14 @@ case 'my-view':
 ## 落とし穴
 
 - `ViewQuery` union を更新したが `switch` の各所に `case 'my-view':` を追加し忘れると TypeScript が警告する（exhaustive check）
-- `applyMyView` が `_source` / `_sources` フィールドを付ける場合、Cell コンポーネントのシステム予約フィールド扱いを確認する（→ [[concepts/Gotchas]] #8）
+- `applyMyView` がビュー越しの行を返す場合、編集の書き戻し先として `_origin = { table, id }` を付ける（→ [[concepts/Gotchas]] #8）
 
 ---
 
 ## 関連
 
 - [[summaries/src-types]] — `ViewQuery` 差別化共用体の型定義
-- [[summaries/src-domain]] — `applyFilter` / `applyLookup` / `applyUnion` の実装パターン
+- [[summaries/src-domain]] — `applySelect` / `applyUnion` の実装パターン
 - [[concepts/data-model/View_Queries]] — 各ビュークエリの意味と構造
 - [[summaries/src-stores]] — ストアでのビュー計算の統合箇所
 - [[concepts/how-to/Add_Column_Type]] — 型システム拡張の別レシピ

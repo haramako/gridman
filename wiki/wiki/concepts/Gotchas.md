@@ -85,8 +85,10 @@ db サーバー環境で行削除が機能しないバグが出た場合はこ�
 | `_id` | 行 ID（6 文字乱数） |
 | `_order` | ソート順（数値） |
 | `_invalid` | バリデーション違反値の保存場所 |
-| `_source` | Union ビューの元テーブル識別 |
-| `_sources` | Lookup ビューの複数元テーブル ID |
+| `_origin` | ビュー（union / join）越しの行の出自 `{ table, id }`。編集の書き戻し先 |
+
+> 2026-05-30 のビュークエリ統合で、旧 `_source`（union）と `_sources`（lookup）は
+> 単一の `_origin = { table, id }` に統一された。
 
 → [[summaries/src-types]]
 

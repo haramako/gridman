@@ -7,11 +7,14 @@
 | ファイル | 役割 |
 |----------|------|
 | `validator.ts` | 入力値の型変換・バリデーション |
-| `filter.ts` | FilterViewQuery の評価・ソート |
-| `union.ts` | UnionViewQuery — 複数テーブルの縦結合 |
-| `lookup.ts` | LookupViewQuery — 参照先フィールドの展開 |
+| `filter.ts` | FilterExpr の評価（`applyFilter`）・ソート（`applySort`） |
+| `select.ts` | SelectQuery の評価（`applySelect`）— filter + lookup を統合 |
+| `union.ts` | UnionQuery — 複数テーブルの縦結合 |
 | `commands.ts` | Undo/Redo 基盤（CommandHistory / EditCellCommand） |
 | `exportData.ts` | JSON / CSV エクスポート |
+
+> 2026-05-30 のビュークエリ統合で、旧 `lookup.ts`（`applyLookup`）は `select.ts`（`applySelect`）に
+> 吸収・削除された。`applySelect` は joins 無しで filter、joins 有りで lookup として振る舞う。
 
 ---
 
@@ -44,16 +47,20 @@ applySort(rows: Row[], sort: SortDef[]): Row[]
 
 ---
 
-## union.ts / lookup.ts
+## select.ts / union.ts
 
 ```ts
-applyUnion(sources: UnionSource[], tables, schemas): Row[]
-// 複数テーブルの行を縦に結合。_source フィールドで元テーブルを識別
+applySelect(query: SelectQuery, tables, schemas): { rows: Row[]; schema: TableSchema }
+// joins 無し: ベース表の実スキーマ・素のベース行を返す（編集はベース表へ直接）
+// joins 有り: 参照先フィールドを `${as}.${field}` の readonly 列として展開し、
+//   各行に _origin = { table, id }（ベース行の出自）を付与
 
-applyLookup(query: LookupViewQuery, tables, schemas): Row[]
-// 参照先フィールドを展開。drop_name, drop_price 等の readonly 列を追加
-// _sources フィールドで元テーブルを識別（マルチソース対応）
+applyUnion(query: UnionQuery, tables, schemas): { rows: Row[]; schema: TableSchema }
+// 複数テーブルの行を縦に結合。各行に _origin で元テーブルを識別
 ```
+
+`_origin` は編集・削除の書き戻し先を示す統一フィールド（旧 `_source`/`_sources` を一般化）。
+解決は `lib/viewRowSource.ts` の `getRowOwnerTable` / `getEffectiveTableName`。
 
 ---
 
