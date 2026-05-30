@@ -1,6 +1,6 @@
 # FileSystem Adapters
 
-`src/fs/` に実装されているファイルアクセス戦略パターン。`FileSystemAdapter` インターフェースを共通口として 3 種類の実装を差し替えられる設計になっている。
+`src/fs/` に実装されているファイルアクセス戦略パターン。`FileSystemAdapter` インターフェースを共通口として 2 種類の実装を差し替えられる設計になっている。
 
 ## インターフェース定義
 
@@ -20,7 +20,7 @@ export interface FileSystemAdapter {
 }
 ```
 
-## 3 種類の実装
+## 2 種類の実装
 
 ```mermaid
 classDiagram
@@ -43,12 +43,8 @@ classDiagram
     class FileSystemAccessAPIAdapter {
         FileSystemDirectoryHandle
     }
-    class DbServerAdapter {
-        fetch http://localhost:8082/api/*
-    }
     FileSystemAdapter <|-- LocalServerAdapter
     FileSystemAdapter <|-- FileSystemAccessAPIAdapter
-    FileSystemAdapter <|-- DbServerAdapter
 ```
 
 ### `LocalServerAdapter`（デフォルト）
@@ -61,10 +57,6 @@ Hono サーバー（`:8080`）の REST API を `fetch` で叩く。Vite 開発�
 
 - `patchTable` は既存 JSONL を読み込んで差分マージしてから上書き書き込み
 - `listPageTemplates` は `dirHandle.values()` でディレクトリを走査
-
-### `DbServerAdapter`
-
-SQLite バックエンドサーバー（`server/db-server.ts`、デフォルト `:8082`）と通信する。`LocalServerAdapter` のドロップイン置き換えとして設計されており、ベース URL を差し替えるだけで使える。
 
 ## アダプタの切り替え方法
 

@@ -4,11 +4,10 @@
 
 ## 要点
 
-`FileSystemAdapter` インターフェースを共通口とした戦略パターン。3 実装を差し替えられる:
+`FileSystemAdapter` インターフェースを共通口とした戦略パターン。2 実装を差し替えられる:
 
 1. **`LocalServerAdapter`** — Hono REST API（`/api/*`）経由。デフォルト。`npm run server` 必須
 2. **`FileSystemAccessAPIAdapter`** — ブラウザの File System Access API で直接ファイル操作。サーバー不要・Chrome/Edge のみ対応
-3. **`DbServerAdapter`** — SQLite バックエンド（`:8082`）。`LocalServerAdapter` のドロップイン置き換え
 
 インターフェースは `readProjectConfig` / `writeProjectConfig` / `readTable` / `patchTable` / `readSchema` / `writeSchema` / `readPageTemplate` 系の 10 メソッド。
 
