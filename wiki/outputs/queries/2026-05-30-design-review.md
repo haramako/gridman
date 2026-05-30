@@ -9,7 +9,9 @@
 > - ✅ **②（優先度中）実装済** — ビュー種別アイコンを `src/lib/viewTypeConfig.ts` に集約（PR #64 / main マージ済）
 > - ✅ **④（優先度中）解消済** — EditorPage のダイアログ管理は `useDialogState` フックに抽出済み（本調査時に確認）
 > - ✅ **db-server PATCH 削除非対応 解消** — 当該バグは未配線の死蔵コードに起因していたため、`db-server.ts`/`db-adapter.ts` ごと削除（2026-05-30）
-> - 残: ③ 編集ウィジェットの JSX レジストリ化（リスク高・未着手）、project.store 責務分離（大規模・未着手）
+> - ✅ **project.store 責務分離 実装済** — reactive 層 / 永続化層（`persistence.ts`）/ 変更ヘルパ（`rowMutations.ts`）に分離、766→454 行（PR #69）
+> - ❌ **③ 編集ウィジェットの JSX レジストリ化 不採用** — 価値の高い「表示整形」は①で回収済み。残る編集 JSX（enum/ref/input）をデータテーブルに入れるのは可読性を損ない、`committedRef`/onBlur（[[concepts/Gotchas]] #5）やキーボードナビの繊細領域に触れるためリスクに見合わない。今後の選択肢から除外。
+> - **バックログはクリア**（残課題なし）
 
 ---
 
@@ -85,8 +87,9 @@ ColumnType と同様、**ビュー種別もディスパッチテーブル化**�
 |-------|------|-------|-------|------|
 | 高 | ColumnType の描画/変換分岐（残36箇所の中核） | 表示整形を `formatCellValue` に集約 | 中 | ✅ 実装済（PR #63） |
 | 中 | ViewQuery 型分岐の分散 | `viewTypeConfig` 新設 | 中 | ✅ 実装済（PR #64） |
-| 中 | project.store 責務過多（766行・増加傾向） | データ層と永続化層を分離 | 大（要分割） | 未着手 |
+| 中 | project.store 責務過多（766行・増加傾向） | reactive層／永続化層／変更ヘルパに分離 | 大（要分割） | ✅ 実装済（PR #69） |
 | 要修正 | db-server PATCH が削除非対応 | 死蔵コードごと削除 | 小〜中 | ✅ 解決（削除） |
+| 低 | 編集ウィジェットの JSX 分岐（③） | （レジストリ化）| 中 | ❌ 不採用（可読性低下・リスク過大） |
 
 > ①の実装スコープ補足: 当初想定の `coerce` 集約は見送り（`coerceToType`/`validateCell` は
 > 既に `validator.ts` に集約済みで、config 移動は churn 大・利得小）。実際の重複は **表示整形**

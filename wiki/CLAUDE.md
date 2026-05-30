@@ -118,7 +118,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント
-- **設計改善（2026-05-30 design-review）**: ~~① ColumnType 表示整形を `formatCellValue` に集約（PR #63）~~・~~② ViewQuery アイコンを `viewTypeConfig` に集約（PR #64）~~ 実装済。~~db-server PATCH 削除非対応~~ 死蔵コードごと削除して解消。残: ③ 編集ウィジェットの JSX レジストリ化、project.store 責務分離。→ `outputs/queries/2026-05-30-design-review.md`
+- **設計改善（2026-05-30 design-review）**: ~~① ColumnType 表示整形を `formatCellValue` に集約（PR #63）~~・~~② ViewQuery アイコンを `viewTypeConfig` に集約（PR #64）~~ 実装済。~~db-server PATCH 削除非対応~~ 削除で解消。~~project.store 責務分離~~ reactive/永続化/変更ヘルパに分離（PR #69）。**③ 編集ウィジェットの JSX レジストリ化は不採用**（可読性低下・繊細領域でリスク過大、価値は①で回収済み）。→ バックログ消化完了。`outputs/queries/2026-05-30-design-review.md`
 - ~~LIN-22, LIN-46, LIN-171~~: `in-agents-md` に更新済み（2026-05-14）
 - **LIN-18, LIN-39, LIN-44, LIN-47, LIN-62, LIN-79, LIN-191, LIN-193, LIN-194, LIN-195, LIN-196, LIN-197, LIN-198**: `countermeasure: none` — context-overload 系（計13件）。タイムアウト対策として「実装前にファイル数確認」の指示追加を検討
 - **PR 作成忘れパターン**（LIN-172, LIN-175, LIN-184）: 新 taxonomy `pr-skip` として追跡。ワークフローの機械的チェックが必要
