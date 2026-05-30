@@ -1,9 +1,5 @@
 import { CompositeCommand, commandHistory } from '@/domain/commands';
 import type { Command } from '@/domain/commands';
-import { coerceToType, validateCell } from '@/domain/validator';
-import type { FileSystemAdapter } from '@/fs/adapter';
-import { FileSystemAccessAPIAdapter } from '@/fs/file-system-access';
-import { LocalServerAdapter } from '@/fs/local-server';
 import { useCommandHistoryStore } from '@/stores/commandHistoryStore';
 import type { PageTemplate } from '@/types/page';
 import type { Row } from '@/types/row';
@@ -17,24 +13,20 @@ import {
   getTabId,
   loadDraft,
   releaseLock as releaseLockUtil,
-  saveDraft,
   stealLock as stealLockUtil,
 } from '@/utils/autoSave';
 import type { SyncMessage } from '@/utils/autoSave';
 import { create } from 'zustand';
-
-let adapter: FileSystemAdapter = new LocalServerAdapter();
-
-let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
-function scheduleAutoSave() {
-  if (autoSaveTimer) clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => {
-    const state = useProjectStore.getState();
-    if (state.projectPath && state.writeMode) {
-      saveDraft(state.projectPath, state.tables);
-    }
-  }, 500);
-}
+import type { StoreApi } from 'zustand';
+import { createAdapter, getAdapter, loadProjectData, scheduleAutoSave } from './persistence';
+import {
+  applyCellEdit,
+  applyRowDelete,
+  applyRowDrop,
+  applyRowInsert,
+  applyRowRestore,
+  computeCellRow,
+} from './rowMutations';
 
 interface ProjectState {
   projectPath: string | null;
@@ -79,6 +71,9 @@ interface ProjectState {
   ) => void;
 }
 
+type SetState = StoreApi<ProjectState>['setState'];
+type GetState = StoreApi<ProjectState>['getState'];
+
 function makeId(): string {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -89,6 +84,64 @@ function maxOrder(table: Map<string, Row>): number {
     if ((row._order as number) > max) max = row._order as number;
   }
   return max;
+}
+
+/** コマンドを実行し、Undo/Redo の購読状態を同期する。 */
+function runCommand(cmd: Command) {
+  commandHistory.execute(cmd);
+  useCommandHistoryStore.getState().sync();
+}
+
+// ---- Undo/Redo 対応コマンドのファクトリ（変更操作の重複を集約）----
+
+function cellEditCommand(
+  set: SetState,
+  get: GetState,
+  tableName: string,
+  rowId: string,
+  col: string,
+  newRow: Row,
+  prevRow: Row
+): Command {
+  const apply = (r: Row) => {
+    set((st) => applyCellEdit(st, tableName, rowId, col, r) ?? {});
+    scheduleAutoSave(get);
+  };
+  return { description: 'セル編集', execute: () => apply(newRow), undo: () => apply(prevRow) };
+}
+
+function rowAddCommand(
+  set: SetState,
+  get: GetState,
+  tableName: string,
+  row: Row,
+  description: string
+): Command {
+  return {
+    description,
+    execute: () => {
+      set((st) => applyRowInsert(st, tableName, row) ?? {});
+      scheduleAutoSave(get);
+    },
+    undo: () => {
+      set((st) => applyRowDrop(st, tableName, row._id as string) ?? {});
+      scheduleAutoSave(get);
+    },
+  };
+}
+
+function rowDeleteCommand(set: SetState, get: GetState, tableName: string, row: Row): Command {
+  return {
+    description: '行削除',
+    execute: () => {
+      set((st) => applyRowDelete(st, tableName, row._id as string) ?? {});
+      scheduleAutoSave(get);
+    },
+    undo: () => {
+      set((st) => applyRowRestore(st, tableName, row) ?? {});
+      scheduleAutoSave(get);
+    },
+  };
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -106,22 +159,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   adapterType: 'server',
 
   loadProject: async (path) => {
-    const project = await adapter.readProjectConfig(path);
-    const schemas = new Map<string, TableSchema>();
-    const tables = new Map<string, Map<string, Row>>();
-
-    await Promise.all(
-      project.tables.map(async (name) => {
-        const [schema, rows] = await Promise.all([
-          adapter.readSchema(path, name),
-          adapter.readTable(path, name),
-        ]);
-        schemas.set(name, schema);
-        const tableMap = new Map<string, Row>();
-        for (const row of rows) tableMap.set(row._id as string, row);
-        tables.set(name, tableMap);
-      })
-    );
+    const { project, schemas, tables } = await loadProjectData(path);
 
     const draft = loadDraft(path);
     let hasDraft = false;
@@ -139,16 +177,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     let writeMode = false;
     let lockHolderTabId: string | null = null;
     if (!lock) {
-      const acquired = acquireLock(path);
-      if (acquired) {
-        writeMode = true;
-      }
+      if (acquireLock(path)) writeMode = true;
+    } else if (lock.tabId === getTabId()) {
+      writeMode = true;
     } else {
-      if (lock.tabId === getTabId()) {
-        writeMode = true;
-      } else {
-        lockHolderTabId = lock.tabId;
-      }
+      lockHolderTabId = lock.tabId;
     }
 
     commandHistory.clear();
@@ -172,50 +205,46 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   saveProjectConfig: async () => {
     const { projectPath, project } = get();
     if (!projectPath || !project) return;
-    await adapter.writeProjectConfig(projectPath, project);
+    await getAdapter().writeProjectConfig(projectPath, project);
   },
 
   addView: async (view) => {
     const { project, saveProjectConfig } = get();
     if (!project) return;
-    const newProject = { ...project, views: [...project.views, view] };
-    set({ project: newProject });
+    set({ project: { ...project, views: [...project.views, view] } });
     await saveProjectConfig();
   },
 
   updateView: async (view) => {
     const { project, saveProjectConfig } = get();
     if (!project) return;
-    const newProject = {
-      ...project,
-      views: project.views.map((v) => (v.id === view.id ? view : v)),
-    };
-    set({ project: newProject });
+    set({
+      project: { ...project, views: project.views.map((v) => (v.id === view.id ? view : v)) },
+    });
     await saveProjectConfig();
   },
 
   deleteView: async (id) => {
     const { project, saveProjectConfig } = get();
     if (!project) return;
-    const newProject = { ...project, views: project.views.filter((v) => v.id !== id) };
-    set({ project: newProject });
+    set({ project: { ...project, views: project.views.filter((v) => v.id !== id) } });
     await saveProjectConfig();
   },
 
   addPageTemplate: async (template) => {
     const { projectPath } = get();
     if (!projectPath) return;
-    await adapter.writePageTemplate(projectPath, template.name, template);
+    await getAdapter().writePageTemplate(projectPath, template.name, template);
   },
 
   deletePageTemplate: async (name) => {
     const { projectPath } = get();
     if (!projectPath) return;
-    await adapter.deletePageTemplate(projectPath, name);
+    await getAdapter().deletePageTemplate(projectPath, name);
   },
 
   readPageTemplate: async (projectPath, name) => {
-    return adapter.readPageTemplate(projectPath, name);
+    return getAdapter().readPageTemplate(projectPath, name);
   },
 
   saveAll: async () => {
@@ -242,7 +271,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       .filter((r): r is Row => r !== undefined);
     const deletedIds = [...(deleted ?? [])];
 
-    await adapter.patchTable(projectPath, name, rows, deletedIds);
+    await getAdapter().patchTable(projectPath, name, rows, deletedIds);
 
     set((state) => {
       const newDirtyRowIds = new Map(state.dirtyRowIds);
@@ -276,7 +305,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   updateSchema: async (tableName, schema) => {
     const { projectPath } = get();
     if (!projectPath) return;
-    await adapter.writeSchema(projectPath, tableName, schema);
+    await getAdapter().writeSchema(projectPath, tableName, schema);
     set((s) => {
       const newSchemas = new Map(s.schemas);
       newSchemas.set(tableName, schema);
@@ -286,406 +315,80 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   updateCell: (tableName, rowId, col, inputValue) => {
     if (!get().writeMode) return;
-    const state = get();
-    const table = state.tables.get(tableName);
-    const row = table?.get(rowId);
-    const schema = state.schemas.get(tableName);
-    const colDef = schema?.columns.find((c) => c.key === col);
-    if (!table || !row || !colDef) return;
-
-    const coerced = coerceToType(inputValue, colDef.type);
-    const error = validateCell(coerced, colDef);
-
-    let newRow: Row;
-    if (error !== null) {
-      const invalid = { ...(row._invalid ?? {}), [col]: inputValue };
-      newRow = { ...row, _invalid: invalid };
-    } else {
-      const invalid = { ...(row._invalid ?? {}) };
-      delete invalid[col];
-      newRow = { ...row, [col]: coerced };
-      if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
-      else newRow._invalid = undefined;
-    }
-
-    const prevRow = row;
-
-    const applyRow = (r: Row) => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(rowId, r);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(rowId);
-        newDirtyRowIds.set(tableName, dirty);
-        const newDirtyCellIds = new Map(s.dirtyCellIds);
-        const rowCells = new Map(newDirtyCellIds.get(tableName) ?? []);
-        const cells = new Set(rowCells.get(rowId) ?? []);
-        cells.add(col);
-        rowCells.set(rowId, cells);
-        newDirtyCellIds.set(tableName, rowCells);
-        return {
-          tables: newTables,
-          dirtyRowIds: newDirtyRowIds,
-          dirtyCellIds: newDirtyCellIds,
-          isDirty: true,
-          hasDraft: true,
-        };
-      });
-      scheduleAutoSave();
-    };
-
-    const cmd: Command = {
-      description: 'セル編集',
-      execute() {
-        applyRow(newRow);
-      },
-      undo() {
-        applyRow(prevRow);
-      },
-    };
-
-    commandHistory.execute(cmd);
-    useCommandHistoryStore.getState().sync();
+    const s = get();
+    const row = s.tables.get(tableName)?.get(rowId);
+    const colDef = s.schemas.get(tableName)?.columns.find((c) => c.key === col);
+    if (!row || !colDef) return;
+    const newRow = computeCellRow(row, col, inputValue, colDef);
+    runCommand(cellEditCommand(set, get, tableName, rowId, col, newRow, row));
   },
 
-  updateCells: (
-    updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[]
-  ) => {
+  updateCells: (updates) => {
     if (!get().writeMode) return;
     const cmds: Command[] = [];
     for (const { tableName, rowId, col, inputValue } of updates) {
-      const state = get();
-      const table = state.tables.get(tableName);
-      const row = table?.get(rowId);
-      const schema = state.schemas.get(tableName);
-      const colDef = schema?.columns.find((c) => c.key === col);
-      if (!table || !row || !colDef) continue;
-
-      const coerced = coerceToType(inputValue, colDef.type);
-      const error = validateCell(coerced, colDef);
-
-      let newRow: Row;
-      if (error !== null) {
-        const invalid = { ...(row._invalid ?? {}), [col]: inputValue };
-        newRow = { ...row, _invalid: invalid };
-      } else {
-        const invalid = { ...(row._invalid ?? {}) };
-        delete invalid[col];
-        newRow = { ...row, [col]: coerced };
-        if (Object.keys(invalid).length > 0) newRow._invalid = invalid;
-        else newRow._invalid = undefined;
-      }
-
-      const prevRow = row;
-
-      const applyRow = (r: Row) => {
-        set((s) => {
-          const t = s.tables.get(tableName);
-          if (!t) return s;
-          const newTable = new Map(t);
-          newTable.set(rowId, r);
-          const newTables = new Map(s.tables);
-          newTables.set(tableName, newTable);
-          const newDirtyRowIds = new Map(s.dirtyRowIds);
-          const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-          dirty.add(rowId);
-          newDirtyRowIds.set(tableName, dirty);
-          const newDirtyCellIds = new Map(s.dirtyCellIds);
-          const rowCells = new Map(newDirtyCellIds.get(tableName) ?? []);
-          const cells = new Set(rowCells.get(rowId) ?? []);
-          cells.add(col);
-          rowCells.set(rowId, cells);
-          newDirtyCellIds.set(tableName, rowCells);
-          return {
-            tables: newTables,
-            dirtyRowIds: newDirtyRowIds,
-            dirtyCellIds: newDirtyCellIds,
-            isDirty: true,
-            hasDraft: true,
-          };
-        });
-        scheduleAutoSave();
-      };
-
-      cmds.push({
-        description: 'セル編集',
-        execute() {
-          applyRow(newRow);
-        },
-        undo() {
-          applyRow(prevRow);
-        },
-      });
+      const s = get();
+      const row = s.tables.get(tableName)?.get(rowId);
+      const colDef = s.schemas.get(tableName)?.columns.find((c) => c.key === col);
+      if (!row || !colDef) continue;
+      const newRow = computeCellRow(row, col, inputValue, colDef);
+      cmds.push(cellEditCommand(set, get, tableName, rowId, col, newRow, row));
     }
     if (cmds.length > 0) {
-      commandHistory.execute(new CompositeCommand(cmds, '複数セルの編集'));
-      useCommandHistoryStore.getState().sync();
+      runCommand(new CompositeCommand(cmds, '複数セルの編集'));
     }
   },
 
   addRow: (tableName) => {
     if (!get().writeMode) return;
-    const { tables } = get();
-    const table = tables.get(tableName);
+    const table = get().tables.get(tableName);
     if (!table) return;
-
-    const id = makeId();
-    const order = maxOrder(table) + 1000;
-    const newRow: Row = { _id: id, _order: order };
-
-    const doAdd = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(id, newRow);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(id);
-        newDirtyRowIds.set(tableName, dirty);
-        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    const doDelete = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.delete(id);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        return { tables: newTables, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    const cmd: Command = {
-      description: '行追加',
-      execute() {
-        doAdd();
-      },
-      undo() {
-        doDelete();
-      },
-    };
-
-    commandHistory.execute(cmd);
-    useCommandHistoryStore.getState().sync();
+    const row: Row = { _id: makeId(), _order: maxOrder(table) + 1000 };
+    runCommand(rowAddCommand(set, get, tableName, row, '行追加'));
   },
 
   addRowAfter: (tableName, afterRowId) => {
     if (!get().writeMode) return;
-    const { tables } = get();
-    const table = tables.get(tableName);
-    if (!table) return;
-
-    const afterRow = table.get(afterRowId);
-    if (!afterRow) return;
+    const table = get().tables.get(tableName);
+    const afterRow = table?.get(afterRowId);
+    if (!table || !afterRow) return;
 
     const afterOrder = afterRow._order as number;
     let nextOrder = afterOrder + 2000;
-    for (const row of table.values()) {
-      const o = row._order as number;
+    for (const r of table.values()) {
+      const o = r._order as number;
       if (o > afterOrder && o < nextOrder) nextOrder = o;
     }
-
-    const id = makeId();
-    const order = (afterOrder + nextOrder) / 2;
-    const newRow: Row = { _id: id, _order: order };
-
-    const doAdd = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(id, newRow);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(id);
-        newDirtyRowIds.set(tableName, dirty);
-        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    const doDelete = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.delete(id);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        return { tables: newTables, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    commandHistory.execute({
-      description: '行を下に追加',
-      execute() {
-        doAdd();
-      },
-      undo() {
-        doDelete();
-      },
-    });
-    useCommandHistoryStore.getState().sync();
+    const row: Row = { _id: makeId(), _order: (afterOrder + nextOrder) / 2 };
+    runCommand(rowAddCommand(set, get, tableName, row, '行を下に追加'));
   },
 
   addRowBefore: (tableName, beforeRowId) => {
     if (!get().writeMode) return;
-    const { tables } = get();
-    const table = tables.get(tableName);
-    if (!table) return;
-
-    const beforeRow = table.get(beforeRowId);
-    if (!beforeRow) return;
+    const table = get().tables.get(tableName);
+    const beforeRow = table?.get(beforeRowId);
+    if (!table || !beforeRow) return;
 
     const beforeOrder = beforeRow._order as number;
     let prevOrder = beforeOrder - 2000;
-    for (const row of table.values()) {
-      const o = row._order as number;
+    for (const r of table.values()) {
+      const o = r._order as number;
       if (o < beforeOrder && o > prevOrder) prevOrder = o;
     }
-
-    const id = makeId();
-    const order = (prevOrder + beforeOrder) / 2;
-    const newRow: Row = { _id: id, _order: order };
-
-    const doAdd = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(id, newRow);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(id);
-        newDirtyRowIds.set(tableName, dirty);
-        return { tables: newTables, dirtyRowIds: newDirtyRowIds, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    const doDelete = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.delete(id);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        return { tables: newTables, isDirty: true, hasDraft: true };
-      });
-      scheduleAutoSave();
-    };
-
-    commandHistory.execute({
-      description: '行を上に追加',
-      execute() {
-        doAdd();
-      },
-      undo() {
-        doDelete();
-      },
-    });
-    useCommandHistoryStore.getState().sync();
+    const row: Row = { _id: makeId(), _order: (prevOrder + beforeOrder) / 2 };
+    runCommand(rowAddCommand(set, get, tableName, row, '行を上に追加'));
   },
 
   deleteRow: (tableName, rowId) => {
     if (!get().writeMode) return;
-    const { tables } = get();
-    const table = tables.get(tableName);
-    const row = table?.get(rowId);
-    if (!table || !row) return;
-
-    const doDelete = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.delete(rowId);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDeletedRowIds = new Map(s.deletedRowIds);
-        const deleted = new Set(newDeletedRowIds.get(tableName) ?? []);
-        deleted.add(rowId);
-        newDeletedRowIds.set(tableName, deleted);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.delete(rowId);
-        newDirtyRowIds.set(tableName, dirty);
-        return {
-          tables: newTables,
-          deletedRowIds: newDeletedRowIds,
-          dirtyRowIds: newDirtyRowIds,
-          isDirty: true,
-          hasDraft: true,
-        };
-      });
-      scheduleAutoSave();
-    };
-
-    const doAdd = () => {
-      set((s) => {
-        const t = s.tables.get(tableName);
-        if (!t) return s;
-        const newTable = new Map(t);
-        newTable.set(rowId, row);
-        const newTables = new Map(s.tables);
-        newTables.set(tableName, newTable);
-        const newDirtyRowIds = new Map(s.dirtyRowIds);
-        const dirty = new Set(newDirtyRowIds.get(tableName) ?? []);
-        dirty.add(rowId);
-        newDirtyRowIds.set(tableName, dirty);
-        const newDeletedRowIds = new Map(s.deletedRowIds);
-        const deleted = new Set(newDeletedRowIds.get(tableName) ?? []);
-        deleted.delete(rowId);
-        newDeletedRowIds.set(tableName, deleted);
-        return {
-          tables: newTables,
-          dirtyRowIds: newDirtyRowIds,
-          deletedRowIds: newDeletedRowIds,
-          isDirty: true,
-          hasDraft: true,
-        };
-      });
-      scheduleAutoSave();
-    };
-
-    const cmd: Command = {
-      description: '行削除',
-      execute() {
-        doDelete();
-      },
-      undo() {
-        doAdd();
-      },
-    };
-
-    commandHistory.execute(cmd);
-    useCommandHistoryStore.getState().sync();
+    const row = get().tables.get(tableName)?.get(rowId);
+    if (!row) return;
+    runCommand(rowDeleteCommand(set, get, tableName, row));
   },
 
   clearDraftState: () => {
     const { projectPath } = get();
-    if (projectPath) {
-      clearDraft(projectPath);
-    }
+    if (projectPath) clearDraft(projectPath);
     set({ hasDraft: false });
   },
 
@@ -697,14 +400,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       set({ writeMode: false, lockHolderTabId: msg.tabId });
       return;
     }
-
     if (msg.type === 'lock-released') {
       set({ lockHolderTabId: null });
       return;
     }
-
-    if (msg.type !== 'draft-updated') return;
-    if (!msg.draft) return;
+    if (msg.type !== 'draft-updated' || !msg.draft) return;
 
     const draftTables = deserializeTables(msg.draft.tables);
     set((s) => {
@@ -715,19 +415,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         const currentTable = s.tables.get(tableName);
         const mergedTable = new Map(currentTable?.entries() ?? []);
         const dirtyIds = new Set<string>();
-
         for (const [rowId, draftRow] of draftTable.entries()) {
           mergedTable.set(rowId, draftRow);
           dirtyIds.add(rowId);
         }
-
         newTables.set(tableName, mergedTable);
-        if (dirtyIds.size > 0) {
-          allDirtyIds.set(tableName, dirtyIds);
-        }
+        if (dirtyIds.size > 0) allDirtyIds.set(tableName, dirtyIds);
       }
 
-      const hasAnyDirty = [...allDirtyIds.values()].some((s) => s.size > 0);
+      const hasAnyDirty = [...allDirtyIds.values()].some((set) => set.size > 0);
       return {
         tables: newTables,
         dirtyRowIds: new Map([...s.dirtyRowIds.entries(), ...allDirtyIds.entries()]),
@@ -748,19 +444,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { projectPath } = get();
     if (!projectPath) return false;
     const ok = stealLockUtil(projectPath);
-    if (ok) {
-      set({ writeMode: true, lockHolderTabId: null });
-    }
+    if (ok) set({ writeMode: true, lockHolderTabId: null });
     return ok;
   },
 
   setAdapter: (type, dirHandle) => {
-    if (type === 'file-system-access' && dirHandle) {
-      adapter = new FileSystemAccessAPIAdapter(dirHandle);
-      set({ adapterType: 'file-system-access' });
-    } else {
-      adapter = new LocalServerAdapter();
-      set({ adapterType: 'server' });
-    }
+    set({ adapterType: createAdapter(type, dirHandle) });
   },
 }));
