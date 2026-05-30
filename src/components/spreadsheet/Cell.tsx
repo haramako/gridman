@@ -107,9 +107,7 @@ export default function Cell({
   const commitEdit = (val: string) => {
     if (committedRef.current) return;
     committedRef.current = true;
-    if (val !== currentEditValue) {
-      updateCell(tableName, rowId, col.key, val);
-    }
+    updateCell(tableName, rowId, col.key, val);
     setEditing(null);
   };
 
