@@ -22,7 +22,7 @@
     - [[concepts/data-model/Project_Format]] — project.json の構造
     - [[concepts/data-model/Schema_Definition]] — *.schema.json・カラム型一覧
     - [[concepts/data-model/Table_Data]] — *.jsonl・内部フィールド（_id, _order, _invalid）
-    - [[concepts/data-model/View_Queries]] — FilterViewQuery / UnionViewQuery / LookupViewQuery / FilterExpr
+    - [[concepts/data-model/View_Queries]] — SelectQuery / UnionQuery / PageViewQuery / FilterExpr
 
 ### スプレッドシート
 - [[concepts/spreadsheet/index|Spreadsheet]] — グリッドの構成と操作モデル

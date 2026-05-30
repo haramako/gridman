@@ -44,7 +44,7 @@
 interface ViewDefinition {
   id: string        // ユニーク ID
   name: string      // サイドバーに表示する名前
-  query: FilterViewQuery | UnionViewQuery | LookupViewQuery
+  query: SelectQuery | UnionQuery | PageViewQuery
 }
 ```
 

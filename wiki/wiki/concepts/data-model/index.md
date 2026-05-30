@@ -21,7 +21,7 @@ my-project/
 - [[Project_Format]] — project.json の構造（テーブル・ビュー・enums）
 - [[Schema_Definition]] — *.schema.json・カラム型一覧・ColumnDef フィールド
 - [[Table_Data]] — *.jsonl・内部フィールド（_id / _order / _invalid）・ソフトバリデーション
-- [[View_Queries]] — FilterViewQuery / UnionViewQuery / LookupViewQuery / FilterExpr
+- [[View_Queries]] — SelectQuery / UnionQuery / PageViewQuery / FilterExpr
 
 ## 関連
 

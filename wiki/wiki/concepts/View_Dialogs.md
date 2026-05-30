@@ -25,7 +25,7 @@ interface Props {
 
 `src/components/filter/FilterViewDialog.tsx`
 
-`FilterViewQuery`（テーブル絞り込み・ソート・列選択）を構築する。
+`SelectQuery`（joins 無し＝テーブル絞り込み・ソート・列選択）を構築する。
 
 **内部状態**:
 
@@ -56,7 +56,7 @@ interface Props {
 
 `src/components/union/UnionViewDialog.tsx`
 
-`UnionViewQuery`（複数テーブルの縦結合）を構築する。
+`UnionQuery`（複数テーブルの縦結合）を構築する。
 
 - デフォルトで先頭 2 テーブルをソースとして初期化
 - テーブルを変えるとカラム選択がリセット
@@ -68,7 +68,7 @@ interface Props {
 
 `src/components/lookup/LookupViewDialog.tsx`
 
-`LookupViewQuery`（参照列の展開）を構築する。
+`SelectQuery`（joins 有り＝参照列の展開）を構築する。`joins` は `{ column, from, as, fields[] }` の配列。
 
 - ベーステーブルの `ref` / `ref[]` カラムのみ展開対象に表示
 - 各ルックアップ定義: `{ column, from, as, fields[] }`
@@ -80,6 +80,6 @@ interface Props {
 
 ## 関連
 
-- [[concepts/data-model/View_Queries]] — FilterExpr / UnionViewQuery / LookupViewQuery の型定義
+- [[concepts/data-model/View_Queries]] — FilterExpr / SelectQuery / UnionQuery の型定義
 - [[concepts/architecture/Stores]] — `useProjectStore.saveView` での保存
 - [[concepts/data-model/Project_Format]] — `views` 配列の保存場所

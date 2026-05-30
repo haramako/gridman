@@ -34,7 +34,7 @@ flowchart TD
 - 行追加 / 行削除ボタン
 - 行数 + 選択行数の表示
 
-**ビュー種別の分岐**: `activeView.query.type` が `union` / `lookup` の場合は行追加ボタンを非表示にし、削除時はソーステーブルを `_source` / `_sources` フィールドから特定して正しいテーブルに `deleteRow` を呼ぶ。
+**ビュー種別の分岐**: `union` ビュー / `select`（joins 有り）ビューの場合は行追加ボタンを非表示にし、削除時はソーステーブルを各行の `_origin` フィールドから特定して正しいテーブルに `deleteRow` を呼ぶ（`getRowOwnerTable`）。
 
 ---
 

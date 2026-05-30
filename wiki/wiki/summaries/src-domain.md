@@ -45,23 +45,25 @@ applySort(rows: Row[], sorts: SortDef[]): Row[]
 
 ---
 
-## lookup.ts — ルックアップ展開
+## select.ts — SelectQuery 評価（filter + lookup 統合）
 
 ```ts
-applyLookup(query: LookupViewQuery, tables, schemas): { rows: Row[], schema: TableSchema }
+applySelect(query: SelectQuery, tables, schemas): { rows: Row[], schema: TableSchema }
 ```
 
-ベーステーブルの各行について、`lookups` 配列で指定された参照先テーブルのフィールドを展開する。展開列は `as.field` 形式のキーで追加され `readonly: true` が付与される。行に `_sources` フィールドを付け、元のレコード ID を保持する（削除操作で参照先テーブルを特定するために使用）。
+`joins` 無し＝旧 filter（ベース表の実スキーマ・素のベース行をそのまま返す）。`joins` 有り＝旧 lookup（`joins` 配列で指定した参照先テーブルのフィールドを `as.field` 形式の `readonly: true` 列として展開）。joins 有りの行には `_origin = { table, id }`（ベース行の出自）を付与し、編集の書き戻し先を示す。
+
+> 2026-05-30 のビュークエリ統合で旧 `lookup.ts`（`applyLookup`）は本ファイルに吸収・削除された。
 
 ---
 
 ## union.ts — ユニオン縦結合
 
 ```ts
-applyUnion(query: UnionViewQuery, tables, schemas): { rows: Row[], schema: TableSchema }
+applyUnion(query: UnionQuery, tables, schemas): { rows: Row[], schema: TableSchema }
 ```
 
-複数ソーステーブルの行を縦に結合する。列は先頭ソースの順序を基準に、後続ソースの新規列を末尾追加。各行に `_source: tableName` フィールドを付与し、元テーブルを追跡可能にする。
+複数ソーステーブルの行を縦に結合する。列は先頭ソースの順序を基準に、後続ソースの新規列を末尾追加。各行に `_origin = { table, id }` を付与し、元テーブルへの編集・削除の書き戻しに使う。
 
 ---
 

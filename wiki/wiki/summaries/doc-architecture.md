@@ -17,8 +17,8 @@ React SPA（:5173）↔ Vite プロキシ ↔ Hono サーバー（:8080）↔ �
 
 **ドメインロジック** (`src/domain/`):
 - `validator.ts` — 型変換・バリデーション
-- `filter.ts` — フィルタ・ソート
-- `union.ts` / `lookup.ts` — テーブル結合・参照展開
+- `filter.ts` — FilterExpr 評価・ソート
+- `select.ts` — SelectQuery 評価（filter + lookup を統合）・`union.ts` — テーブル縦結合
 - `commands.ts` — Undo/Redo コマンドパターン
 
 ## 関連ページ
