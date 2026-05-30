@@ -38,7 +38,7 @@ type Join = { column: string; from: string; as: string; fields: string[] }
 ```
 
 `joins` を持つ行には `_origin = { table, id }` が付与され、編集の書き戻し先（ベース表とベース行）を示す。
-展開列は readonly のため書き戻し対象外。詳細は [[concepts/Gotchas]] #8。
+展開列は readonly のため書き戻し対象外。詳細は [[concepts/Gotchas]] #7。
 
 ## UnionQuery（union）
 
@@ -103,6 +103,6 @@ type SortDef = { column: string; order: 'asc' | 'desc' }
 ## 関連
 
 - [[concepts/architecture/Domain_Logic]] — applySelect / applyUnion の実装
-- [[concepts/Gotchas]] — `_origin` 予約フィールド（#8）
+- [[concepts/Gotchas]] — `_origin` 予約フィールド（#7）
 - [[concepts/how-to/Add_View_Type]] — 新しいビュー種別の追加手順
 - [[Project_Format]] — ビュー定義の保存場所

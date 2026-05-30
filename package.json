@@ -8,7 +8,6 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "server": "tsx watch server/index.ts",
-    "db-server": "tsx watch server/db-server.ts",
     "lint": "biome check src server",
     "dev:init": "node scripts/reset-sample.js",
     "e2e:reset": "node scripts/reset-e2e.js",
@@ -21,7 +20,6 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.2",
-    "better-sqlite3": "^11.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "hono": "^4.6.17",
@@ -39,7 +37,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

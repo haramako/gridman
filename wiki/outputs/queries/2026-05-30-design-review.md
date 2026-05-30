@@ -8,7 +8,8 @@
 > - ✅ **①（優先度高）実装済** — `col.type` 表示整形を `src/lib/formatCellValue.ts` に集約（PR #63 / main マージ済）
 > - ✅ **②（優先度中）実装済** — ビュー種別アイコンを `src/lib/viewTypeConfig.ts` に集約（PR #64 / main マージ済）
 > - ✅ **④（優先度中）解消済** — EditorPage のダイアログ管理は `useDialogState` フックに抽出済み（本調査時に確認）
-> - 残: ③ 編集ウィジェットの JSX レジストリ化（リスク高・未着手）、project.store 責務分離（大規模・未着手）、db-server PATCH 削除非対応（要修正・未着手）
+> - ✅ **db-server PATCH 削除非対応 解消** — 当該バグは未配線の死蔵コードに起因していたため、`db-server.ts`/`db-adapter.ts` ごと削除（2026-05-30）
+> - 残: ③ 編集ウィジェットの JSX レジストリ化（リスク高・未着手）、project.store 責務分離（大規模・未着手）
 
 ---
 
@@ -72,9 +73,9 @@ ColumnType と同様、**ビュー種別もディスパッチテーブル化**�
 
 ### 4. db-server の PATCH が削除を処理しない（バグ寄り・要トリアージ）
 
-[[concepts/Gotchas]] #7 で記録済みの**実挙動差異**。`server/index.ts`（ファイル）は `deletedIds` を処理するが、
-`server/db-server.ts`（SQLite）は upsert のみで行削除が効かない。設計の対称性が壊れている。
-SQLite バックエンドを使う前提があるなら明確なバグ。改善というより**修正対象としてチケット化**すべき。
+`server/index.ts`（ファイル）は `deletedIds` を処理するが、`server/db-server.ts`（SQLite）は upsert のみで
+行削除が効かなかった。だが調査の結果、DbServerAdapter は `setAdapter` のどの分岐からも生成されない**未配線の
+死蔵コード**だったため、修正ではなく `db-server.ts`/`db-adapter.ts` ごと削除して解消（2026-05-30）。
 
 ---
 
@@ -85,7 +86,7 @@ SQLite バックエンドを使う前提があるなら明確なバグ。改善�
 | 高 | ColumnType の描画/変換分岐（残36箇所の中核） | 表示整形を `formatCellValue` に集約 | 中 | ✅ 実装済（PR #63） |
 | 中 | ViewQuery 型分岐の分散 | `viewTypeConfig` 新設 | 中 | ✅ 実装済（PR #64） |
 | 中 | project.store 責務過多（766行・増加傾向） | データ層と永続化層を分離 | 大（要分割） | 未着手 |
-| 要修正 | db-server PATCH が削除非対応 | deletedIds 処理を追加 | 小〜中 | 未着手 |
+| 要修正 | db-server PATCH が削除非対応 | 死蔵コードごと削除 | 小〜中 | ✅ 解決（削除） |
 
 > ①の実装スコープ補足: 当初想定の `coerce` 集約は見送り（`coerceToType`/`validateCell` は
 > 既に `validator.ts` に集約済みで、config 移動は churn 大・利得小）。実際の重複は **表示整形**

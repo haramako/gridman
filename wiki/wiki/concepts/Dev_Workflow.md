@@ -29,7 +29,6 @@ npm run dev:init   # fixtures/sample/ → var/sample/ にコピー
 
 | コマンド | 用途 |
 |---------|------|
-| `npm run db-server` | SQLite サーバー（port 8082）を起動 |
 | `npm run dev:gen-dummy` | ダミーデータ生成 |
 | `npm run preview` | 本番ビルドのプレビュー |
 

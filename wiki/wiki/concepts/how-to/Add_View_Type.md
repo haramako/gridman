@@ -46,7 +46,7 @@ export function applyMyView(
 - 単テーブル選択（フィルタ／JOIN 展開）→ `select.ts` の `applySelect`
 - 複数テーブル縦結合 → `union.ts` の `applyUnion`
 
-ビュー越しの行は `_origin = { table, id }` を付けて書き戻し先を示す（[[concepts/Gotchas]] #8）。
+ビュー越しの行は `_origin = { table, id }` を付けて書き戻し先を示す（[[concepts/Gotchas]] #7）。
 
 ---
 
@@ -95,7 +95,7 @@ case 'my-view':
 
 ---
 
-### Step 6: `server/index.ts` / `server/db-server.ts` — 変更不要
+### Step 6: `server/index.ts` — 変更不要
 
 ビュー定義は `project.json` の `views[]` に格納されるため、サーバー側は変更不要。  
 `PUT /api/project` で `ProjectConfig`（`views[]` を含む）ごと保存される。
@@ -115,7 +115,7 @@ case 'my-view':
 ## 落とし穴
 
 - `ViewQuery` union を更新したが `switch` の各所に `case 'my-view':` を追加し忘れると TypeScript が警告する（exhaustive check）
-- `applyMyView` がビュー越しの行を返す場合、編集の書き戻し先として `_origin = { table, id }` を付ける（→ [[concepts/Gotchas]] #8）
+- `applyMyView` がビュー越しの行を返す場合、編集の書き戻し先として `_origin = { table, id }` を付ける（→ [[concepts/Gotchas]] #7）
 
 ---
 
