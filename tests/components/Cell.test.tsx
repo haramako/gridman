@@ -180,13 +180,13 @@ describe('Cell', () => {
       expect(screen.getByRole<HTMLInputElement>('textbox').value).toBe('スライム')
     })
 
-    it('Enter で updateCell が呼ばれ、次行へ navigate する', async () => {
+    it('値を変更せずに Enter すると updateCell は呼ばれず、次行へ navigate する', async () => {
       const user = userEvent.setup()
       renderCell({ selectionState: editingState })
       const input = screen.getByRole('textbox')
       await user.click(input)
       await user.keyboard('{Enter}')
-      expect(mockUpdateCell).toHaveBeenCalledWith('enemy', 'r1', 'name', 'スライム')
+      expect(mockUpdateCell).not.toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('r1', 'name', 1, 0)
     })
 
@@ -200,24 +200,36 @@ describe('Cell', () => {
       expect(mockUpdateCell).not.toHaveBeenCalled()
     })
 
-    it('Tab で updateCell + 右へ navigate する', async () => {
+    it('値を変更せずに Tab すると updateCell は呼ばれず、右へ navigate する', async () => {
       const user = userEvent.setup()
       renderCell({ selectionState: editingState })
       const input = screen.getByRole('textbox')
       await user.click(input)
       await user.tab()
-      expect(mockUpdateCell).toHaveBeenCalled()
+      expect(mockUpdateCell).not.toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('r1', 'name', 0, 1)
     })
 
-    it('Shift+Tab で updateCell + 左へ navigate する', async () => {
+    it('値を変更せずに Shift+Tab すると updateCell は呼ばれず、左へ navigate する', async () => {
       const user = userEvent.setup()
       renderCell({ selectionState: editingState })
       const input = screen.getByRole('textbox')
       await user.click(input)
       await user.tab({ shift: true })
-      expect(mockUpdateCell).toHaveBeenCalled()
+      expect(mockUpdateCell).not.toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('r1', 'name', 0, -1)
+    })
+
+    it('値を変更して Enter すると updateCell が呼ばれる', async () => {
+      const user = userEvent.setup()
+      renderCell({ selectionState: editingState })
+      const input = screen.getByRole('textbox')
+      await user.click(input)
+      await user.clear(input)
+      await user.type(input, 'ゴブリン')
+      await user.keyboard('{Enter}')
+      expect(mockUpdateCell).toHaveBeenCalledWith('enemy', 'r1', 'name', 'ゴブリン')
+      expect(mockNavigate).toHaveBeenCalledWith('r1', 'name', 1, 0)
     })
 
     it('editInitialValue があれば type-to-edit の値で開始する', () => {
