@@ -59,6 +59,36 @@ test('範囲選択した複数セルをコピー＆ペーストできる', async
   expect(lines.length).toBe(2)
 })
 
+test('同一行の複数カラムへ2Dペーストしても全カラムが反映され、UNDO/REDOが1操作で効く', async ({
+  page,
+}) => {
+  // hp列(nth-child(3))・attack列(nth-child(4)) — どちらも整数型の隣接カラム
+  const hpCell = page.locator('tbody tr:first-child td:nth-child(3)')
+  const attackCell = page.locator('tbody tr:first-child td:nth-child(4)')
+
+  const originalHp = (await hpCell.textContent())?.trim() ?? ''
+  const originalAttack = (await attackCell.textContent())?.trim() ?? ''
+
+  // タブ区切りで同一行の2カラムをペースト
+  await page.evaluate(() => navigator.clipboard.writeText('777\t888'))
+  await hpCell.click()
+  await page.keyboard.press('Control+v')
+
+  // 最後のカラムだけでなく両カラムが反映されていること（リグレッション検出）
+  await expect(hpCell).toHaveText('777')
+  await expect(attackCell).toHaveText('888')
+
+  // UNDO 1回で両カラムが元に戻ること
+  await page.keyboard.press('Control+z')
+  await expect(hpCell).toHaveText(originalHp)
+  await expect(attackCell).toHaveText(originalAttack)
+
+  // REDO 1回で両カラムが再度反映されること
+  await page.keyboard.press('Control+y')
+  await expect(hpCell).toHaveText('777')
+  await expect(attackCell).toHaveText('888')
+})
+
 test('Ctrl+X でセルをカットできる（クリップボードにコピー＋セルがクリアされる）', async ({ page }) => {
   // value列（3番目の列、整数型、必須ではない）を使用
   const valueCell = page.locator('tbody tr:first-child td:nth-child(4)')

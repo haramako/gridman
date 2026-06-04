@@ -325,14 +325,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   updateCells: (updates) => {
     if (!get().writeMode) return;
+    const s = get();
     const cmds: Command[] = [];
+    // 同一行に複数カラムを編集する場合、各コマンドは行全体を置換するため、
+    // 直前の編集結果を基点に積み上げないと最後のカラム以外の変更が失われる。
+    const rowCache = new Map<string, Row>();
     for (const { tableName, rowId, col, inputValue } of updates) {
-      const s = get();
-      const row = s.tables.get(tableName)?.get(rowId);
+      const key = `${tableName} ${rowId}`;
+      const baseRow = rowCache.get(key) ?? s.tables.get(tableName)?.get(rowId);
       const colDef = s.schemas.get(tableName)?.columns.find((c) => c.key === col);
-      if (!row || !colDef) continue;
-      const newRow = computeCellRow(row, col, inputValue, colDef);
-      cmds.push(cellEditCommand(set, get, tableName, rowId, col, newRow, row));
+      if (!baseRow || !colDef) continue;
+      const newRow = computeCellRow(baseRow, col, inputValue, colDef);
+      rowCache.set(key, newRow);
+      cmds.push(cellEditCommand(set, get, tableName, rowId, col, newRow, baseRow));
     }
     if (cmds.length > 0) {
       runCommand(new CompositeCommand(cmds, '複数セルの編集'));
