@@ -21,6 +21,9 @@ interface KeyboardNavigationProps {
   setEditing: (pos: CellPosition | null) => void;
   startEditWithInput: (pos: CellPosition, key: string) => void;
   updateCell: (tableName: string, rowId: string, colKey: string, value: unknown) => void;
+  updateCells: (
+    updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[]
+  ) => void;
   onSelectRows: (ids: string[]) => void;
 }
 
@@ -38,6 +41,7 @@ export function useKeyboardNavigation({
   setEditing,
   startEditWithInput,
   updateCell,
+  updateCells,
   onSelectRows,
 }: KeyboardNavigationProps) {
   const findDataEdgeRow = useCallback(
@@ -290,6 +294,7 @@ export function useKeyboardNavigation({
       const lines = text.split('\n');
       if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
 
+      const updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[] = [];
       for (let ri = 0; ri < lines.length; ri++) {
         const rowIdx = cursorRowIdx + ri;
         if (rowIdx >= displayRows.length) break;
@@ -303,11 +308,19 @@ export function useKeyboardNavigation({
           const col = visibleColumns[colIdx];
           if (COLUMN_TYPE_CONFIG[col.type].gridReadonly) continue;
 
-          updateCell(getEffectiveTableName(row, tableName), row._id as string, col.key, cells[ci]);
+          updates.push({
+            tableName: getEffectiveTableName(row, tableName),
+            rowId: row._id as string,
+            col: col.key,
+            inputValue: cells[ci],
+          });
         }
       }
+      if (updates.length > 0) {
+        updateCells(updates);
+      }
     },
-    [readOnly, displayRows, visibleColumns, tableName, updateCell]
+    [readOnly, displayRows, visibleColumns, tableName, updateCells]
   );
 
   // Global paste listener
@@ -378,21 +391,25 @@ export function useKeyboardNavigation({
       return;
     }
 
+    const updates: { tableName: string; rowId: string; col: string; inputValue: unknown }[] = [];
     for (let ri = minRow; ri <= maxRow; ri++) {
       const row = displayRows[ri];
       for (let ci = minCol; ci <= maxCol; ci++) {
         const col = visibleColumns[ci];
         const colCfg = COLUMN_TYPE_CONFIG[col.type];
         if (col.readonly || !colCfg.supportsKbdEdit) continue;
-        updateCell(
-          getEffectiveTableName(row, tableName),
-          row._id as string,
-          col.key,
-          colCfg.emptyValue
-        );
+        updates.push({
+          tableName: getEffectiveTableName(row, tableName),
+          rowId: row._id as string,
+          col: col.key,
+          inputValue: colCfg.emptyValue,
+        });
       }
     }
-  }, [displayRows, visibleColumns, tableName, readOnly, updateCell]);
+    if (updates.length > 0) {
+      updateCells(updates);
+    }
+  }, [displayRows, visibleColumns, tableName, readOnly, updateCells]);
 
   const handleContainerKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
