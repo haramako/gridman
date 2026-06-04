@@ -127,6 +127,9 @@ describe('validateCell', () => {
     it('returns max error when above maximum', () => {
       expect(validateCell(9.6, numCol)?.rule).toBe('max')
     })
+    it('returns type error for non-numeric value', () => {
+      expect(validateCell('abc', numCol)?.rule).toBe('type')
+    })
   })
 
   describe('string maxLength', () => {

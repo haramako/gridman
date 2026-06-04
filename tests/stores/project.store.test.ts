@@ -122,3 +122,73 @@ describe('updateCell', () => {
     expect(commandHistory.canUndo).toBe(false);
   });
 });
+
+describe('行の追加・削除（_order 計算と状態遷移）', () => {
+  const allRows = (): Row[] => [...(useProjectStore.getState().tables.get('enemy')?.values() ?? [])];
+  const ids = (): Set<string> => new Set(allRows().map((r) => r._id as string));
+  const newRow = (prevIds: Set<string>): Row =>
+    allRows().find((r) => !prevIds.has(r._id as string)) as Row;
+
+  // order を 0 / 1000 / 2000 に並べ直して中点計算を検証しやすくする
+  beforeEach(() => {
+    setupStore([
+      { _id: 'a', _order: 0, name: 'A', hp: 1, attack: 1 },
+      { _id: 'b', _order: 1000, name: 'B', hp: 2, attack: 2 },
+      { _id: 'c', _order: 2000, name: 'C', hp: 3, attack: 3 },
+    ]);
+  });
+
+  it('addRow は末尾 order + 1000 で追加する', () => {
+    const before = ids();
+    useProjectStore.getState().addRow('enemy');
+    expect(newRow(before)._order).toBe(3000);
+  });
+
+  it('addRowAfter は次の行との中点 order で追加する', () => {
+    const before = ids();
+    useProjectStore.getState().addRowAfter('enemy', 'a'); // a(0) と b(1000) の間
+    expect(newRow(before)._order).toBe(500);
+  });
+
+  it('addRowAfter で末尾行の後ろは +2000 の中点になる', () => {
+    const before = ids();
+    useProjectStore.getState().addRowAfter('enemy', 'c'); // c(2000) の後ろ → (2000+4000)/2
+    expect(newRow(before)._order).toBe(3000);
+  });
+
+  it('addRowBefore は前の行との中点 order で追加する', () => {
+    const before = ids();
+    useProjectStore.getState().addRowBefore('enemy', 'b'); // a(0) と b(1000) の間
+    expect(newRow(before)._order).toBe(500);
+  });
+
+  it('addRowBefore で先頭行の前は -2000 の中点になる', () => {
+    const before = ids();
+    useProjectStore.getState().addRowBefore('enemy', 'a'); // a(0) の前 → (-2000+0)/2
+    expect(newRow(before)._order).toBe(-1000);
+  });
+
+  it('追加行は UNDO で取り除かれる', () => {
+    const before = ids();
+    useProjectStore.getState().addRow('enemy');
+    const added = newRow(before)._id as string;
+    commandHistory.undo();
+    expect(useProjectStore.getState().tables.get('enemy')?.has(added)).toBe(false);
+  });
+
+  it('deleteRow はテーブルから除去し deletedRowIds に追加する', () => {
+    useProjectStore.getState().deleteRow('enemy', 'b');
+    const state = useProjectStore.getState();
+    expect(state.tables.get('enemy')?.has('b')).toBe(false);
+    expect(state.deletedRowIds.get('enemy')?.has('b')).toBe(true);
+    expect(state.isDirty).toBe(true);
+  });
+
+  it('削除行は UNDO で復元される', () => {
+    useProjectStore.getState().deleteRow('enemy', 'b');
+    commandHistory.undo();
+    const state = useProjectStore.getState();
+    expect(state.tables.get('enemy')?.get('b')?.name).toBe('B');
+    expect(state.deletedRowIds.get('enemy')?.has('b')).toBe(false);
+  });
+});
