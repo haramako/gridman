@@ -73,7 +73,7 @@ export default function SpreadsheetGrid({
   onRowContextMenu,
   readOnly,
 }: Props) {
-  const { schemas, tables, updateCell, project } = useProjectStore();
+  const { schemas, tables, updateCell, updateCells, project } = useProjectStore();
   const { cursor, anchorCell, setCursor, extendCursor, setEditing, startEditWithInput } =
     useSelectionStore();
 
@@ -226,6 +226,7 @@ export default function SpreadsheetGrid({
       setEditing,
       startEditWithInput,
       updateCell,
+      updateCells,
       onSelectRows,
     });
 
