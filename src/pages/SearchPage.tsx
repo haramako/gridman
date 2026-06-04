@@ -8,7 +8,7 @@ const DEBOUNCE_MS = 300;
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { project, tables, schemas } = useProjectStore();
+  const { projectPath, project, tables, schemas } = useProjectStore();
   const { searchQuery, searchResults, setSearchQuery, setSearchResults, clearSearch } =
     useViewStore();
 
@@ -108,9 +108,7 @@ export default function SearchPage() {
   }, [searchResults]);
 
   const handleResultClick = (result: SearchResult) => {
-    navigate(
-      `/editor?project=${encodeURIComponent(project?.name ?? '')}&table=${result.tableName}`
-    );
+    navigate(`/editor?project=${encodeURIComponent(projectPath ?? '')}&table=${result.tableName}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, result: SearchResult) => {
@@ -150,7 +148,7 @@ export default function SearchPage() {
             clearSearch();
             setLocalQuery('');
             navigate(
-              `/editor?project=${encodeURIComponent(project.name)}&table=${project.tables[0] ?? ''}`
+              `/editor?project=${encodeURIComponent(projectPath ?? '')}&table=${project.tables[0] ?? ''}`
             );
           }}
         >
