@@ -113,12 +113,12 @@ export default function EditorPage() {
       }
       if (e.key === 'f' && e.shiftKey) {
         e.preventDefault();
-        navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`);
+        navigate(`/search?project=${encodeURIComponent(projectPath)}`);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [saveAll, undo, redo, navigate, project?.name]);
+  }, [saveAll, undo, redo, navigate, projectPath]);
 
   useEffect(() => {
     const name = project?.name ?? 'Spreadsheet';
@@ -246,7 +246,7 @@ export default function EditorPage() {
         <button
           type="button"
           className="px-3 py-1 rounded border text-sm hover:bg-accent"
-          onClick={() => navigate(`/search?project=${encodeURIComponent(project?.name ?? '')}`)}
+          onClick={() => navigate(`/search?project=${encodeURIComponent(projectPath)}`)}
           title="横断検索 (Ctrl+Shift+F)"
         >
           🔍 検索
