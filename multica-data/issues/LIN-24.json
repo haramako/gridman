@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:28:20Z",
+  "description": "以下の挙動の検証が必要:\n\n- `keyword` タグのパースで `start` インデックス管理（バグ項目と同領域）\n- `:class=\"{expression}\"` でバインディングが配列を返した場合の処理\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: Low)",
+  "id": "74bbe780-ea2e-42b1-8769-d4b9fbc17244",
+  "identifier": "LIN-24",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [],
+  "status": "done",
+  "title": "[TML] 要検証: keyword タグと class バインディング",
+  "updated_at": "2026-05-30T07:13:29Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

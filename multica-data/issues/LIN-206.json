@@ -1,0 +1,74 @@
+{
+  "_derived": {
+    "has_failures": true,
+    "has_real_failures": true,
+    "run_count": 3,
+    "total_duration_seconds": 668
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-23T10:57:40Z",
+  "description": "レポジトリの中身を見て、10行程度で概要を説明して",
+  "id": "9d38c969-7e26-46e6-8680-b9f76ebce851",
+  "identifier": "LIN-206",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-23T14:13:00Z",
+      "duration_seconds": 191,
+      "error": null,
+      "failure_reason": null,
+      "id": "3f7788f3-7874-4459-acd7-e44c4f894a80",
+      "kind": "comment",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "レポジトリの概要を調べてコメントとして返信します。\n\nコメントを投稿しました。71ページの wiki（concepts 26, entities 20, summaries 25）を含む Karpathy 型 LLM Wiki の概要を 10 行程度で説明しました。",
+      "started_at": "2026-05-23T14:09:49Z",
+      "status": "completed",
+      "trigger_summary": "再度実行して"
+    },
+    {
+      "attempt": 2,
+      "completed_at": "2026-05-23T13:05:37Z",
+      "duration_seconds": null,
+      "error": "task expired in queue",
+      "failure_reason": "queued_expired",
+      "id": "64b2b0fd-e9b9-4706-b6c2-22fd0c8d6289",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": null,
+      "status": "failed",
+      "trigger_summary": null
+    },
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-23T11:05:37Z",
+      "duration_seconds": 477,
+      "error": "runtime went offline",
+      "failure_reason": "runtime_offline",
+      "id": "0ce5efcf-3ab0-429e-b262-f84403e5afd1",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": null,
+      "started_at": "2026-05-23T10:57:40Z",
+      "status": "failed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "レポジトリテスト",
+  "updated_at": "2026-05-23T14:14:49Z",
+  "usage": {
+    "cache_read_tokens": 68525,
+    "cache_write_tokens": 0,
+    "input_tokens": 15200,
+    "output_tokens": 991,
+    "total_tokens": 84716
+  }
+}

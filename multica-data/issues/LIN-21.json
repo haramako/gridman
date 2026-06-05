@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 283
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:28:00Z",
+  "description": "**TMLBuilder.cs** にて `TextDecoration` は `Style` に保持されているが、TextMeshPro への反映コードがない。\n\n`text-decoration` CSS プロパティ (underline, strikethrough など) の描画を実装する。\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: Low)",
+  "id": "e1af9e79-678e-4153-9f76-97c786c01b39",
+  "identifier": "LIN-21",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "low",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-08T12:07:22Z",
+      "duration_seconds": 283,
+      "error": null,
+      "failure_reason": null,
+      "id": "06dd37cf-551f-4d6c-8dfd-0a54754bb3d8",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Now let me look at the layouter to understand how text fragments get their style:Now I have a clear understanding. I need to:\n\n1. Add `ActualTextDecoration()` to `Fragment.cs` (with parent traversal, since `text-decoration` propagates through inline content)\n2. Use it in `TMLBuilder.cs` to set `text.fontStyle` on `TextMeshProUGUI`\n3. Run tests and update TODO.mdNow update `buildTextElement` in `TMLBuilder.cs` to apply text-decoration:Let me run the existing tests to verify nothing is broken:Now let me update TODO.md to mark this item as done:Let me do a final verification that everything builds:Build succeeds with 0 warnings and 0 errors. Let me post the result comment and set status to in_review.Done. The issue is in `in_review` status. Here's a summary of the changes:\n\n**`Fragment.cs`** — Added `ActualTextDecoration()` that walks the parent chain to resolve `text-decoration` values (similar to `ActualColor()`), so decoration propagates through inline content.\n\n**`TMLBuilder.cs:buildTextElement()`** — After setting up the TextMeshProUGUI component, reads the resolved `text-decoration` value and maps `underline` → `FontStyles.Underline`, `line-through` → `FontStyles.Strikethrough`.\n\n**`TODO.md`** — Marked the `text-decoration` item as completed.",
+      "started_at": "2026-05-08T12:02:39Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] text-decoration がレンダリングされない",
+  "updated_at": "2026-05-30T07:13:33Z",
+  "usage": {
+    "cache_read_tokens": 1558400,
+    "cache_write_tokens": 0,
+    "input_tokens": 42031,
+    "output_tokens": 6898,
+    "total_tokens": 1607329
+  }
+}

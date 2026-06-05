@@ -2,7 +2,7 @@
   "3bc09c51-3698-40d2-9954-ce52490ba238": {
     "created_at": "2026-05-03T05:10:31Z",
     "id": "3bc09c51-3698-40d2-9954-ce52490ba238",
-    "model": "yuri/qwen3.6:27b",
+    "model": "yuri/unsloth/Qwen3.6-27B-MTP-GGUF:Q4_K_M",
     "name": "kanade-opencode"
   },
   "a06a1e8f-070d-4fc7-adc7-ff1884490cf6": {

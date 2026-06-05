@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 3438
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:27:12Z",
+  "description": "**TMLParser.cs:353-364** にて `{{invalid}}` のようにパースが失敗しても警告・エラーなしにテキストがドロップされる (`// TODO` のまま)。また `bindingVM` が null の場合も同様の問題がある。\n\nバインディング失敗時に適切な警告・エラーを出力するよう修正する必要がある。\n\n参照: Tools/Lib/TODO.md (バグ / Priority: Medium)",
+  "id": "81cca515-c428-4dfa-ad14-77bb9aa7a870",
+  "identifier": "LIN-13",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-08T10:01:56Z",
+      "duration_seconds": 3438,
+      "error": null,
+      "failure_reason": null,
+      "id": "6cad5f79-7815-4107-a312-34ca08b46440",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Let me check the logging mechanism and binding tests:Let me check existing binding tests for patterns:Now I have the full picture. Let me also check `IBindingVM` interface:Now let me apply the fix. The `addInlineBindingText` method at lines 367-378 silently drops text when parsing fails. I'll add a warning and fallback to plain text.Now let me add tests. Let me check how `CreateDocument` works to understand how to test null bindingVM:Now I'll add tests. I need to add a mock `IBindingVM` that returns false and tests for both null VM and parse failure cases.All 111 tests pass (including the 2 new ones). Now let me update TODO.md:Now let me post the results comment and update the status:Done. All tasks complete.\n\n**Summary:**\n- **Fix**: `TMLParser.cs:367-378` (`addInlineBindingText`) — replaced silent `// TODO` drop with `Logger.LogWarning()` + fallback plain text element preserving `{{...}}`\n- **Tests**: 2 new tests (`InlineBindingParseFailure_RendersAsPlainText`, `InlineBindingWithNullBindingVM_RendersAsPlainText`)\n- **Results**: 111/111 tests passing\n- **TODO.md**: Bug item marked as fixed",
+      "started_at": "2026-05-08T09:04:38Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] インラインバインディング失敗時のサイレントスキップ修正",
+  "updated_at": "2026-05-30T07:13:37Z",
+  "usage": {
+    "cache_read_tokens": 1703040,
+    "cache_write_tokens": 0,
+    "input_tokens": 195378,
+    "output_tokens": 9339,
+    "total_tokens": 1907757
+  }
+}

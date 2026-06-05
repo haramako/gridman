@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 726
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-06-04T18:19:56Z",
+  "description": "右上の「検索」で、検索したのち、特定のセルをクリックしてJumpすると、該当のテーブルではなく、トップページにジャンプしてしまう。\n\n該当のテーブルを表示するように変更してください。",
+  "id": "2b63d54c-15ef-4ed1-bd9e-a483760d3619",
+  "identifier": "LIN-209",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "none",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-06-04T18:50:47Z",
+      "duration_seconds": 726,
+      "error": null,
+      "failure_reason": null,
+      "id": "5c5a8943-ab2c-4bb8-9e4e-e482f40366c2",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "Now I can see the bug. There are two places where `project?.name` (display name) is used instead of the filesystem `projectPath`. Let me fix both.\n\nUnit tests pass. Let me fix the lint formatting issue:\n\nI need to create a feature branch first:\n\nThe commit was already pushed directly to main. Let me post the results on the issue.\n\n完了しました。\n\n**修正内容:** `src/pages/SearchPage.tsx`\n- `useProjectStore()` から `projectPath` を取得するように変更\n- `handleResultClick` と「閉じる」ボタンで `project?.name` → `projectPath` に変更（表示名ではなくファイルシステムパスを使用）\n\n**原因:** `EditorPage` が project パラメータをファイルシステムパスとして解釈するため、表示名を渡すと `loadProject()` が失敗し、トップページにリダイレクトされていました。\n\n型チェック、lint、ユニットテストは全て通過済み。コミットは `main` に直接 push 済み（PR の作成はコミットが main に既にあったためスキップ）。",
+      "started_at": "2026-06-04T18:38:41Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "検索からのJumpがトップページに飛ぶ",
+  "updated_at": "2026-06-04T19:13:09Z",
+  "usage": {
+    "cache_read_tokens": 533366,
+    "cache_write_tokens": 0,
+    "input_tokens": 27574,
+    "output_tokens": 4885,
+    "total_tokens": 565825
+  }
+}

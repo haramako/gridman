@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T21:32:26Z",
+  "description": "## 概要\n\nChrome DevToolsのように、TMLで構築されたUIをUnity Editor上でインタラクティブにデバッグできるパネルを実装する。\n現在はTMLのレイアウト結果やバインディング状態を確認する手段がなく、問題調査に時間がかかる。\n\n---\n\n## 目標\n\n- ElementツリーをEditor上でビジュアル表示できる\n- 選択した要素の計算済みスタイルを確認できる\n- margin/padding/borderのボックスモデルをゲームビュー上でハイライト表示できる\n- バインディング変数のリアルタイム値を確認できる\n\n---\n\n## 実装計画\n\n### Phase 1: Elementツリービューア（Editor Window）\n\n**対象ファイル**: `Editor/TML.Unity/` 配下に新規作成\n\n1. `TMLDevToolsWindow.cs` — `EditorWindow` を継承したメインパネル\n   - `[MenuItem(\"Window/TML DevTools\")]` でメニューから開けるようにする\n   - 選択中の `TMLView` (MonoBehaviour) を自動検出して表示\n2. Elementツリーの表示\n   - `TMLEnvironment` / `TMLDocument` が保持する Fragment ツリーを走査\n   - `TreeView` (UIElements) で折りたたみ可能なツリー表示\n   - タグ名・id・class属性を表示\n\n### Phase 2: スタイルインスペクター\n\n3. 右ペインに「Computed Styles」パネルを追加\n   - 選択要素の `Style` 全フィールドを一覧表示（`Nothing`/`Inherit` は薄いグレーで区別）\n   - どのCSSルールがマッチしたか（StyleSheet側のセレクタ）も表示できると理想\n4. インラインスタイル編集（オプション）\n   - 値を変更したらその場で再レンダリング（ホットリロードと連携）\n\n### Phase 3: レイアウトボックスオーバーレイ\n\n5. `OnSceneGUI` を使い、選択要素のレイアウト計算結果（x,y,width,height）をSceneView上にオーバーレイ表示\n   - margin: 黄色、padding: 緑、content: 青（Chrome DevTools配色に準じる）\n6. `TMLView` のキャンバス座標とワールド座標の変換が必要\n\n### Phase 4: バインディングデバッガー\n\n7. 実行時のバインディングコンテキスト変数を一覧表示\n   - `VM.CreateContext()` で構築されたコンテキストチェーンをリフレクションで取得\n   - 変数名・型・現在値を表示\n   - `for` ループ変数も対応\n\n---\n\n## 技術的考慮点\n\n- `TMLDocument` に Fragment ツリーへのアクセサを追加する必要がある（現在は内部保持のみ）\n- Editor専用コードは `#if UNITY_EDITOR` ガードで囲む\n- Unityの `UIElements` (UI Toolkit) を使って実装すると見栄えが良い\n\n---\n\n## 受け入れ条件\n\n- EditorウィンドウからTMLViewを選択してElementツリーが表示される\n- 各要素のComputedStyleが確認できる\n- boxモデルがSceneView上でハイライトされる\n- バインディング変数の現在値が確認できる\n\n",
+  "id": "5335f29d-0e62-4c70-aa81-a871b6d7462b",
+  "identifier": "LIN-29",
+  "labels": [],
+  "parent_issue_id": "76cb5a29-01b8-431f-91a0-c2fe5f5aea40",
+  "priority": "medium",
+  "runs": [],
+  "status": "done",
+  "title": "[TML] DevTools: Unity Editor上のデバッグパネル実装",
+  "updated_at": "2026-05-30T07:13:38Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

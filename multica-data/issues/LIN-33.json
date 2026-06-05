@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T21:34:00Z",
+  "description": "## 概要\n\n現在のTMLは「データ → 表示」の一方向バインディングのみ対応している。\n`input`・`select`・`range` などのフォーム要素から「表示 → データ」への書き戻し（双方向バインディング）を実装し、設定画面やパラメータ調整UIを宣言的に書けるようにする。\n\n---\n\n## 目標\n\n- `<input>` / `<select>` / `<input type=\"range\">` / `<input type=\"checkbox\">` で双方向バインディングができる\n- `:value=\"expr\"` でデータを表示、`@change=\"expr\"` で変更をデータへ書き戻す（Vueライクな構文）\n- バインディングが更新されたら表示が自動的に再レンダリングされる\n\n---\n\n## 構文仕様（案）\n\n```html\n<!-- テキスト入力 -->\n<input type=\"text\" :value=\"city.name\" @change=\"city.name\" />\n\n<!-- スライダー -->\n<input type=\"range\" :value=\"taxRate\" @change=\"taxRate\" min=\"0\" max=\"100\" />\n\n<!-- チェックボックス -->\n<input type=\"checkbox\" :checked=\"city.autoGrow\" @change=\"city.autoGrow\" />\n\n<!-- セレクトボックス -->\n<select :value=\"selectedUnit\" @change=\"selectedUnit\">\n  <option :for=\"u in unitTypes\" :value=\"u.id\">{{u.name}}</option>\n</select>\n\n<!-- 変更時にメソッドを呼ぶ形式 -->\n<input type=\"text\" :value=\"city.name\" @change=\"OnCityNameChanged\" />\n```\n\n---\n\n## 実装計画\n\n### Phase 1: HTMLフォーム要素の追加レンダリング\n\n1. `TMLParser.cs` に `input`・`select`・`option` タグを追加登録\n2. `TMLBuilder.cs` でフォーム要素をUnityのUIコンポーネントに変換\n   - `<input type=\"text\">` → `TMP_InputField`\n   - `<input type=\"range\">` → `Slider`\n   - `<input type=\"checkbox\">` → `Toggle`\n   - `<select>` + `<option>` → `TMP_Dropdown`\n3. `type` / `min` / `max` / `placeholder` など基本属性を対応\n\n### Phase 2: `@change` イベント構文のパース\n\n4. `TMLParser.cs` / `AttributeParser.cs` に `@eventName` 構文を追加\n   - `@change=\"expr\"` → イベントハンドラとして登録\n   - `expr` がプロパティパス（`city.name`）の場合は書き戻し\n   - `expr` がメソッド名の場合はバインディングコンテキストのメソッドを呼び出す\n5. `BindingScript/VM.cs` に「書き込み可能なバインディング」を追加\n   - `SetValue(context, propertyPath, newValue)` メソッドを実装\n   - `PropertyAccess.cs` のリフレクション基盤を活用\n\n### Phase 3: Unityイベントとの接続\n\n6. `TMLView.cs` でフォーム要素のUnityイベントを購読\n   - `TMP_InputField.onValueChanged` → `@change` ハンドラを呼ぶ\n   - `Slider.onValueChanged`、`Toggle.onValueChanged`、`Dropdown.onValueChanged` も同様\n7. 書き戻し後に再バインディング（再レンダリング）をトリガー\n   - 変更されたデータオブジェクトを再バインドして表示を更新\n\n### Phase 4: リアクティブ更新（オプション）\n\n8. `INotifyPropertyChanged` インターフェースの対応\n   - バインドされたオブジェクトが `PropertyChanged` イベントを発火したら自動再レンダリング\n   - ゲームの状態変化（ターン経過など）に自動追従する仕組み\n\n### Phase 5: バリデーション\n\n9. `min`・`max`・`required`・`pattern` などのバリデーション属性に対応\n   - バリデーション失敗時は書き戻しを止め、エラースタイルを適用\n\n---\n\n## 技術的考慮点\n\n- プロパティパスへの書き込みにはリフレクションが必要（`PropertyInfo.SetValue`）。パフォーマンスが懸念される場合はコンパイル済みデリゲートでキャッシュ\n- `<select>` + `<option>` はネスト構造の処理が必要で、Binder層での前処理が必要\n- 再レンダリング時にフォーカス（キャレット位置）が失われないよう `TMP_InputField` の状態保持が必要\n- 読み取り専用バインディング（`:value`のみ）と双方向（`:value` + `@change`）を明確に区別する\n\n---\n\n## 受け入れ条件\n\n- `&lt;input type=\"text\"&gt;` でテキストが入力でき、データに書き戻される\n- `&lt;input type=\"range\"&gt;` でスライダーが動作し、データに書き戻される\n- `&lt;input type=\"checkbox\"&gt;` でチェック状態がデータに書き戻される\n- `&lt;select&gt;` で選択値がデータに書き戻される\n- データの変更が表示に反映される（再レンダリング）\n- `@change` にメソッド名を指定して呼び出せる\n\n",
+  "id": "13e5ec51-a178-4c41-aafc-0284bd52dc8d",
+  "identifier": "LIN-33",
+  "labels": [],
+  "parent_issue_id": "76cb5a29-01b8-431f-91a0-c2fe5f5aea40",
+  "priority": "medium",
+  "runs": [],
+  "status": "done",
+  "title": "[TML] 双方向データバインディング (Two-way Binding) の実装",
+  "updated_at": "2026-05-30T07:13:39Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

@@ -115,6 +115,7 @@ summaries/        ← doc/ 各ファイルのサマリー
 - ~~LIN-82, LIN-84, LIN-85, LIN-86, LIN-137, LIN-173, LIN-184, LIN-185, LIN-186, LIN-187, LIN-189~~: insight 作成済み（2026-05-15）、計 62件
 - ~~LIN-174, LIN-176, LIN-177, LIN-179, LIN-188, LIN-190, LIN-191〜199, LIN-201~~: insight 作成済み（2026-05-18）、計 78件
 - ~~LIN-202, LIN-203, LIN-204, LIN-205~~: insight 作成済み（2026-05-20）、計 82件
+- ~~LIN-12, LIN-13, LIN-14, LIN-15, LIN-17, LIN-206, LIN-207, LIN-208, LIN-209, LIN-21, LIN-24, LIN-29, LIN-30, LIN-33~~: insight 作成済み（2026-06-05）、計 96件
 - ~~`FileSystem Access API` 対応~~: → `FileSystem_Adapters.md` に記述済み
 - ~~ページビュー (`PageView`) のアーキテクチャ~~: → `Page_View.md` に記述済み
 - `syncDraftFromTab` の動作詳細（マルチタブ同期）が未ドキュメント

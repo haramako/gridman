@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:27:24Z",
+  "description": "> **⚠️ 重要: スレッドモデル**\n> TMLはUnityでの使用を主目的としており、**メインスレッドでのみ動作することを前提**としています。\n> マルチスレッド対応は設計上の目標ではないため、以下の改善点は優先度を慎重に判断してください。\n\n---\n\n複数箇所でスレッドセーフティの問題がある:\n\n- **TMLParser.cs:55-65**: `static readonly TMLParser Default` が状態を持つ → ThreadLocal化が必要\n- **PropertyAccess.cs:10**: 競合状態あり → `Lazy<T>` 使用で対応\n- **TMLBuilder.cs:28-31**: 静的コールバック代入で競合 → コンテキスト経由で渡す方式に変更\n\n参照: Tools/Lib/TODO.md (堅牢性改善 / Priority: High)",
+  "id": "f4f3c21d-42e5-4d27-b5e7-d014ba3f2734",
+  "identifier": "LIN-15",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "high",
+  "runs": [],
+  "status": "done",
+  "title": "[TML] スレッドセーフティの改善",
+  "updated_at": "2026-05-30T07:13:35Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

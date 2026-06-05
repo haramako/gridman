@@ -1,0 +1,44 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 1,
+    "total_duration_seconds": 466
+  },
+  "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T00:27:18Z",
+  "description": "**Binder.cs:59** にて `ITMLText.ToTML()` の再パース時に `TMLParser.Default.Parse()` を `bindingVM` なしで呼び出している。\n\n`ToTML()` の返り値に `{{expr}}` が含まれるとバインディング式がドロップされる。スレッドセーフティの問題（静的インスタンス）とも重なる。\n\n参照: Tools/Lib/TODO.md (バグ / Priority: Medium)",
+  "id": "0899d99b-4532-4366-9428-3d6a66b36953",
+  "identifier": "LIN-14",
+  "labels": [],
+  "parent_issue_id": null,
+  "priority": "medium",
+  "runs": [
+    {
+      "attempt": 1,
+      "completed_at": "2026-05-08T11:10:45Z",
+      "duration_seconds": 466,
+      "error": null,
+      "failure_reason": null,
+      "id": "c3da1340-6d49-4820-8f9a-8070729e2dc5",
+      "kind": "direct",
+      "max_attempts": 2,
+      "pr_url": null,
+      "result_output": "The bug is clear: `Binder.cs:58` calls `TMLParser.Default.Parse()` without passing `bindingVM`, so inline `{{expr}}` in `ITMLText.ToTML()` output gets silently dropped. I'll follow the TODO workflow: test → fix → verify → update TODO.Let me fix the project infrastructure to enable testing, then apply the code fix.The test fails as expected. Now applying the fix.Now let me verify the fix passes the test and doesn't break existing tests:The fix works — children count is now 3 (up from 2), confirming the `{{expr}}` is no longer dropped. The test assertion just needs a small adjustment for `convertSpaces` trimming trailing spaces:All 110 tests pass. Now let me update TODO.md and post the result.Done. The fix is a one-line change in `Binder.cs:58` — added `_bindingVM: vm` to the `TMLParser.Default.Parse()` call so that `ITMLText.ToTML()` output containing `{{expr}}` is correctly parsed as `BindText` nodes instead of being silently dropped. All 110 tests pass.",
+      "started_at": "2026-05-08T11:02:59Z",
+      "status": "completed",
+      "trigger_summary": null
+    }
+  ],
+  "status": "done",
+  "title": "[TML] TMLParser.Default に bindingVM が未設定",
+  "updated_at": "2026-05-30T07:13:36Z",
+  "usage": {
+    "cache_read_tokens": 2248320,
+    "cache_write_tokens": 0,
+    "input_tokens": 51558,
+    "output_tokens": 10315,
+    "total_tokens": 2310193
+  }
+}

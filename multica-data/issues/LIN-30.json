@@ -1,0 +1,28 @@
+{
+  "_derived": {
+    "has_failures": false,
+    "has_real_failures": false,
+    "run_count": 0,
+    "total_duration_seconds": 0
+  },
+  "assignee_id": "6fd91a5c-836d-4afb-aa35-f62575b730e8",
+  "assignee_type": "agent",
+  "created_at": "2026-05-01T21:32:47Z",
+  "description": "## 概要\n\nWeb Components / Vueコンポーネントのように、TMLテンプレート内でカスタムタグを定義・再利用できる仕組みを実装する。\n現在はUIの共通部品を再利用する手段がなく、同じHTMLが複数箇所に重複している。\n\n---\n\n## 目標\n\n- `<template name=\"XxxCard\">` でコンポーネントを定義できる\n- `<XxxCard :prop=\"value\" />` でどこからでも呼び出せる\n- propsとして外部からデータを受け取れる\n- コンポーネント内部でバインディングや `for` ループが使える\n\n---\n\n## 構文仕様（案）\n\n```html\n<!-- 定義 (component.html) -->\n<template name=\"ResourceRow\" props=\"resource\">\n  <div class=\"row\">\n    <span>{{resource.name}}</span>\n    <span>{{resource.amount}}</span>\n  </div>\n</template>\n\n<!-- 使用 -->\n<div>\n  <ResourceRow :resource=\"food\" />\n  <div :for=\"r in resources\">\n    <ResourceRow :resource=\"r\" />\n  </div>\n</div>\n```\n\n---\n\n## 実装計画\n\n### Phase 1: コンポーネント定義のパース\n\n1. `TMLParser` に `<template>` タグの認識を追加\n   - `name` 属性: コンポーネント名（PascalCase）\n   - `props` 属性: カンマ区切りのプロパティ名リスト\n   - 内部のElementツリーをテンプレートとして保持\n2. `TMLComponentRegistry` クラスを新規作成\n   - コンポーネント名 → Element テンプレートのマッピングを管理\n   - `TMLEnvironment` から参照できるシングルトン or インスタンス管理\n\n### Phase 2: カスタムタグの展開（Binder層）\n\n3. `Binder` がカスタムタグを検出したらコンポーネント展開を行う\n   - 大文字始まりのタグ名 or 登録済み名をカスタムタグとして識別\n   - `:prop=\"expr\"` の属性をpropsとして評価\n   - コンポーネントのテンプレートをコピーし、propsをコンテキストとしてバインディング実行\n4. スコープの分離: コンポーネント内のバインディングコンテキストはpropsスコープ + 外部スコープの継承\n\n### Phase 3: 外部ファイルからのインポート\n\n5. `<import src=\"components/card.html\" />` タグでコンポーネント定義を別ファイルから読み込む\n   - `TMLEnvironment.LoadStyle()` と同様の仕組みで実装\n   - `StreamingAssets` パス解決に対応\n\n### Phase 4: Slot（スロット）機能\n\n6. コンポーネント内に `<slot />` を定義し、呼び出し元からコンテンツを注入できるようにする\n\n```html\n<template name=\"Card\" props=\"title\">\n  <div class=\"card\">\n    <h3>{{title}}</h3>\n    <slot />  <!-- ここに外から渡したコンテンツが入る -->\n  </div>\n</template>\n\n<Card title=\"都市情報\">\n  <p>人口: {{city.pop}}</p>\n</Card>\n```\n\n---\n\n## 技術的考慮点\n\n- コンポーネント展開はBinder層で行うのが自然（レイアウト前に解決済みにする）\n- 循環参照（コンポーネントが自分自身を呼ぶ）の検出と制限が必要\n- `Element.Clone()` メソッドが必要（テンプレートの使い回しのため）\n\n---\n\n## 受け入れ条件\n\n- [ ] `<template>` タグでコンポーネントを定義できる\n- [ ] カスタムタグとして呼び出せる\n- [ ] propsとしてデータを渡してバインディングできる\n- [ ] `for` ループ内でコンポーネントを呼び出せる\n- [ ] 外部ファイルからコンポーネント定義をインポートできる",
+  "id": "bb7878d9-7867-4aa5-ac03-8f8f8a5ed852",
+  "identifier": "LIN-30",
+  "labels": [],
+  "parent_issue_id": "76cb5a29-01b8-431f-91a0-c2fe5f5aea40",
+  "priority": "medium",
+  "runs": [],
+  "status": "done",
+  "title": "[TML] コンポーネントシステム: 再利用可能カスタムタグの実装",
+  "updated_at": "2026-05-30T07:13:39Z",
+  "usage": {
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}
