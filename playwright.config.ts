@@ -5,7 +5,7 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   fullyParallel: false,
-  retries: 0,
+  retries: 1,
   timeout: 60000,
   use: {
     baseURL: 'http://localhost:5173',

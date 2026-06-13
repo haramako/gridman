@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { execSync } from 'node:child_process'
 import path from 'node:path'
 
 const SAMPLE_PATH = path.resolve('var/e2e-test')
@@ -10,6 +11,10 @@ test.beforeEach(async ({ page }) => {
   await input.press('Enter')
   await page.waitForURL('**/editor**')
   await page.waitForSelector('tbody tr')
+})
+
+test.afterEach(async () => {
+  execSync('npm run e2e:reset', { stdio: 'inherit' })
 })
 
 test('Ctrl+S で保存し、リロード後も変更が反映されている', async ({ page }) => {
