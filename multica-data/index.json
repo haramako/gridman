@@ -1,5 +1,21 @@
 [
   {
+    "assignee_id": "f890a92a-be29-4e72-a584-5519e22d0df0",
+    "created_at": "2026-06-13T19:29:35Z",
+    "has_failures": true,
+    "has_real_failures": true,
+    "identifier": "LIN-210",
+    "labels": [],
+    "parent_issue_id": null,
+    "priority": "none",
+    "run_count": 2,
+    "status": "in_review",
+    "title": "gridman E2Eテスト7件 intermittently タイムアウト（CI服务器上でWebサーバー応答停止）",
+    "total_duration_seconds": 213,
+    "total_tokens": 1837697,
+    "updated_at": "2026-06-13T19:43:50Z"
+  },
+  {
     "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
     "created_at": "2026-06-04T18:19:56Z",
     "has_failures": false,
