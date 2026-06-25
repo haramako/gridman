@@ -46,9 +46,9 @@
       "trigger_summary": null
     }
   ],
-  "status": "in_review",
+  "status": "done",
   "title": "gridman E2Eテスト7件 intermittently タイムアウト（CI服务器上でWebサーバー応答停止）",
-  "updated_at": "2026-06-13T19:43:50Z",
+  "updated_at": "2026-06-25T10:49:44Z",
   "usage": {
     "cache_read_tokens": 1725746,
     "cache_write_tokens": 110463,

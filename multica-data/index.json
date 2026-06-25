@@ -9,11 +9,11 @@
     "parent_issue_id": null,
     "priority": "none",
     "run_count": 2,
-    "status": "in_review",
+    "status": "done",
     "title": "gridman E2Eテスト7件 intermittently タイムアウト（CI服务器上でWebサーバー応答停止）",
     "total_duration_seconds": 213,
     "total_tokens": 1837697,
-    "updated_at": "2026-06-13T19:43:50Z"
+    "updated_at": "2026-06-25T10:49:44Z"
   },
   {
     "assignee_id": "3bc09c51-3698-40d2-9954-ce52490ba238",
