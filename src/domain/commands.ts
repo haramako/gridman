@@ -3,10 +3,6 @@
  *
  * Each user action that mutates data is represented as a Command object.
  * CommandHistory maintains undo/redo stacks and executes commands.
- *
- * Current status: infrastructure only.
- * Integration with useProjectStore.updateCell is left for the next phase
- * once the undo/redo UX (Ctrl+Z / Ctrl+Y shortcuts) is wired up.
  */
 
 export interface Command {
