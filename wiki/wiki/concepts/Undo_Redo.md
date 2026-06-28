@@ -73,10 +73,6 @@ Enter でセルを確定すると `onBlur` も発火し `commitEdit` が 2 回�
 
 → `committedRef` フラグで修正済み。詳細は [[concepts/spreadsheet/Cell_Editing]] を参照。
 
-## 未解決課題
-
-- **LIN-73**: Ctrl+X のカット操作が複数セルのとき 1 セルずつ Undo になる。`CompositeCommand` でまとめる必要がある。
-
 ## 関連
 
 - [[concepts/architecture/Domain_Logic]] — `commands.ts` の実装
